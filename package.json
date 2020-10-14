@@ -1,0 +1,35 @@
+{
+  "name": "weapon-rl",
+  "version": "1.0.0",
+  "description": "you are the weapon, bathe in blood",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "rollup --config ./buildtools/rollup.dev.config.js --watch",
+    "build": "rollup --config ./buildtools/rollup.prod.config.js",
+    "zip": "node ./buildtools/build-zip.js",
+    "butler-ps": "node ./buildtools/butler-upload-ps.js",
+    "build-upload": "npm run build && npm run zip && npm run butler-ps"
+  },
+  "author": "Second Place Games",
+  "license": "ISC",
+  "dependencies": {
+    "eslint-config-airbnb": "^18.2.0",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "archiver": "^5.0.2",
+    "eslint": "^7.10.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "node-powershell": "^4.0.0",
+    "rollup-plugin-copy": "^3.3.0",
+    "rollup-plugin-livereload": "^2.0.0",
+    "rollup-plugin-serve": "^1.0.4",
+    "rollup-plugin-watch-assets": "^1.0.1"
+  }
+}

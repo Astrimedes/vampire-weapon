@@ -1,0 +1,29 @@
+canvas{
+    background-color:  #36182c;
+    z-index: 1;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+    display: inline;
+    position: absolute;
+}
+
+#dialog{
+    z-index: 2;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+    position: absolute;
+    display: inline;
+    visibility: hidden;
+}
+
+#game-container{
+    width: 100%;
+    text-align: center;
+    margin: 0 auto;
+    position: relative;
+    z-index: 0;
+}
