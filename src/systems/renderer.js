@@ -112,7 +112,13 @@ export default class Renderer {
       this.animationsRunning |= creature.animate();
     }
 
+    // creature
     this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
+
+    // weapon
+    if (this.weapon) {
+      this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
+    }
 
     // draw health
     if (!creature.dead) {

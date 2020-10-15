@@ -15,7 +15,7 @@ export default class Creature {
      * @param {number} spriteNumber
      * @param {number} hp
      */
-  constructor(game, map, tile, spriteNumber, hp) {
+  constructor(game, map, tile, spriteNumber, hp, weapon) {
     this.game = game;
     this.map = map;
     this.move(tile);
@@ -33,12 +33,8 @@ export default class Creature {
     this.deathResolved = false;
     this.stunned = 1; // stunned for one turn on spawn
     this.angry = 0;
-  }
 
-  attack(creature, dx, dy) {
-    creature.hit(1);
-    this.animating = true;
-    this.beginAnimation(this.x - (dx/2), this.y - (dy/2), t => spike(t));
+    this.wield(weapon);
   }
 
   tryMove(dx, dy) {
@@ -46,8 +42,8 @@ export default class Creature {
     if (newTile.passable && !newTile.creature) {
       this.move(newTile);
       return true;
-    } else if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
-      this.attack(newTile.creature, dx, dy);
+    } else if (this.weapon && newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
+      this.weapon.attack(newTile.creature, dx, dy);
       return true;
     }
     // animation to bump against wrong direction...
@@ -74,6 +70,11 @@ export default class Creature {
       if (this.tile) this.tile.creature = null;
       this.tile = null;
       this.spriteNumber++; // corpse tile should be next tile...
+
+      // destroy weapon
+      if (this.weapon) {
+        this.weapon.die();
+      }
     }
   }
 
@@ -117,6 +118,37 @@ export default class Creature {
     return true;
   }
 
+  wield(weapon) {
+    if (this.weapon == weapon) return;
+    if (weapon.wielder) {
+      weapon.wielder.unWield();
+    }
+    this.weapon = weapon;
+    weapon.x = this.x;
+    weapon.y = this.y;
+
+    this.isPlayer = !!weapon.isPlayer;
+    if (!this.isPlayer) return true;
+
+    // remove self from monster list, assign to playerBody
+    let idx = this.game.monsters.findIndex(m => m == this);
+    if (idx !== -1) {
+      this.game.monsters.splice(idx, 1);
+    }
+    // add oldBody to monster pool
+    let oldBody = this.game.playerBody;
+    if (oldBody) {
+      this.game.monsters.push(oldBody);
+    }
+    this.game.playerBody = this;
+    return true;
+  }
+
+  unWield() {
+    this.weapon = null;
+    this.isPlayer = false;
+  }
+
   move(tile) {
     if (this.tile) {
       this.tile.creature = null;
@@ -131,6 +163,10 @@ export default class Creature {
     // set x & y from tile
     this.x = tile.x;
     this.y = tile.y;
+
+    if (this.weapon) {
+      this.weapon.x = this.x;
+    }
   }
 
   getDisplayX() {
@@ -151,6 +187,9 @@ export default class Creature {
   }
 
   act() {
+    // player controls behavior
+    if (this.isPlayer) return false;
+
     // seek player by default
     let seekTiles = this.map.getAdjacentPassableNeighbors(this.tile);
     seekTiles = seekTiles.filter(tile => !tile.creature || tile.creature.isPlayer);

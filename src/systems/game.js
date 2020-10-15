@@ -1,18 +1,15 @@
 import Dungeon from '../map/map.js';
 import Renderer from './renderer.js';
-import Player from '../creatures/player.js';
-import Blob from '../creatures/blob.js';
-import SlowGuy from '../creatures/slowguy.js';
+import Player from '../weapons/player.js';
 import Chump from '../creatures/chump.js';
 import { Exit } from '../map/tile.js';
-import Spider from '../creatures/spider.js';
 import { Rng } from '../tools/randoms.js';
 import { levels } from '../levels/levels.js';
 import { State } from './gamestate.js';
 import { Sprite } from '../../assets/sprite-index.js';
 
 const TILE_SIZE = 16;
-const TILE_COUNT = 14;
+const TILE_COUNT = 12;
 
 const assets = {};
 
@@ -20,6 +17,10 @@ export default class Game {
   constructor () {
     this.unloadAssets();
     this.state = null;
+
+    this.monsters = [];
+    this.corpses = [];
+    this.nextMonsters = [];
   }
 
   setState(state) {
@@ -107,7 +108,7 @@ export default class Game {
 
       if (x != 0 && y != 0) {
         // if both directions indicated, check adjacent tiles, select a passable one
-        let neighbors = this.map.getAdjacentPassableNeighbors(this.player.tile);
+        let neighbors = this.map.getAdjacentPassableNeighbors(this.playerBody.tile);
         let xDest = this.player.x + x;
         let yDest = this.player.y + y;
         neighbors.filter(t => !(t.x == xDest && t.y == yDest) && (t.x == xDest || t.y == yDest));
@@ -146,54 +147,23 @@ export default class Game {
       tries++;
     }
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
-    // if passed previous player, copy hp
-    if (player) {
-      this.player = new Player(this, this.map, tile, player.hp);
-      return;
-    }
-    this.player = new Player(this, this.map, tile);
+
+    this.player = new Player(this, this.map);
+    new Chump(this, this.map, tile, this.player); // will attach to playerBody
 
   }
 
   setupMonsters() {
-    this.monsters = [];
-    this.corpses = [];
-    this.nextMonsters = [];
-
     let chumps = 1;
-    let slimes = 1;
-    let slowguys = 1;
-    let spiders = 1;
 
     let level = levels[this.level];
     if (level) {
-      slimes = level.slimes || 0;
-      slowguys = level.slowguys || 0;
-      spiders = level.spiders || 0;
       chumps = level.chumps || 0;
     }
 
     // chumps
     for(let i = 0; i < chumps; i++) {
       this.monsters.push(new Chump(this, this.map, this.map.randomPassableTile()));
-    }
-
-    // slimes
-    for(let i = 0; i < slimes; i++) {
-      this.monsters.push(new Blob(this, this.map, this.map.randomPassableTile()));
-    }
-
-    // slow guy
-    for(let i = 0; i < slowguys; i++) {
-      this.monsters.push(new SlowGuy(this, this.map, this.map.randomPassableTile()));
-    }
-
-    // spiders
-    // choose corners to begin
-    let walls = [ 0, this.map.numTiles - 1];
-    for(let i = 0; i < spiders; i++) {
-      // this.monsters.push(new Spider(this, this.map, this.map.getTile(Rng.shuffle(walls), Rng.shuffle(walls))));
-      this.monsters.push(new Spider(this, this.map, this.map.getTile(Rng.any(walls), Rng.any(walls))));
     }
   }
 
@@ -238,7 +208,7 @@ export default class Game {
   }
 
   spawnExit() {
-    let tile = this.player.tile;
+    let tile = this.playerBody.tile;
     let tries = 0;
     let limit = 1000;
     while(tries < limit && tile.creature) {
@@ -270,8 +240,6 @@ export default class Game {
       this.lastRenderTime = this.time;
       this.time = elapsedTimeMs;
 
-      let delta = this.time - this.lastRenderTime;
-
       // reset animationsRunning flag
       this.renderer.resetCounts();
 
@@ -281,8 +249,8 @@ export default class Game {
       // draw title
       if (this.state == State.Title) {
         this.renderer.dimOverlay();
-        this.renderer.drawText('Cave Danger: a Game', 'darkorange');
-        this.renderer.drawText('Press any key to start', 'darkorange', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
+        this.renderer.drawText('Vampire Weapon', 'red');
+        this.renderer.drawText('Press any key to start', 'red', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
       }
 
       // draw dungeon etc
@@ -302,7 +270,7 @@ export default class Game {
         });
 
         // draw player
-        this.renderer.drawCreature(this.player);
+        this.renderer.drawCreature(this.playerBody);
 
         // monsters
         this.monsters.forEach( mon => {
@@ -310,7 +278,7 @@ export default class Game {
         });
 
         // draw level number
-        this.renderer.drawText(`Level ${this.level}`, 'yellow', 8, 4, 8);
+        this.renderer.drawText(`Level ${this.level}`, 'red', 8, 4, 8);
 
         // draw pause icon while input is blocked
         if (this.renderer.animationsRunning) {
@@ -321,7 +289,7 @@ export default class Game {
         if (this.state == State.GameOver) {
           this.renderer.dimOverlay();
           this.renderer.drawText('Game Over', 'red', 20);
-          this.renderer.drawText('Press any key to try again', 'darkorange', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
+          this.renderer.drawText('Press any key to try again', 'red', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
         }
       }
 
