@@ -7,6 +7,7 @@ import { Rng } from '../tools/randoms.js';
 import { levels } from '../levels/levels.js';
 import { State } from './gamestate.js';
 import { Sprite } from '../../assets/sprite-index.js';
+import Slime from '../creatures/slime.js';
 
 const TILE_SIZE = 16;
 const TILE_COUNT = 12;
@@ -17,10 +18,6 @@ export default class Game {
   constructor () {
     this.unloadAssets();
     this.state = null;
-
-    this.monsters = [];
-    this.corpses = [];
-    this.nextMonsters = [];
   }
 
   setState(state) {
@@ -82,11 +79,16 @@ export default class Game {
     document.querySelector('html').onkeypress = (e) =>  {
       if (!this.checkInput()) return;
 
-      if (e.key === 'w') this.player.tryMove(0, -1);
-      if (e.key === 's') this.player.tryMove(0, 1);
-      if (e.key === 'a') this.player.tryMove(-1, 0);
-      if (e.key === 'd') this.player.tryMove(1, 0);
+      let acted = false;
+      if (e.key === 'w') acted = this.player.tryMove(0, -1);
+      if (e.key === 's') acted = this.player.tryMove(0, 1);
+      if (e.key === 'a') acted = this.player.tryMove(-1, 0);
+      if (e.key === 'd') acted = this.player.tryMove(1, 0);
       // if (e.key === ' ') this.tick(); // wait
+
+      if (acted) {
+        this.tick();
+      }
     };
 
     document.querySelector('html').addEventListener('mousedown', e => {
@@ -126,12 +128,14 @@ export default class Game {
       }
 
       // finally move
-      this.player.tryMove(x, y);
+      if (this.player.tryMove(x, y)) {
+        this.tick();
+      }
     }
     );
   }
 
-  setupPlayer (player) {
+  setupPlayer () {
     // guarantee starting position neighbors have no monsters and >= 3 passable tiles
     let maxtries = 100;
     let tries = 0;
@@ -149,22 +153,26 @@ export default class Game {
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
 
     this.player = new Player(this, this.map);
-    new Chump(this, this.map, tile, this.player); // will attach to playerBody
+    this.playerBody = new Slime(this, this.map, tile, this.player); // will attach to playerBody
 
   }
 
   setupMonsters() {
-    let chumps = 1;
+    this.dead = [];
+    this.corpses = [];
+    this.monsters = [];
+    this.nextMonsters = [];
+    // let chumps = 1;
 
-    let level = levels[this.level];
-    if (level) {
-      chumps = level.chumps || 0;
-    }
+    // let level = levels[this.level];
+    // if (level) {
+    //   chumps = level.chumps || 0;
+    // }
 
-    // chumps
-    for(let i = 0; i < chumps; i++) {
-      this.monsters.push(new Chump(this, this.map, this.map.randomPassableTile()));
-    }
+    // // chumps
+    // for(let i = 0; i < chumps; i++) {
+    this.monsters.push(new Chump(this, this.map, this.map.randomPassableTile()));
+    // }
   }
 
   addMonster(creature) {
@@ -187,6 +195,7 @@ export default class Game {
         this.monsters.splice(i, 1);
       }
     }
+
     // player acts - act() will always occur after all monsters have acted...
     this.player.tryAct();
     if (this.player.dead) {
@@ -270,7 +279,7 @@ export default class Game {
         });
 
         // draw player
-        this.renderer.drawCreature(this.playerBody);
+        this.renderer.drawCreature(this.playerBody, true);
 
         // monsters
         this.monsters.forEach( mon => {
@@ -330,8 +339,6 @@ export default class Game {
     this.loadAssets();
 
     this.setupRendering();
-
-    this.loadLevel(1);
 
     this.setupInput();
 

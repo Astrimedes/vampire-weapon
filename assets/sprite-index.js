@@ -1,15 +1,17 @@
 const Sprite = {
   Creature: {
-    player: 0,
-    playerDead: 1,
     slime: 4,
     slimeDead: 5,
     slowguy: 8,
     slowguyDead: 9,
-    spider: 12,
-    spiderDead: 13,
     chump: 14,
     chumpDead: 15
+  },
+  Weapon: {
+    sword: 0,
+    swordDead: 1,
+    fist: 12,
+    fistDead: 13
   },
   Map: {
     floor: 2,

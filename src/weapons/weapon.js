@@ -36,6 +36,18 @@ export default class Weapon {
     this.isPlayer = isPlayer;
   }
 
+  setWielder(wielder) {
+    if (this.wielder && this.wielder != wielder) {
+      this.wielder.unWield();
+    }
+
+    this.x = wielder.x;
+    this.y = wielder.y;
+
+    this.tile = wielder.tile;
+    this.wielder = wielder;
+  }
+
   attack(creature, dx, dy) {
     creature.hit(1);
     this.animating = true;
@@ -88,6 +100,10 @@ export default class Weapon {
 
   getDisplayY() {
     return this.y + this.offsetY;
+  }
+
+  die() {
+    // drop weapon 'corpse' nearby
   }
 
 }

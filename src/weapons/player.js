@@ -24,9 +24,22 @@ export default class Player extends Weapon {
      * @param {number} hp
      */
   constructor(game, map) {
-    super(game, map, Sprite.Creature.player, true);
-
+    super(game, map, Sprite.Weapon.sword, true);
+    this.isPlayer = true;
     this.blood = 10;
+  }
+
+  tryAct() {
+    // do nothing
+  }
+
+  tryMove(dx, dy) {
+    if (this.wielder) {
+      if (this.wielder.tryMove(dx, dy)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   attack(creature, dx, dy) {
@@ -37,17 +50,20 @@ export default class Player extends Weapon {
   jump(creature) {
     if (this.blood < JUMP_COST) return;
     this.blood -= JUMP_COST;
+    if (creature.wield(this)) {
+      this.setWielder(creature);
+    }
   }
 
-  tryMove(dx, dy) {
-    // can't move without wielder, or blood to spend
-    if (!this.wielder || this.blood < MOVE_COST) {
-      return false;
-    }
-    let moved = this.wielder.tryMove(dx, dy);
-    this.blood -= moved ? MOVE_COST : 0;
-    return !!moved;
-  }
+  // tryMove(dx, dy) {
+  //   // can't move without wielder, or blood to spend
+  //   if (!this.wielder || this.blood < MOVE_COST) {
+  //     return false;
+  //   }
+  //   let moved = this.wielder.tryMove(dx, dy);
+  //   this.blood -= moved ? MOVE_COST : 0;
+  //   return !!moved;
+  // }
 
   die() {
     this.stopAnimation();
@@ -56,7 +72,7 @@ export default class Player extends Weapon {
       this.angry = 0;
       this.hp = 0;
       this.deathResolved = true;
-      if (this.tile) this.tile.creature = null;
+      if (this.tile) this.tile.weapon = null;
       this.tile = null;
       this.spriteNumber++; // corpse tile should be next tile...
     }

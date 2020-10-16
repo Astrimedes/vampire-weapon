@@ -109,14 +109,14 @@ export default class Renderer {
   drawCreature(creature, animate = true) {
     // update animations each draw frame
     if (animate) {
-      this.animationsRunning |= creature.animate();
+      this.animationsRunning = creature.animate() | creature?.weapon?.animate();
     }
 
     // creature
     this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
 
     // weapon
-    if (this.weapon) {
+    if (creature.weapon) {
       this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
     }
 

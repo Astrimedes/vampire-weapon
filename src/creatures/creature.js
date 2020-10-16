@@ -6,6 +6,8 @@ import { Tile } from '../map/tile.js';
 import Game from '../systems/game.js';
 import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
+let ID = 0;
+
 export default class Creature {
   /**
      *
@@ -33,6 +35,8 @@ export default class Creature {
     this.deathResolved = false;
     this.stunned = 1; // stunned for one turn on spawn
     this.angry = 0;
+
+    this.id = ID++;
 
     this.wield(weapon);
   }
@@ -74,6 +78,7 @@ export default class Creature {
       // destroy weapon
       if (this.weapon) {
         this.weapon.die();
+        this.unWield();
       }
     }
   }
@@ -110,6 +115,11 @@ export default class Creature {
     this.offsetX =  lerp(this.offsetX, 0, this.animInterp(fraction));
     this.offsetY =  lerp(this.offsetY, 0, this.animInterp(fraction));
 
+    if (this.weapon) {
+      this.weapon.offsetX = this.offsetX;
+      this.weapon.offsetY = this.offsetY;
+    }
+
     let min = 0.005;
 
     if (Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) {
@@ -120,15 +130,15 @@ export default class Creature {
 
   wield(weapon) {
     if (this.weapon == weapon) return;
-    if (weapon.wielder) {
-      weapon.wielder.unWield();
-    }
+
     this.weapon = weapon;
-    weapon.x = this.x;
-    weapon.y = this.y;
+
+    weapon.setWielder(this);
 
     this.isPlayer = !!weapon.isPlayer;
-    if (!this.isPlayer) return true;
+    if (this.isPlayer) {
+      this.stunned = 0; //reset stun
+    }
 
     // remove self from monster list, assign to playerBody
     let idx = this.game.monsters.findIndex(m => m == this);
@@ -136,10 +146,10 @@ export default class Creature {
       this.game.monsters.splice(idx, 1);
     }
     // add oldBody to monster pool
-    let oldBody = this.game.playerBody;
-    if (oldBody) {
-      this.game.monsters.push(oldBody);
-    }
+    // let oldBody = this.game.playerBody;
+    // if (oldBody && oldBody !== this) {
+    //   this.game.monsters.push(oldBody);
+    // }
     this.game.playerBody = this;
     return true;
   }
@@ -166,6 +176,8 @@ export default class Creature {
 
     if (this.weapon) {
       this.weapon.x = this.x;
+      this.weapon.y = this.y;
+      this.weapon.tile = this.tile;
     }
   }
 
