@@ -198,8 +198,8 @@ export default class Game {
 
     // player acts - act() will always occur after all monsters have acted...
     this.player.tryAct();
-    if (this.player.dead) {
-      dead.push(this.player);
+    if (this.playerBody.dead) {
+      dead.push(this.playerBody);
     }
 
     // dead are resolved

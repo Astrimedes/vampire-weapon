@@ -7,13 +7,13 @@ const ps = new Shell({
 });
 
 const zipFilePath = path.join(path.resolve('.'), 'build', 'build.zip');
-const uploadPath = '';
-throw "Not configured for butler push yet!"
+const uploadPath = 'secondplacegames/vampire-weapon:html5';
 
 console.log(zipFilePath, uploadPath);
 
 ps.addCommand('echo node-powershell');
-ps.addCommand(`butler push '${zipFilePath}' '${uploadPath}'`);
+ps.addCommand(`butler -i ~/.config/itch/spgames_creds push '${zipFilePath}' '${uploadPath}'`);
+
 
 ps.invoke()
   .then(output => {

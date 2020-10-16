@@ -67,15 +67,7 @@ export default class Player extends Weapon {
 
   die() {
     this.stopAnimation();
-    if (!this.deathResolved) {
-      this.stunned = 0;
-      this.angry = 0;
-      this.hp = 0;
-      this.deathResolved = true;
-      if (this.tile) this.tile.weapon = null;
-      this.tile = null;
-      this.spriteNumber++; // corpse tile should be next tile...
-    }
+    this.game.endGame();
   }
 
   beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 150) {
