@@ -8,6 +8,7 @@ import { levels } from '../levels/levels.js';
 import { State } from './gamestate.js';
 import { Sprite } from '../../assets/sprite-index.js';
 import Slime from '../creatures/slime.js';
+import { Dialog } from './dialog.js';
 
 const TILE_SIZE = 16;
 const TILE_COUNT = 12;
@@ -20,7 +21,7 @@ export default class Game {
     this.state = null;
   }
 
-  setState(state) {
+  setState (state) {
     this.state = state;
   }
 
@@ -49,22 +50,23 @@ export default class Game {
     };
   }
 
-  setupMap(level = 1) {
+  setupMap (level = 1) {
     this.exitReached = false;
     this.level = level;
     this.map = new Dungeon();
     this.map.generateLevel(this.numTiles);
+      // comment
   }
 
-  checkInput() {
+  checkInput () {
     // restart on button press after death
     if ((this.state == State.GameOver && !this.animationsRunning) || this.state == State.Title) {
       this.loadLevel(1);
       return false;
     }
 
-    // block movement during animation / death
-    if (this.renderer.animationsRunning || this.player.dead ) return false;
+    // block movement during animation / death / active dialog
+    if (this.renderer.animationsRunning || this.player.dead || this.state == State.Dialog) return false;
 
     // if stunned, advance by one tick on key press
     if (this.player.stunned) {
@@ -76,7 +78,7 @@ export default class Game {
   }
 
   setupInput () {
-    document.querySelector('html').onkeypress = (e) =>  {
+    document.querySelector('html').onkeypress = (e) => {
       if (!this.checkInput()) return;
 
       let acted = false;
@@ -86,20 +88,33 @@ export default class Game {
       if (e.key === 'd') acted = this.player.tryMove(1, 0);
       // if (e.key === ' ') this.tick(); // wait
 
-      if (acted) {
-        this.tick();
+      // spacebar toggles dialog test
+      if (e.key === ' ') {
+        // DIALOG
+        const dlg = new Dialog();
+        this.setState(State.Dialog);
+        dlg.reveal();
+
+        setTimeout(() => {
+          dlg.hide();
+          this.setState(State.Play);
+        }, 50000);
+
+        if (acted) {
+          this.tick();
+        }
       }
     };
 
     document.querySelector('html').addEventListener('mousedown', e => {
       if (!this.checkInput()) return;
 
-      let tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
+      const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
       if (!tile) return;
 
       // raw distance
-      let xDist = tile.x - this.player.x;
-      let yDist = tile.y - this.player.y;
+      const xDist = tile.x - this.player.x;
+      const yDist = tile.y - this.player.y;
 
       // raw direction
       let x = Math.sign(xDist);
@@ -110,9 +125,9 @@ export default class Game {
 
       if (x != 0 && y != 0) {
         // if both directions indicated, check adjacent tiles, select a passable one
-        let neighbors = this.map.getAdjacentPassableNeighbors(this.playerBody.tile);
-        let xDest = this.player.x + x;
-        let yDest = this.player.y + y;
+        const neighbors = this.map.getAdjacentPassableNeighbors(this.playerBody.tile);
+        const xDest = this.player.x + x;
+        const yDest = this.player.y + y;
         neighbors.filter(t => !(t.x == xDest && t.y == yDest) && (t.x == xDest || t.y == yDest));
         if (neighbors.length) {
           x = neighbors[0].x == xDest ? x : 0;
@@ -137,11 +152,11 @@ export default class Game {
 
   setupPlayer () {
     // guarantee starting position neighbors have no monsters and >= 3 passable tiles
-    let maxtries = 100;
+    const maxtries = 100;
     let tries = 0;
     let tile;
     let success = false;
-    while(tries < maxtries && !success) {
+    while (tries < maxtries && !success) {
       tile = this.map.randomPassableTile();
       let opencount = 0;
       this.map.getAdjacentNeighbors(tile).filter(t => !t.creature).forEach(t => {
@@ -154,10 +169,10 @@ export default class Game {
 
     this.player = new Player(this, this.map);
     this.playerBody = new Slime(this, this.map, tile, this.player); // will attach to playerBody
-
+    this.playerBody.hp += 2;
   }
 
-  setupMonsters() {
+  setupMonsters () {
     this.dead = [];
     this.corpses = [];
     this.monsters = [];
@@ -175,16 +190,16 @@ export default class Game {
     // }
   }
 
-  addMonster(creature) {
+  addMonster (creature) {
     this.nextMonsters.push(creature);
   }
 
-  tick() {
-    let dead = [];
+  tick () {
+    const dead = [];
 
     // monsters act
-    for(let i = this.monsters.length-1; i >= 0; i--) {
-      let mon = this.monsters[i];
+    for (let i = this.monsters.length - 1; i >= 0; i--) {
+      const mon = this.monsters[i];
 
       if (!mon.dead) {
         mon.tryAct(this.player);
@@ -216,11 +231,11 @@ export default class Game {
     }
   }
 
-  spawnExit() {
+  spawnExit () {
     let tile = this.playerBody.tile;
     let tries = 0;
-    let limit = 1000;
-    while(tries < limit && tile.creature) {
+    const limit = 1000;
+    while (tries < limit && tile.creature) {
       tile = this.map.randomPassableTile();
       tries++;
     }
@@ -263,7 +278,7 @@ export default class Game {
       }
 
       // draw dungeon etc
-      if (this.state == State.Play || this.state == State.GameOver) {
+      if (this.state.map) {
         // add next monsters between ticks
         if (this.nextMonsters.length) {
           this.monsters = this.monsters.concat(this.nextMonsters);
@@ -274,7 +289,7 @@ export default class Game {
         this.renderer.drawMap(this.map);
 
         // draw corpses
-        this.corpses.forEach( corpse => {
+        this.corpses.forEach(corpse => {
           this.renderer.drawCreature(corpse);
         });
 
@@ -282,7 +297,7 @@ export default class Game {
         this.renderer.drawCreature(this.playerBody, true);
 
         // monsters
-        this.monsters.forEach( mon => {
+        this.monsters.forEach(mon => {
           this.renderer.drawCreature(mon, !this.player.animating); // monsters animate after player?
         });
 
@@ -294,9 +309,12 @@ export default class Game {
           this.renderer.drawSpriteScaled(Sprite.Icon.stun, this.numTiles - 1, this.numTiles - 2, 2);
         }
 
+        if (this.state.dimmed) {
+          this.renderer.dimOverlay();
+        }
+
         // draw gameover state
         if (this.state == State.GameOver) {
-          this.renderer.dimOverlay();
           this.renderer.drawText('Game Over', 'red', 20);
           this.renderer.drawText('Press any key to try again', 'red', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
         }
@@ -310,16 +328,16 @@ export default class Game {
     window.requestAnimationFrame(draw);
   }
 
-  endGame() {
+  endGame () {
     this.state = State.GameOver;
   }
 
-  exit() {
+  exit () {
     this.level++;
     this.exitReached = true;
   }
 
-  loadLevel(level = 1, playerConfig = null) {
+  loadLevel (level = 1, playerConfig = null) {
     // find previous reference to player
     this.exitReached = false;
     this.exitSpawned = false;
@@ -333,7 +351,7 @@ export default class Game {
     }
   }
 
-  init() {
+  init () {
     this.setState(State.Loading);
 
     this.loadAssets();

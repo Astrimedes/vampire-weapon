@@ -12,11 +12,22 @@
 
 <body>
     <div id="game-container">
-        <div id="dialog">
+        <!-- Game canvas -->
+        <canvas id="canvas"></canvas>
+
+        <!-- Dialog -->
+        <div id="dialog" class="dialog hidden">
+            <form autocomplete="off">
+                <div id="input-box">
+                    <label for="qty">Quantity</label>
+                    <input type="text" id="qty" name="qty" />
+                </div>
+                <button id="dialog-submit">OK</button>
+            </form>
         </div>
-        <canvas></canvas>
     </div>
 
+    <!-- Scripts -->
     <script type="module" src="./bundle.js"></script>
 
 </body>

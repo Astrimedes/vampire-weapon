@@ -1,6 +1,6 @@
-canvas{
+#canvas{
     background-color:  #36182c;
-    z-index: 1;
+    z-index: -1;
     margin-left: auto;
     margin-right: auto;
     left: 0;
@@ -9,15 +9,24 @@ canvas{
     position: absolute;
 }
 
-#dialog{
-    z-index: 2;
+.dialog{
+    z-index: 100;
     margin-left: auto;
     margin-right: auto;
     left: 0;
     right: 0;
     position: absolute;
-    display: inline;
-    visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.hidden{
+    display: none;
+}
+
+#input-box{
+    color: white;
 }
 
 #game-container{
@@ -25,5 +34,4 @@ canvas{
     text-align: center;
     margin: 0 auto;
     position: relative;
-    z-index: 0;
 }
