@@ -12,7 +12,7 @@ const uploadPath = 'secondplacegames/vampire-weapon:html5';
 console.log(zipFilePath, uploadPath);
 
 ps.addCommand('echo node-powershell');
-ps.addCommand(`butler -i ~/.config/itch/spgames_creds push '${zipFilePath}' '${uploadPath}'`);
+ps.addCommand(`butler -i ./.config/itch/spgames_creds push '${zipFilePath}' '${uploadPath}'`);
 
 
 ps.invoke()
