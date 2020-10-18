@@ -20,6 +20,8 @@ export default class Weapon {
     this.map = map;
     this.spriteNumber = spriteNumber;
 
+    this.drawColor = 'red';
+
     this.x = 0;
     this.y = 0;
 

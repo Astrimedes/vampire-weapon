@@ -130,7 +130,7 @@ export default class Renderer {
 
   drawCreature(creature, animate = true) {
     // update animations each draw frame
-    if (animate) {
+    if (animate && !creature.dead) {
       this.animationsRunning = creature.animate() | creature?.weapon?.animate();
     }
 
@@ -151,10 +151,10 @@ export default class Renderer {
 
     // draw weapon reach
     if (creature.weapon.reach > 1) {
-      for (let i = 1; i < creature.weapon.reach; i++) {
+      for (let i = 1; i <= creature.weapon.reach; i++) {
         let tile = creature.map.getTile(creature.tile.x + (creature.lastMoveX * i), creature.tile.y + (creature.lastMoveY * i));
         if (!tile.passable) break;
-        this.drawTileRect(tile.x, tile.y, 'red', 0.21);
+        this.drawTileRect(tile.x, tile.y, creature.weapon.drawColor, 0.08);
       }
     }
 

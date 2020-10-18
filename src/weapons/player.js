@@ -27,6 +27,7 @@ export default class Player extends Weapon {
     super(game, map, Sprite.Weapon.sword, 1, true);
     this.isPlayer = true;
     this.blood = 10;
+    this.drawColor = 'yellow';
   }
 
   tryAct() {

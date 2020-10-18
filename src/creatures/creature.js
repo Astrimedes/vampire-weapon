@@ -86,7 +86,9 @@ export default class Creature {
         this.weapon.attack(newTile.creature, reachX, reachY);
         return true;
       }
-      proceed = newTile.passable && !newTile.creature;
+      if (!newTile.passable || newTile.creature) {
+        break;
+      }
     }
 
     if (moveTile) {

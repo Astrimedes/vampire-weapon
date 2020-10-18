@@ -145,12 +145,33 @@ export default class Game {
         y = x == 0 ? y : 0;
       }
 
+      if (x == 0 && y == 0) return;
+
       // finally move
       if (this.player.tryMove(x, y)) {
         this.tick();
       }
-    }
-    );
+    });
+
+    document.querySelector('html').addEventListener('mousemove', e => {
+      console.log(e);
+
+      this.highlightTile = null;
+
+      const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
+      if (!tile) return;
+
+      if (tile == this.player.tile || !this.map.inBounds(tile.x, tile.y)) {
+        return;
+      }
+
+      this.highlightTile = tile;
+    });
+
+    document.querySelector('html').addEventListener('mouseleave', e => {
+      console.log(e);
+      this.highlightTile = null;
+    });
   }
 
   setupPlayer(playerConfig = {}) {
@@ -161,11 +182,11 @@ export default class Game {
     let success = false;
     while (tries < maxtries && !success) {
       tile = this.map.randomPassableTile();
-      let opencount = 0;
-      this.map.getAdjacentNeighbors(tile).filter(t => !t.creature).forEach(t => {
-        opencount += t.passable ? 1 : 0;
-      });
-      success = opencount >= 3;
+
+      let neighbors = this.map.getAdjacentNeighbors(tile);
+      let opencount = neighbors.filter(t => t.passable && !t.creature).length;
+      let monsterCount = neighbors.filter(t => t.creature).length;
+      success = opencount >= 3 && monsterCount < 1;
       tries++;
     }
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
@@ -193,9 +214,9 @@ export default class Game {
     // }
 
     // // chumps
-    // for(let i = 0; i < chumps; i++) {
-    this.monsters.push(new Chump(this, this.map, this.map.randomPassableTile()));
-    // }
+    for(let i = 0; i < this.level; i++) {
+      this.monsters.push(new Chump(this, this.map, this.map.randomPassableTile()));
+    }
   }
 
   addMonster (creature) {
@@ -352,6 +373,11 @@ export default class Game {
         this.monsters.forEach(mon => {
           this.renderer.drawCreature(mon, !this.player.animating); // monsters animate after player?
         });
+
+        // draw highlighted tile
+        if (this.highlightTile && this.state == State.Play) {
+          this.renderer.drawTileRect(this.highlightTile.x, this.highlightTile.y, 'blue', 0.2);
+        }
 
         // draw level number
         this.renderer.drawText(`Level ${this.level}`, 'red', 8, 4, 8);
