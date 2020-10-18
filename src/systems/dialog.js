@@ -29,8 +29,8 @@ const getFormData = form => {
 };
 
 class Dialog {
-  constructor (settings = defaultSettings) {
-    this.settings = {...settings};
+  constructor(settings = {}) {
+    this.settings = Object.assign({}, defaultSettings, settings);
     this.open = !(this.getDialog()).classList.contains(CLASS_HIDDEN);
   }
 

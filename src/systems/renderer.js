@@ -122,12 +122,17 @@ export default class Renderer {
       this.animationsRunning = creature.animate() | creature?.weapon?.animate();
     }
 
-    // creature
-    this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
-
-    // weapon
+    // creature & weapon
     if (creature.weapon) {
-      this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
+      if (creature.lastMoveY < 0) {
+        this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
+        this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
+      } else {
+        this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
+        this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
+      }
+    } else {
+      this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
     }
 
     // draw health

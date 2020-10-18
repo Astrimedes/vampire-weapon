@@ -22,7 +22,7 @@ export default class Dungeon {
   generateTiles(numTiles) {
     const tiles = this.tiles = [];
 
-    const wallChance = 0.33;
+    const wallChance = 0.18;
     let passable = 0;
 
     for (let i = 0; i < numTiles; i++) {

@@ -41,8 +41,8 @@ export default class Weapon {
       this.wielder.unWield();
     }
 
-    this.x = wielder.x;
-    this.y = wielder.y;
+    this.x = wielder.getDisplayX();
+    this.y = wielder.getDisplayY();
 
     this.tile = wielder.tile;
     this.wielder = wielder;
@@ -95,11 +95,11 @@ export default class Weapon {
   }
 
   getDisplayX() {
-    return this.x + this.offsetX;
+    return this.x + (Math.sign(this.wielder.lastMoveX) * this.wielder.offsetWpnX) + this.offsetX;
   }
 
   getDisplayY() {
-    return this.y + this.offsetY;
+    return this.y + (Math.sign(this.wielder.lastMoveY) * this.wielder.offsetWpnY) + this.offsetY;
   }
 
   die() {

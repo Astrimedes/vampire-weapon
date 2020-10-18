@@ -110,12 +110,4 @@ export default class Player extends Weapon {
     return true;
   }
 
-  getDisplayX() {
-    return this.x + this.offsetX;
-  }
-
-  getDisplayY() {
-    return this.y + this.offsetY;
-  }
-
 }

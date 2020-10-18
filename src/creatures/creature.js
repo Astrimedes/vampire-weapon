@@ -31,6 +31,12 @@ export default class Creature {
     this.animStart = null;
     this.animDuration = 0;
 
+    this.lastMoveX = 0;
+    this.lastMoveY = 1;
+
+    this.offsetWpnX = 5/16;
+    this.offsetWpnY = 5/16;
+
     this.dead = false;
     this.deathResolved = false;
     this.stunned = 1; // stunned for one turn on spawn
@@ -42,6 +48,9 @@ export default class Creature {
   }
 
   tryMove(dx, dy) {
+    this.lastMoveX = dx;
+    this.lastMoveY = dy;
+
     let newTile = this.map.getNeighbor(this.tile, dx, dy);
     if (newTile.passable && !newTile.creature) {
       this.move(newTile);
@@ -87,6 +96,10 @@ export default class Creature {
     this.animating = true;
     this.offsetX = this.x - xTarget;
     this.offsetY = this.y - yTarget;
+    if (this.weapon) {
+      this.weapon.x = this.getDisplayX();
+      this.weapon.y = this.getDisplayY();
+    }
     // set this for proper first frame logic
     this.animStart = null;
     this.animDuration = duration;
@@ -99,6 +112,11 @@ export default class Creature {
     this.offsetY = 0;
     this.animStart = null;
     this.animDuration = 0;
+
+    if (this.weapon) {
+      this.weapon.x = this.getDisplayX();
+      this.weapon.y = this.getDisplayY();
+    }
   }
 
   animate() {
@@ -113,11 +131,11 @@ export default class Creature {
     let animTime = this.game.time - this.animStart;
     let fraction = animTime / this.animDuration;
     this.offsetX =  lerp(this.offsetX, 0, this.animInterp(fraction));
-    this.offsetY =  lerp(this.offsetY, 0, this.animInterp(fraction));
+    this.offsetY = lerp(this.offsetY, 0, this.animInterp(fraction));
 
     if (this.weapon) {
-      this.weapon.offsetX = this.offsetX;
-      this.weapon.offsetY = this.offsetY;
+      this.weapon.x = this.getDisplayX();
+      this.weapon.y = this.getDisplayY();
     }
 
     let min = 0.005;
@@ -169,15 +187,12 @@ export default class Creature {
 
     this.tile = tile;
     tile.creature = this;
-
     // set x & y from tile
     this.x = tile.x;
     this.y = tile.y;
 
     if (this.weapon) {
-      this.weapon.x = this.x;
-      this.weapon.y = this.y;
-      this.weapon.tile = this.tile;
+      this.weapon.tile = tile;
     }
   }
 
