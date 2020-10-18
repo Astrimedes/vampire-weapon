@@ -1,7 +1,7 @@
 const ID_DIALOG = 'dialog';
 const ID_FORM = 'dlg-form';
 const ID_MESSAGE = 'dlg-msg';
-const ID_SUBMIT = 'dlg-submit';
+const ID_SUBMIT = 'btn-submit';
 const ID_FIELDS = 'dlg-fields';
 
 const DATA_FIELD = 'data';
@@ -54,15 +54,23 @@ class Dialog {
 
   setMessage(message) {
     let node = document.getElementById(ID_MESSAGE);
-    node.innerText = message;
+    node.innerHTML = `<p>${message}</p>`;
   }
 
   setFields(fields) {
     // get parent node
     let node = document.getElementById(ID_FIELDS);
+
+    // clear it out
+    node.innerHTML = '';
+
+    // clear previous validation failures
+    let form = document.getElementById(ID_FORM);
+    form.reset();
+
     // create radio items
     let content = fields.map((f, i ) => {
-      return `<input type="radio" id="field-${i}" name="${DATA_FIELD}" value="${f?.value || f} required">
+      return `<input type="radio" id="field-${i}" name="${DATA_FIELD}" value="${f?.value || f}" required>
 <label for="field-${i}">${f?.label || f}</label><br></br>`;})?.join('\n');
     // insert into dom
     node.innerHTML = content;
@@ -70,13 +78,16 @@ class Dialog {
 
   setButtons(submit) {
     let btn = document.getElementById(ID_SUBMIT);
-    const handleSubmit = (e) => {
-      e.preventDefault();
+    const handleSubmit = () => {
+      // e.preventDefault();
       let form = document.getElementById(ID_FORM);
-      let result = getFormData(form)?.[DATA_FIELD];
-      if (result == undefined) return;
+
+      if (!form.checkValidity()) {
+        return;
+      }
 
       // callback
+      let result = getFormData(form)?.[DATA_FIELD];
       submit(result);
 
       // close dialog

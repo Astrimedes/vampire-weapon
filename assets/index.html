@@ -17,11 +17,19 @@
 
         <!-- Dialog -->
         <div id="dialog" class="dialog hidden">
-            <form id="dlg-form" autocomplete="off" onsubmit="">
-                <div id="dlg-msg"></div>
-                <div id="dlg-fields"></div>
-                <input type="submit" id="dlg-submit" value="OK"></input>
-            </form>
+            <div class="flex-margins">
+                <div class="col-margin"></div>
+                <div class="col-main">
+                    <form id="dlg-form" autocomplete="off" action="#">
+                        <div id="dlg-msg"></div>
+                        <div id="dlg-fields"></div>
+                        <div id="dlg-submit">
+                            <input id="btn-submit" type="submit" value="OK"></input>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-margin"></div>
+            </div>
         </div>
     </div>
 

@@ -113,17 +113,29 @@ export default class Game {
 
       // flag
       let solved = false;
+      let neighbors;
 
       if (x != 0 && y != 0) {
         // if both directions indicated, check adjacent tiles, select a passable one
-        const neighbors = this.map.getAdjacentPassableNeighbors(this.playerBody.tile);
+        neighbors = this.map.getAdjacentPassableNeighbors(this.playerBody.tile);
         const xDest = this.player.x + x;
         const yDest = this.player.y + y;
-        neighbors.filter(t => !(t.x == xDest && t.y == yDest) && (t.x == xDest || t.y == yDest));
+        neighbors.filter(t => (t.x == xDest || t.y == yDest));
         if (neighbors.length) {
-          x = neighbors[0].x == xDest ? x : 0;
-          y = neighbors[0].y == yDest ? y : 0;
-          solved = true;
+          let idx = 0;
+          // if we've chosen a 'diagonal' move...
+          if (neighbors[idx].x == xDest && neighbors[idx].y == yDest) {
+            if (neighbors.length > 1) {
+              idx++;
+            } else {
+              idx = -1;
+            }
+          }
+          if (idx != -1) {
+            x = neighbors[idx].x == xDest ? x : 0;
+            y = neighbors[idx].y == yDest ? y : 0;
+            solved = true;
+          }
         }
       }
 
@@ -141,7 +153,7 @@ export default class Game {
     );
   }
 
-  setupPlayer () {
+  setupPlayer(playerConfig = {}) {
     // guarantee starting position neighbors have no monsters and >= 3 passable tiles
     const maxtries = 100;
     let tries = 0;
@@ -159,8 +171,12 @@ export default class Game {
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
 
     this.player = new Player(this, this.map);
+    // copy
     this.playerBody = new Slime(this, this.map, tile, this.player); // will attach to playerBody
-    this.playerBody.hp += 2;
+
+    // copy over previous values
+    this.playerBody.hp = playerConfig?.playerBody?.hp || 3;
+    this.abilities = playerConfig?.abilities || [];
   }
 
   setupMonsters () {
@@ -242,6 +258,10 @@ export default class Game {
     this.dlg.reveal();
   }
 
+  addAbility(ability) {
+    this.abilities.push(ability);
+  }
+
   beginGameLoop () {
     let draw;
     this.time = 0;
@@ -252,11 +272,21 @@ export default class Game {
         if (!this.player.animating) {
           let dlgSettings = {
             type: 'prompt',
+            message: 'Choose an ability:',
             fields: [
-              'a', 'b'
+              'Size', 'Bleed', 'Ice'
             ],
-            message: 'Choose a or b to procced',
-            submit: () => this.loadLevel(this.level, this.player)
+            submit: (data) => {
+              console.log('submitted', data);
+              // add chosen ability
+              this.addAbility(data);
+              // load next level (level already incremented)
+              this.loadLevel(this.level, {
+                playerBody: this.playerBody,
+                player: this.player,
+                abilities: this.abilities
+              });
+            }
           };
           this.callDialog(dlgSettings);
         }
@@ -305,6 +335,10 @@ export default class Game {
 
         // draw level number
         this.renderer.drawText(`Level ${this.level}`, 'red', 8, 4, 8);
+        // draw list of abilities
+        this.abilities.forEach((a, i) => {
+          this.renderer.drawText(a, 'red', 8, 4, 9 + ((i+1)*12));
+        });
 
         // draw pause icon while input is blocked
         if (this.renderer.animationsRunning) {
@@ -357,7 +391,7 @@ export default class Game {
     this.exitReached = true;
   }
 
-  loadLevel (level = 1, playerConfig = null) {
+  loadLevel (level = 1, playerConfig) {
     this.setState(State.Loading);
 
     // find previous reference to player

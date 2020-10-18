@@ -88,6 +88,14 @@ export default class Renderer {
     this.ctx.restore();
   }
 
+  measureText(text, size) {
+    this.ctx.save();
+    this.ctx.font = size + 'px monospace';
+    let result = this.ctx.measureText(text);
+    this.ctx.restore();
+    return result;
+  }
+
   drawSprite (spriteNumber, x, y) {
     const { tileSize } = this;
     this.ctx.drawImage(this.assets.spritesheet, spriteNumber * tileSize, 0, tileSize, tileSize,

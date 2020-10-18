@@ -31,11 +31,53 @@
 
 #dlg-form{
     color: white;
+    display: flex;
+    flex-direction: column;
+    justify-self: center;
+}
+
+#dlg-msg{
+    text-align: center;
+}
+
+#dlg-submit{
+    text-align: center;
+}
+
+#dlg-fields{
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #game-container{
     width: 100%;
-    text-align: center;
     margin: 0 auto;
     position: relative;
+}
+
+.flex-margins {
+  display: flex;
+  justify-content: center;
+}
+
+.flex-margins .col-main {
+    flex: 1;
+    flex-grow: 4;
+    justify-content: center;
+}
+
+.flex-margins .col-margin {
+    flex: 2;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 400px) {
+    .flex-margins .col-margin {
+        display: none;
+    }
+    .flex-margins .col-main {
+        width: 100%
+    }
 }
