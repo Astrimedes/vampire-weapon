@@ -20,6 +20,7 @@ export default class Creature {
   constructor(game, map, tile, spriteNumber, hp, weapon) {
     this.game = game;
     this.map = map;
+    this.weapon = weapon;
     this.move(tile);
     this.spriteNumber = spriteNumber;
     this.hp = hp;
@@ -51,17 +52,48 @@ export default class Creature {
     this.lastMoveX = dx;
     this.lastMoveY = dy;
 
+    // first check movement - 1 square
     let newTile = this.map.getNeighbor(this.tile, dx, dy);
-    if (newTile.passable && !newTile.creature) {
-      this.move(newTile);
+    let moveTile = newTile.passable && !newTile.creature ? newTile : null;
+    if (moveTile && this.weapon.reach == 1) {
+      this.move(moveTile);
       return true;
-    } else if (this.weapon && newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
+    }
+    // attack adjacent
+    if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
       this.weapon.attack(newTile.creature, dx, dy);
       return true;
     }
-    // animation to bump against wrong direction...
-    this.beginAnimation(this.x - (dx/4), this.y - (dy/4), t => spike(t));
-    return false;
+    // bump against wall and return
+    if (!newTile.passable || newTile.creature) {
+      // animation to bump against wrong direction...
+      this.beginAnimation(this.x - (dx / 4), this.y - (dy / 4), t => spike(t));
+      return false;
+    }
+
+    if (this.weapon.reach < 2) return !!moveTile;
+
+    // check attack - weapon reach
+    let reachX = dx;
+    let reachY = dy;
+    let proceed = true;
+    while ((Math.abs(reachX) < this.weapon.reach && Math.abs(reachY) < this.weapon.reach) && proceed) {
+      reachX += Math.sign(dx);
+      reachY += Math.sign(dy);
+      newTile = this.map.getNeighbor(this.tile, reachX, reachY);
+      console.log('checking target tile creature', !!newTile.creature);
+      if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
+        this.weapon.attack(newTile.creature, reachX, reachY);
+        return true;
+      }
+      proceed = newTile.passable && !newTile.creature;
+    }
+
+    if (moveTile) {
+      this.move(moveTile);
+    }
+
+    return !!moveTile;
   }
 
   hit(dmg) {
@@ -85,10 +117,8 @@ export default class Creature {
       this.spriteNumber++; // corpse tile should be next tile...
 
       // destroy weapon
-      if (this.weapon) {
-        this.weapon.die();
-        this.unWield();
-      }
+      this.weapon.die();
+      this.unWield();
     }
   }
 
@@ -96,10 +126,8 @@ export default class Creature {
     this.animating = true;
     this.offsetX = this.x - xTarget;
     this.offsetY = this.y - yTarget;
-    if (this.weapon) {
-      this.weapon.x = this.getDisplayX();
-      this.weapon.y = this.getDisplayY();
-    }
+    this.weapon.x = this.getDisplayX();
+    this.weapon.y = this.getDisplayY();
     // set this for proper first frame logic
     this.animStart = null;
     this.animDuration = duration;
@@ -113,10 +141,8 @@ export default class Creature {
     this.animStart = null;
     this.animDuration = 0;
 
-    if (this.weapon) {
-      this.weapon.x = this.getDisplayX();
-      this.weapon.y = this.getDisplayY();
-    }
+    this.weapon.x = this.getDisplayX();
+    this.weapon.y = this.getDisplayY();
   }
 
   animate() {
@@ -133,10 +159,8 @@ export default class Creature {
     this.offsetX =  lerp(this.offsetX, 0, this.animInterp(fraction));
     this.offsetY = lerp(this.offsetY, 0, this.animInterp(fraction));
 
-    if (this.weapon) {
-      this.weapon.x = this.getDisplayX();
-      this.weapon.y = this.getDisplayY();
-    }
+    this.weapon.x = this.getDisplayX();
+    this.weapon.y = this.getDisplayY();
 
     let min = 0.005;
 
@@ -147,8 +171,6 @@ export default class Creature {
   }
 
   wield(weapon) {
-    if (this.weapon == weapon) return;
-
     this.weapon = weapon;
 
     weapon.setWielder(this);
@@ -191,9 +213,7 @@ export default class Creature {
     this.x = tile.x;
     this.y = tile.y;
 
-    if (this.weapon) {
-      this.weapon.tile = tile;
-    }
+    this.weapon.tile = tile;
   }
 
   getDisplayX() {

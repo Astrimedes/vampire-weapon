@@ -177,6 +177,7 @@ export default class Game {
     // copy over previous values
     this.playerBody.hp = playerConfig?.playerBody?.hp || 3;
     this.abilities = playerConfig?.abilities || [];
+    this.player.reach = playerConfig?.player?.reach || this.player.reach;
   }
 
   setupMonsters () {
@@ -259,7 +260,18 @@ export default class Game {
   }
 
   addAbility(ability) {
-    this.abilities.push(ability);
+    if (ability == 'Size') {
+      this.player.reach++; // increase player weaopon reach
+    }
+    let idx = this.abilities.findIndex(a => a.type == ability);
+    if (idx != -1) {
+      this.abilities[idx].count++;
+    } else {
+      this.abilities.push({
+        type: ability,
+        count: 1
+      });
+    }
   }
 
   beginGameLoop () {
@@ -270,12 +282,20 @@ export default class Game {
       if (this.exitReached && this.state !== State.Dialog) {
         // let animations finish
         if (!this.player.animating) {
+          // determine which abilities to offer
+          let fields = ['Size', 'Bleed', 'Ice'];
+          let sizeIdx = this.abilities.findIndex(a => a.type == 'Size');
+          if (sizeIdx !== -1) {
+            const LIMIT = 3;
+            if (this.abilities[sizeIdx]?.count >= LIMIT) {
+              fields.splice(sizeIdx, 1);
+            }
+          }
+          // setup dialog
           let dlgSettings = {
             type: 'prompt',
             message: 'Choose an ability:',
-            fields: [
-              'Size', 'Bleed', 'Ice'
-            ],
+            fields: fields,
             submit: (data) => {
               console.log('submitted', data);
               // add chosen ability
@@ -337,7 +357,11 @@ export default class Game {
         this.renderer.drawText(`Level ${this.level}`, 'red', 8, 4, 8);
         // draw list of abilities
         this.abilities.forEach((a, i) => {
-          this.renderer.drawText(a, 'red', 8, 4, 9 + ((i+1)*12));
+          let text = a.type;
+          if (a.count > 1) {
+            text += ' x' + a.count;
+          }
+          this.renderer.drawText(text, 'red', 8, 4, 9 + ((i + 1) * 12));
         });
 
         // draw pause icon while input is blocked

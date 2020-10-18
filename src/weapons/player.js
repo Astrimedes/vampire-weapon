@@ -24,7 +24,7 @@ export default class Player extends Weapon {
      * @param {number} hp
      */
   constructor(game, map) {
-    super(game, map, Sprite.Weapon.sword, true);
+    super(game, map, Sprite.Weapon.sword, 1, true);
     this.isPlayer = true;
     this.blood = 10;
   }
@@ -44,6 +44,7 @@ export default class Player extends Weapon {
 
   attack(creature, dx, dy) {
     super.attack(creature, dx, dy);
+    console.log(this);
     this.blood += HIT_GAIN;
   }
 

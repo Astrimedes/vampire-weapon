@@ -15,13 +15,15 @@ export default class Weapon {
      * @param {number} spriteNumber
      * @param {number} hp
      */
-  constructor(game, map, spriteNumber, isPlayer = false) {
+  constructor(game, map, spriteNumber, reach = 1, isPlayer = false) {
     this.game = game;
     this.map = map;
     this.spriteNumber = spriteNumber;
 
     this.x = 0;
     this.y = 0;
+
+    this.reach = reach; // attack reach
 
     // set these after move to prevent any initial animation
     this.offsetX = 0;

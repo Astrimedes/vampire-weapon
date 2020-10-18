@@ -69,6 +69,18 @@ export default class Renderer {
     this.ctx.restore();
   }
 
+  drawTileRect(x, y, color = 'red', alpha = 0.5) {
+    this.ctx.save();
+    let xDraw = x * this.tileSize * this.scaleX;
+    let yDraw = y * this.tileSize * this.scaleY;
+    let sideX = this.tileSize * this.scaleX;
+    let sideY = this.tileSize * this.scaleY;
+    this.ctx.fillStyle = color;
+    this.ctx.globalAlpha = alpha;
+    this.ctx.fillRect(xDraw, yDraw, sideX, sideY);
+    this.ctx.restore();
+  }
+
   drawText(text, color = 'yellow', size = 8, x = null, y = null) {
     this.ctx.save();
 
@@ -122,17 +134,28 @@ export default class Renderer {
       this.animationsRunning = creature.animate() | creature?.weapon?.animate();
     }
 
-    // creature & weapon
-    if (creature.weapon) {
-      if (creature.lastMoveY < 0) {
-        this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
-        this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
-      } else {
-        this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
-        this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
-      }
+    // no weapon
+    if (!creature.weapon) {
+      this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
+      return;
+    }
+
+    // weapon drawing
+    if (creature.lastMoveY < 0) {
+      this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
+      this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
     } else {
       this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
+      this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
+    }
+
+    // draw weapon reach
+    if (creature.weapon.reach > 1) {
+      for (let i = 1; i < creature.weapon.reach; i++) {
+        let tile = creature.map.getTile(creature.tile.x + (creature.lastMoveX * i), creature.tile.y + (creature.lastMoveY * i));
+        if (!tile.passable) break;
+        this.drawTileRect(tile.x, tile.y, 'red', 0.21);
+      }
     }
 
     // draw health
