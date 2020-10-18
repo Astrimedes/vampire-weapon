@@ -1,6 +1,6 @@
 #canvas{
     background-color:  #36182c;
-    z-index: -1;
+    z-index: 0;
     margin-left: auto;
     margin-right: auto;
     left: 0;
@@ -26,6 +26,10 @@
 }
 
 #input-box{
+    color: white;
+}
+
+#dlg-form{
     color: white;
 }
 

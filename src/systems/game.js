@@ -3,8 +3,6 @@ import Renderer from './renderer.js';
 import Player from '../weapons/player.js';
 import Chump from '../creatures/chump.js';
 import { Exit } from '../map/tile.js';
-import { Rng } from '../tools/randoms.js';
-import { levels } from '../levels/levels.js';
 import { State } from './gamestate.js';
 import { Sprite } from '../../assets/sprite-index.js';
 import Slime from '../creatures/slime.js';
@@ -22,7 +20,12 @@ export default class Game {
   }
 
   setState (state) {
-    this.state = state;
+    if (state !== this.state) {
+      this.lastState = this.state;
+      this.state = state;
+      return true;
+    }
+    return false;
   }
 
   loadAssets (force = false) {
@@ -55,7 +58,7 @@ export default class Game {
     this.level = level;
     this.map = new Dungeon();
     this.map.generateLevel(this.numTiles);
-      // comment
+    // comment
   }
 
   checkInput () {
@@ -79,6 +82,7 @@ export default class Game {
 
   setupInput () {
     document.querySelector('html').onkeypress = (e) => {
+      e.preventDefault();
       if (!this.checkInput()) return;
 
       let acted = false;
@@ -89,24 +93,20 @@ export default class Game {
       // if (e.key === ' ') this.tick(); // wait
 
       // spacebar toggles dialog test
-      if (e.key === ' ') {
+      if (e.key === ' ' && this.state !== State.Dialog) {
         // DIALOG
-        const dlg = new Dialog();
+        this.dlg = new Dialog();
         this.setState(State.Dialog);
-        dlg.reveal();
+        this.dlg.reveal();
+      }
 
-        setTimeout(() => {
-          dlg.hide();
-          this.setState(State.Play);
-        }, 50000);
-
-        if (acted) {
-          this.tick();
-        }
+      if (acted) {
+        this.tick();
       }
     };
 
     document.querySelector('html').addEventListener('mousedown', e => {
+      e.preventDefault();
       if (!this.checkInput()) return;
 
       const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
@@ -278,12 +278,8 @@ export default class Game {
       }
 
       // draw dungeon etc
-      if (this.state.map) {
-        // add next monsters between ticks
-        if (this.nextMonsters.length) {
-          this.monsters = this.monsters.concat(this.nextMonsters);
-          this.nextMonsters.length = 0;
-        }
+      if (this.state.hasMap) {
+        this.systemsUpdate();
 
         // draw map
         this.renderer.drawMap(this.map);
@@ -328,8 +324,26 @@ export default class Game {
     window.requestAnimationFrame(draw);
   }
 
+  systemsUpdate() {
+    // add next monsters between ticks
+    if (this.nextMonsters.length) {
+      this.monsters = this.monsters.concat(this.nextMonsters);
+      this.nextMonsters.length = 0;
+    }
+
+    // check dialog status
+    if (this.state == State.Dialog) {
+      let off = !this.dlg || !this.dlg.open;
+      if (off) {
+        this.dlg = null;
+        this.setState(this.lastState !== State.Dialog ? this.lastState : State.Play);
+      }
+
+    }
+  }
+
   endGame () {
-    this.state = State.GameOver;
+    this.setState(State.GameOver);
   }
 
   exit () {
@@ -338,6 +352,8 @@ export default class Game {
   }
 
   loadLevel (level = 1, playerConfig = null) {
+    this.setState(State.Loading);
+
     // find previous reference to player
     this.exitReached = false;
     this.exitSpawned = false;
@@ -346,9 +362,7 @@ export default class Game {
     this.setupPlayer(playerConfig);
 
     // update state
-    if (this.state !== State.Loading && this.player && this.monsters && this.map) {
-      this.setState(State.Play);
-    }
+    this.setState(State.Play);
   }
 
   init () {

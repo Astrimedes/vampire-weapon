@@ -17,12 +17,10 @@
 
         <!-- Dialog -->
         <div id="dialog" class="dialog hidden">
-            <form autocomplete="off">
-                <div id="input-box">
-                    <label for="qty">Quantity</label>
-                    <input type="text" id="qty" name="qty" />
-                </div>
-                <button id="dialog-submit">OK</button>
+            <form id="dlg-form" autocomplete="off" onsubmit="">
+                <div id="dlg-msg"></div>
+                <div id="dlg-fields"></div>
+                <input type="submit" id="dlg-submit" value="OK"></input>
             </form>
         </div>
     </div>

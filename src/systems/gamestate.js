@@ -2,27 +2,27 @@ const State = {
   Loading: {
     id: 0,
     dimmed: false,
-    map: false
+    hasMap: false
   },
   Title: {
     id: 1,
     dimmed: true,
-    map: false
+    hasMap: false
   },
   Play: {
     id: 2,
     dimmed: false,
-    map: true
+    hasMap: true
   },
   GameOver: {
     id: 3,
     dimmed: true,
-    map: true
+    hasMap: true
   },
   Dialog: {
     id: 4,
     dimmed: true,
-    map: true
+    hasMap: true
   },
 };
 

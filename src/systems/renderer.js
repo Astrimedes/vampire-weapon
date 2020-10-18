@@ -47,8 +47,10 @@ export default class Renderer {
     canvas.style.height = styleHeight;
 
     let dialog = document.getElementById('dialog');
-    dialog.style.width = styleWidth;
-    dialog.style.height = styleHeight;
+    if (dialog) {
+      dialog.style.width = styleWidth;
+      dialog.style.height = styleHeight;
+    }
   }
 
   setAssets (assets) {
