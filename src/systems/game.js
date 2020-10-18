@@ -90,15 +90,6 @@ export default class Game {
       if (e.key === 's') acted = this.player.tryMove(0, 1);
       if (e.key === 'a') acted = this.player.tryMove(-1, 0);
       if (e.key === 'd') acted = this.player.tryMove(1, 0);
-      // if (e.key === ' ') this.tick(); // wait
-
-      // spacebar toggles dialog test
-      if (e.key === ' ' && this.state !== State.Dialog) {
-        // DIALOG
-        this.dlg = new Dialog();
-        this.setState(State.Dialog);
-        this.dlg.reveal();
-      }
 
       if (acted) {
         this.tick();
@@ -245,19 +236,34 @@ export default class Game {
     this.map.replaceTile(tile, Exit);
   }
 
+  callDialog(settings) {
+    this.dlg = new Dialog(settings);
+    this.setState(State.Dialog);
+    this.dlg.reveal();
+  }
+
   beginGameLoop () {
     let draw;
     this.time = 0;
     draw = (elapsedTimeMs) => {
       // check for exit from level
-      if (this.exitReached) {
+      if (this.exitReached && this.state !== State.Dialog) {
         // let animations finish
         if (!this.player.animating) {
-          this.loadLevel(this.level, this.player);
-          // call next rqaf before exiting
-          window.requestAnimationFrame(draw);
-          return;
+          let dlgSettings = {
+            type: 'prompt',
+            fields: [
+              'a', 'b'
+            ],
+            message: 'Choose a or b to procced',
+            submit: () => this.loadLevel(this.level, this.player)
+          };
+          this.callDialog(dlgSettings);
         }
+
+        // call next rqaf before exiting
+        window.requestAnimationFrame(draw);
+        return;
       }
 
       this.frameSpeed = Math.min(Math.max((elapsedTimeMs - this.time) / 1000.0, 0.001), 1);
