@@ -10,6 +10,6 @@ export default class Chump extends Creature {
    * @param {Tile} tile
    */
   constructor(game, map, tile, weapon = new Fist(game, map)) {
-    super(game, map, tile, Sprite.Creature.chump, 2, weapon);
+    super(game, map, tile, Sprite.Creature.chump, 1, weapon);
   }
 }
