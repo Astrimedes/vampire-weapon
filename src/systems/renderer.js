@@ -121,6 +121,7 @@ export default class Renderer {
   }
 
   getTileAt(xPixel, yPixel, map) {
+    if (!map) return;
     const { tileSize, scaleX, scaleY } = this;
     let rect = this.canvas.getBoundingClientRect();
     let x = Math.floor((xPixel - rect.left) / tileSize / scaleX);
@@ -150,33 +151,32 @@ export default class Renderer {
     }
 
     // draw weapon reach
-    if (creature.weapon.reach > 1) {
-      for (let i = 1; i <= creature.weapon.reach; i++) {
-        let tile = creature.map.getTile(creature.tile.x + (creature.lastMoveX * i), creature.tile.y + (creature.lastMoveY * i));
-        if (!tile.passable) break;
-        this.drawTileRect(tile.x, tile.y, creature.weapon.drawColor, 0.08);
-      }
+    for (let i = 1; i <= creature.weapon.reach; i++) {
+      let tile = creature.map.getTile(creature.tile.x + (creature.lastMoveX * i), creature.tile.y + (creature.lastMoveY * i));
+      if (!tile.passable && !tile.creature) break;
+      this.drawTileRect(tile.x, tile.y, creature.weapon.drawColor, 0.08);
     }
 
     // draw health
     if (!creature.dead) {
-      const size = (5/16);
+      const size = (5 / 16);
       const row = 3;
       const height = 0.75;
-      for(let i = 0; i < creature.hp; i++) {
-        this.drawSprite(Sprite.Icon.hp, creature.getDisplayX() + (i%row) * size, creature.getDisplayY() - Math.floor(i/row) * size - height);
+      for (let i = 0; i < creature.hp; i++) {
+        this.drawSprite(Sprite.Icon.hp, creature.getDisplayX() + (i % row) * size, creature.getDisplayY() - Math.floor(i / row) * size - height);
       }
     }
 
     // draw status effects
+    let x = creature.getDisplayX() + 0.65;
+    let y = creature.getDisplayY() - 0;
     if (creature.stunned) {
-      const x = 0.65;
-      const height = 0;
-      this.drawSprite(Sprite.Icon.stun, creature.getDisplayX() + x, creature.getDisplayY() - height);
-    } else if (creature.angry) {
-      const x = 0.65;
-      const height = 0;
-      this.drawSprite(Sprite.Icon.angry, creature.getDisplayX() + x, creature.getDisplayY() - height);
+      this.drawSprite(Sprite.Icon.stun, x, y);
+      x -= 0.65;
+    }
+    if (creature.fire || creature.bleed || creature.ice) {
+      this.drawSprite(Sprite.Icon.fire, x, y);
+      x -= 0.65;
     }
   }
 

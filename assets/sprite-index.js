@@ -21,7 +21,7 @@ const Sprite = {
   Icon: {
     hp: 6,
     stun: 7,
-    angry: 10
+    fire: 10
   }
 };
 

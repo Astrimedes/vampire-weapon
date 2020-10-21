@@ -40,8 +40,12 @@ export default class Creature {
 
     this.dead = false;
     this.deathResolved = false;
+
     this.stunned = 1; // stunned for one turn on spawn
-    this.angry = 0;
+
+    this.fire = 0;
+    this.ice = 0;
+    this.bleed = 0;
 
     this.id = ID++;
 
@@ -49,6 +53,7 @@ export default class Creature {
   }
 
   tryMove(dx, dy) {
+    // always change facing even if move doesn't complete
     this.lastMoveX = dx;
     this.lastMoveY = dy;
 
@@ -71,7 +76,7 @@ export default class Creature {
       return false;
     }
 
-    if (this.weapon.reach < 2) return !!moveTile;
+    if (this.weapon.reach < 2) return false;
 
     // check attack - weapon reach
     let reachX = dx;
@@ -81,7 +86,6 @@ export default class Creature {
       reachX += Math.sign(dx);
       reachY += Math.sign(dy);
       newTile = this.map.getNeighbor(this.tile, reachX, reachY);
-      console.log('checking target tile creature', !!newTile.creature);
       if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
         this.weapon.attack(newTile.creature, reachX, reachY);
         return true;
@@ -98,20 +102,49 @@ export default class Creature {
     return !!moveTile;
   }
 
-  hit(dmg) {
+  hit(dmg, effects) {
     this.hp -= dmg;
-    if (this.hp <= 0) {
-      this.dead = true;
+    effects.forEach(e => {
+      console.log('weapon hit effect:', e);
+      switch (e.type) {
+      case 'Fire':
+        this.fire = (this.fire || 0) + e.value;
+        break;
+      case 'Ice':
+        this.ice = (this.ice || 0) + e.value;
+        break;
+      case 'Bleed':
+        this.bleed = (this.bleed || 0) + e.value;
+        break;
+      default:
+        break;
+      }
+    });
+    this.dead |= this.hp <= 0;
+  }
+
+  addStatus(name, qty = 1) {
+    switch (name) {
+    case 'Fire':
+      this.fire = (this.fire || 0) + qty;
+      break;
+    case 'Ice':
+      this.ice = (this.ice || 0) + qty;
+      break;
+    case 'Bleed':
+      this.bleed = (this.bleed || 0) + qty;
+      break;
     }
-    // increase anim speed when attacked so they jump into position
-    this.animSpeed *= 2;
+
   }
 
   die() {
     this.stopAnimation();
     if (!this.deathResolved) {
       this.stunned = 0;
-      this.angry = 0;
+      this.fire = 0;
+      this.ice = 0;
+      this.bleed = 0;
       this.hp = 0;
       this.deathResolved = true;
       if (this.tile) this.tile.creature = null;

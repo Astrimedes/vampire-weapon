@@ -15,7 +15,7 @@ export default class Weapon {
      * @param {number} spriteNumber
      * @param {number} hp
      */
-  constructor(game, map, spriteNumber, reach = 1, isPlayer = false) {
+  constructor(game, map, spriteNumber, reach = 1, isPlayer = false, effects = []) {
     this.game = game;
     this.map = map;
     this.spriteNumber = spriteNumber;
@@ -25,7 +25,9 @@ export default class Weapon {
     this.x = 0;
     this.y = 0;
 
+    // weapon effects
     this.reach = reach; // attack reach
+    this.effects = effects; // array of { type: str, value: number }
 
     // set these after move to prevent any initial animation
     this.offsetX = 0;
@@ -38,6 +40,22 @@ export default class Weapon {
     this.deathResolved = false;
 
     this.isPlayer = isPlayer;
+  }
+
+  addEffect(effect) {
+    if (effect == 'Size') {
+      this.reach++;
+      return;
+    }
+    let idx = this.effects.findIndex(e => e.type == effect);
+    if (idx == -1) {
+      idx = this.effects.push({ type: effect, value: 0 }) - 1;
+    }
+    this.effects[idx].value++;
+  }
+
+  removeEffect(effect) {
+    delete this.effects[effect];
   }
 
   setWielder(wielder) {
@@ -53,7 +71,7 @@ export default class Weapon {
   }
 
   attack(creature, dx, dy) {
-    creature.hit(1);
+    creature.hit(1, this.effects);
     this.animating = true;
     this.beginAnimation(this.x - (dx/2), this.y - (dy/2), t => spike(t));
   }

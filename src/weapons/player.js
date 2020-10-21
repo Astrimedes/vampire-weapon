@@ -11,7 +11,6 @@ import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
 import Weapon from './weapon.js';
 
 const HIT_GAIN = 2;
-const MOVE_COST = 1;
 const JUMP_COST = 10;
 
 export default class Player extends Weapon {
@@ -23,8 +22,8 @@ export default class Player extends Weapon {
      * @param {number} spriteNumber
      * @param {number} hp
      */
-  constructor(game, map) {
-    super(game, map, Sprite.Weapon.sword, 1, true);
+  constructor(game, map, playerConfig = {}) {
+    super(game, map, Sprite.Weapon.sword, playerConfig?.reach || 1, true, playerConfig?.effects || []);
     this.isPlayer = true;
     this.blood = 10;
     this.drawColor = 'yellow';
@@ -45,7 +44,6 @@ export default class Player extends Weapon {
 
   attack(creature, dx, dy) {
     super.attack(creature, dx, dy);
-    console.log(this);
     this.blood += HIT_GAIN;
   }
 

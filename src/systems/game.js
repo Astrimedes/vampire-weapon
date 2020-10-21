@@ -154,8 +154,6 @@ export default class Game {
     });
 
     document.querySelector('html').addEventListener('mousemove', e => {
-      console.log(e);
-
       this.highlightTile = null;
 
       const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
@@ -169,7 +167,6 @@ export default class Game {
     });
 
     document.querySelector('html').addEventListener('mouseleave', e => {
-      console.log(e);
       this.highlightTile = null;
     });
   }
@@ -191,14 +188,12 @@ export default class Game {
     }
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
 
-    this.player = new Player(this, this.map);
+    this.player = new Player(this, this.map, {reach: playerConfig?.player?.reach || 1, effects: playerConfig?.player?.effects});
     // copy
     this.playerBody = new Slime(this, this.map, tile, this.player); // will attach to playerBody
 
     // copy over previous values
     this.playerBody.hp = playerConfig?.playerBody?.hp || 3;
-    this.abilities = playerConfig?.abilities || [];
-    this.player.reach = playerConfig?.player?.reach || this.player.reach;
   }
 
   setupMonsters () {
@@ -281,18 +276,7 @@ export default class Game {
   }
 
   addAbility(ability) {
-    if (ability == 'Size') {
-      this.player.reach++; // increase player weaopon reach
-    }
-    let idx = this.abilities.findIndex(a => a.type == ability);
-    if (idx != -1) {
-      this.abilities[idx].count++;
-    } else {
-      this.abilities.push({
-        type: ability,
-        count: 1
-      });
-    }
+    this.player.addEffect(ability);
   }
 
   beginGameLoop () {
@@ -305,10 +289,10 @@ export default class Game {
         if (!this.player.animating) {
           // determine which abilities to offer
           let fields = ['Size', 'Bleed', 'Ice'];
-          let sizeIdx = this.abilities.findIndex(a => a.type == 'Size');
+          let sizeIdx = this.player.effects.findIndex(a => a.type == 'Size');
           if (sizeIdx !== -1) {
             const LIMIT = 3;
-            if (this.abilities[sizeIdx]?.count >= LIMIT) {
+            if (this.player.effects[sizeIdx].value >= LIMIT) {
               fields.splice(sizeIdx, 1);
             }
           }
@@ -318,14 +302,12 @@ export default class Game {
             message: 'Choose an ability:',
             fields: fields,
             submit: (data) => {
-              console.log('submitted', data);
               // add chosen ability
               this.addAbility(data);
               // load next level (level already incremented)
               this.loadLevel(this.level, {
                 playerBody: this.playerBody,
-                player: this.player,
-                abilities: this.abilities
+                player: this.player
               });
             }
           };
@@ -382,10 +364,10 @@ export default class Game {
         // draw level number
         this.renderer.drawText(`Level ${this.level}`, 'red', 8, 4, 8);
         // draw list of abilities
-        this.abilities.forEach((a, i) => {
+        this.player.effects.forEach((a, i) => {
           let text = a.type;
-          if (a.count > 1) {
-            text += ' x' + a.count;
+          if (a.value > 1) {
+            text += ' x' + a.value;
           }
           this.renderer.drawText(text, 'red', 8, 4, 9 + ((i + 1) * 12));
         });

@@ -48,6 +48,7 @@
 #dlg-fields{
     margin-left: auto;
     margin-right: auto;
+    flex: 3;
 }
 
 #game-container{
@@ -62,13 +63,17 @@
 }
 
 .flex-margins .col-main {
-    flex: 1;
+    flex: 2;
     flex-grow: 4;
     justify-content: center;
 }
 
+.col-main label {
+    min-width: 50%;
+}
+
 .flex-margins .col-margin {
-    flex: 2;
+    flex: 1;
     flex-grow: 1;
     display: flex;
     align-items: center;
