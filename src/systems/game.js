@@ -7,6 +7,9 @@ import { State } from './gamestate.js';
 import { Sprite } from '../../assets/sprite-index.js';
 import Slime from '../creatures/slime.js';
 import { Dialog } from './dialog.js';
+import { levels } from '../levels/levels.js';
+import Spider from '../creatures/spider.js';
+import { Rng } from '../tools/randoms.js';
 
 const TILE_SIZE = 16;
 const TILE_COUNT = 12;
@@ -61,15 +64,18 @@ export default class Game {
     // comment
   }
 
-  checkInput () {
+  checkInput (allowLoading = false) {
     // restart on button press after death
     if ((this.state == State.GameOver && !this.animationsRunning) || this.state == State.Title) {
-      this.loadLevel(1);
+      if (allowLoading) {
+        this.loadLevel(1);
+      }
+
       return false;
     }
 
     // block movement during animation / death / active dialog
-    if (this.renderer.animationsRunning || this.player.dead || this.state == State.Dialog) return false;
+    if (this.renderer.animationsRunning || !this.player || this.player.dead || this.state == State.Dialog) return false;
 
     // if stunned, advance by one tick on key press
     if (this.player.stunned) {
@@ -83,7 +89,7 @@ export default class Game {
   setupInput () {
     document.querySelector('html').onkeypress = (e) => {
       e.preventDefault();
-      if (!this.checkInput()) return;
+      if (!this.checkInput(true)) return;
 
       let acted = false;
       if (e.key === 'w') acted = this.player.tryMove(0, -1);
@@ -98,7 +104,7 @@ export default class Game {
 
     document.querySelector('html').addEventListener('mousedown', e => {
       e.preventDefault();
-      if (!this.checkInput()) return;
+      if (!this.checkInput(true)) return;
 
       const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
       if (!tile) return;
@@ -154,6 +160,8 @@ export default class Game {
     });
 
     document.querySelector('html').addEventListener('mousemove', e => {
+      if (!this.checkInput()) return;
+
       this.highlightTile = null;
 
       const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
@@ -190,10 +198,10 @@ export default class Game {
 
     this.player = new Player(this, this.map, {reach: playerConfig?.player?.reach || 1, effects: playerConfig?.player?.effects});
     // copy
-    this.playerBody = new Slime(this, this.map, tile, this.player); // will attach to playerBody
+    this.playerBody = new Chump(this, this.map, tile, this.player); // will attach to playerBody
 
     // copy over previous values
-    this.playerBody.hp = playerConfig?.playerBody?.hp || 3;
+    this.playerBody.hp = playerConfig?.playerBody?.hp || 6;
   }
 
   setupMonsters () {
@@ -201,16 +209,31 @@ export default class Game {
     this.corpses = [];
     this.monsters = [];
     this.nextMonsters = [];
-    // let chumps = 1;
 
-    // let level = levels[this.level];
-    // if (level) {
-    //   chumps = level.chumps || 0;
-    // }
+    let level, chumps, slimes, spiders;
+    level = levels[this.level];
+    if (level) {
+      chumps = level.chumps || 0;
+      slimes = level.slimes || 0;
+      spiders = level.spiders || 0;
+    } else {
+      chumps = Rng.inRange(1, 3);
+      slimes = Rng.inRange(1, 3);
+      spiders = Rng.inRange(1, 3);
+    }
 
-    // // chumps
-    for(let i = 0; i < this.level; i++) {
+    for(let i = 0; i < chumps; i++) {
       this.monsters.push(new Chump(this, this.map, this.map.randomPassableTile()));
+    }
+
+    for(let i = 0; i < slimes; i++) {
+      this.monsters.push(new Slime(this, this.map, this.map.randomPassableTile()));
+    }
+
+    // spiders - choose corners to begin
+    let walls = [ 0, this.map.numTiles - 1];
+    for(let i = 0; i < spiders; i++) {
+      this.monsters.push(new Spider(this, this.map, this.map.getTile(Rng.any(walls), Rng.any(walls))));
     }
   }
 
@@ -225,9 +248,9 @@ export default class Game {
     for (let i = this.monsters.length - 1; i >= 0; i--) {
       const mon = this.monsters[i];
 
-      if (!mon.dead) {
-        mon.tryAct(this.player);
-      } else {
+      // update statuses, do AI, etc
+      mon.tryAct(this.player);
+      if (mon.dead) {
         // add
         dead.push(mon);
         // remove
@@ -235,7 +258,6 @@ export default class Game {
       }
     }
 
-    // player acts - act() will always occur after all monsters have acted...
     this.player.tryAct();
     if (this.playerBody.dead) {
       dead.push(this.playerBody);
@@ -288,13 +310,12 @@ export default class Game {
         // let animations finish
         if (!this.player.animating) {
           // determine which abilities to offer
-          let fields = ['Size', 'Bleed', 'Ice'];
-          let sizeIdx = this.player.effects.findIndex(a => a.type == 'Size');
-          if (sizeIdx !== -1) {
-            const LIMIT = 3;
-            if (this.player.effects[sizeIdx].value >= LIMIT) {
-              fields.splice(sizeIdx, 1);
-            }
+          let sizeEffect = (this.level-1) % 3 == 0 || (this.level > 3 && this.player.reach < 2);
+          let fields = ['Bleed', 'Ice', 'Fire'];
+          if (sizeEffect) {
+            let swap = fields[0];
+            fields[0] = 'Size';
+            fields.push(swap);
           }
           // setup dialog
           let dlgSettings = {
@@ -349,6 +370,7 @@ export default class Game {
         });
 
         // draw player
+        this.renderer.drawTileRect(this.player.tile.x, this.player.tile.y, 'steelblue', 0.4); // outline
         this.renderer.drawCreature(this.playerBody, true);
 
         // monsters
@@ -358,7 +380,7 @@ export default class Game {
 
         // draw highlighted tile
         if (this.highlightTile && this.state == State.Play) {
-          this.renderer.drawTileRect(this.highlightTile.x, this.highlightTile.y, 'blue', 0.2);
+          this.renderer.drawTileRect(this.highlightTile.x, this.highlightTile.y, 'blue', 0.11);
         }
 
         // draw level number

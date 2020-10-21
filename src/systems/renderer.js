@@ -169,14 +169,25 @@ export default class Renderer {
 
     // draw status effects
     let x = creature.getDisplayX() + 0.65;
-    let y = creature.getDisplayY() - 0;
+    let y = creature.getDisplayY() + 0.2;
     if (creature.stunned) {
       this.drawSprite(Sprite.Icon.stun, x, y);
-      x -= 0.65;
+      x -= 0.25;
     }
-    if (creature.fire || creature.bleed || creature.ice) {
+    if (creature.ice > 0) {
+      this.drawSprite(Sprite.Icon.ice, x, y);
+      x -= 0.25;
+      // x -= 0.65;
+    }
+    if (creature.fire > 0) {
       this.drawSprite(Sprite.Icon.fire, x, y);
-      x -= 0.65;
+      x -= 0.25;
+      // x -= 0.65;
+    }
+    if (creature.bleed > 0) {
+      this.drawSprite(Sprite.Icon.bleed, x, y);
+      x -= 0.25;
+      // x -= 0.65;
     }
   }
 

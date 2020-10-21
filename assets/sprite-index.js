@@ -5,7 +5,9 @@ const Sprite = {
     slowguy: 8,
     slowguyDead: 9,
     chump: 14,
-    chumpDead: 15
+    chumpDead: 15,
+    spider: 16,
+    spiderDead: 17
   },
   Weapon: {
     sword: 0,
@@ -21,7 +23,9 @@ const Sprite = {
   Icon: {
     hp: 6,
     stun: 7,
-    fire: 10
+    fire: 10,
+    bleed: 18,
+    ice: 19
   }
 };
 

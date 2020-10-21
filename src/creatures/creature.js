@@ -41,6 +41,8 @@ export default class Creature {
     this.dead = false;
     this.deathResolved = false;
 
+    this.attacking = false;
+
     this.stunned = 1; // stunned for one turn on spawn
 
     this.fire = 0;
@@ -105,7 +107,6 @@ export default class Creature {
   hit(dmg, effects) {
     this.hp -= dmg;
     effects.forEach(e => {
-      console.log('weapon hit effect:', e);
       switch (e.type) {
       case 'Fire':
         this.fire = (this.fire || 0) + e.value;
@@ -117,10 +118,10 @@ export default class Creature {
         this.bleed = (this.bleed || 0) + e.value;
         break;
       default:
-        break;
+        throw e.type;
       }
     });
-    this.dead |= this.hp <= 0;
+    this.dead = this.hp <= 0;
   }
 
   addStatus(name, qty = 1) {
@@ -152,7 +153,7 @@ export default class Creature {
       this.spriteNumber++; // corpse tile should be next tile...
 
       // destroy weapon
-      this.weapon.die();
+      this?.weapon?.die();
       this.unWield();
     }
   }
@@ -176,8 +177,10 @@ export default class Creature {
     this.animStart = null;
     this.animDuration = 0;
 
-    this.weapon.x = this.getDisplayX();
-    this.weapon.y = this.getDisplayY();
+    if (this.weapon) {
+      this.weapon.x = this.getDisplayX();
+      this.weapon.y = this.getDisplayY();
+    }
   }
 
   animate() {
@@ -260,11 +263,41 @@ export default class Creature {
   }
 
   tryAct() {
+    if (this.dead) return false;
+    // apply effects from statuses
+    // stunning
+    if (this.ice) {
+      this.stunned += 2; // add 2 so we can reduce it one later...
+    }
+    // damage
+    if (this.fire > 0) {
+      this.hp -= 1;
+    }
+    if (this.bleed && ((this.bleed - 1) % 3 == 0)) {
+      console.log('bleeding dmg, bleed:', this.bleed);
+      this.hp -= 1;
+      this.bleed -= 4;
+    }
+
+    // die if necessary
+    if (this.hp <= 0) {
+      this.dead = true;
+      return false;
+    }
+
+    // reduce status durations
+    this.stunned = Math.max(this.stunned - 1, 0);
+    this.fire = Math.max(this.fire - 1, 0);
+    this.ice = Math.max(this.ice - 1, 0);
+    this.bleed = Math.max(this.bleed - 1, 0);
+
+    // act if stunned
     if (this.stunned == 0) {
       this.act();
       return true;
     }
-    this.stunned = Math.max(this.stunned - 1, 0);
+
+    // otherwise finish without acting
     return false;
   }
 

@@ -8,19 +8,21 @@ import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
 export default class Weapon {
   /**
-     *
-     * @param {Game} map
+     * Weapons
+     * @param {Game} game
      * @param {Dungeon} map
-     * @param {Tile} tile
      * @param {number} spriteNumber
-     * @param {number} hp
+     * @param {number} reach
+     * @param {boolean} isPlayer
+     * @param {{type: string, value: number}[]} effects
+     * @param {string} drawColor
      */
-  constructor(game, map, spriteNumber, reach = 1, isPlayer = false, effects = []) {
+  constructor(game, map, spriteNumber, reach = 1, isPlayer = false, effects = [], drawColor = 'maroon') {
     this.game = game;
     this.map = map;
     this.spriteNumber = spriteNumber;
 
-    this.drawColor = 'red';
+    this.drawColor = drawColor;
 
     this.x = 0;
     this.y = 0;
@@ -28,6 +30,7 @@ export default class Weapon {
     // weapon effects
     this.reach = reach; // attack reach
     this.effects = effects; // array of { type: str, value: number }
+    this.updateDrawColor();
 
     // set these after move to prevent any initial animation
     this.offsetX = 0;
@@ -52,6 +55,28 @@ export default class Weapon {
       idx = this.effects.push({ type: effect, value: 0 }) - 1;
     }
     this.effects[idx].value++;
+
+    this.updateDrawColor();
+  }
+
+  updateDrawColor() {
+    if (!this?.effects?.length) {
+      return;
+    }
+    let most = this.effects.sort((a, b) => { return a.value - b.value; })[0].type;
+    switch (most) {
+    case 'Fire':
+      this.drawColor = 'orange';
+      break;
+    case 'Ice':
+      this.drawColor = 'blue';
+      break;
+    case 'Bleed':
+      this.drawColor = 'red';
+      break;
+    default:
+      this.drawColor = 'yellow';
+    }
   }
 
   removeEffect(effect) {
@@ -73,7 +98,8 @@ export default class Weapon {
   attack(creature, dx, dy) {
     creature.hit(1, this.effects);
     this.animating = true;
-    this.beginAnimation(this.x - (dx/2), this.y - (dy/2), t => spike(t));
+    this.beginAnimation(this.x - (dx / 2), this.y - (dy / 2), t => spike(t));
+    this.attacking = true;
   }
 
   beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 150) {

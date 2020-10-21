@@ -16,17 +16,14 @@ const JUMP_COST = 10;
 export default class Player extends Weapon {
   /**
      *
-     * @param {Game} map
+     * @param {Game} game
      * @param {Dungeon} map
-     * @param {Tile} tile
-     * @param {number} spriteNumber
-     * @param {number} hp
+     * @param {{reach: string, effects: []}} playerConfig
      */
   constructor(game, map, playerConfig = {}) {
-    super(game, map, Sprite.Weapon.sword, playerConfig?.reach || 1, true, playerConfig?.effects || []);
+    super(game, map, Sprite.Weapon.sword, playerConfig?.reach || 1, true, playerConfig?.effects || [], 'whitesmoke');
     this.isPlayer = true;
     this.blood = 10;
-    this.drawColor = 'yellow';
   }
 
   tryAct() {
