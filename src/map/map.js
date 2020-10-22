@@ -22,13 +22,13 @@ export default class Dungeon {
   generateTiles(numTiles) {
     const tiles = this.tiles = [];
 
-    const wallChance = 0.18;
+    const wallChance = 0.33;
     let passable = 0;
 
     for (let i = 0; i < numTiles; i++) {
       tiles[i] = [];
       for (let j = 0; j < numTiles; j++) {
-        if (Math.random() < wallChance || !this.inBounds(i,j)) {
+        if (Math.random() < wallChance || this.boundaryWall(i,j)) {
           tiles[i][j] = new Wall(i, j);
         } else {
           tiles[i][j] = new Floor(i, j);
@@ -63,12 +63,12 @@ export default class Dungeon {
 
   inBounds(x, y) {
     let limit = this.numTiles - 1;
-    return x > 0 && y > 0 && x < limit && y < limit;
+    return x >= 0 && y >= 0 && x <= limit && y <= limit;
   }
 
-  inBoundsWall(x,y) {
+  boundaryWall(x, y) {
     let limit = this.numTiles - 1;
-    return x >= 0 && y >= 0 && x <= limit && y <= limit;
+    return x == 0 || x == limit || y == 0 || y == limit;
   }
 
   getTile(x, y) {

@@ -20,6 +20,7 @@ export default class Game {
   constructor () {
     this.unloadAssets();
     this.state = null;
+    this.turnCount = 0;
   }
 
   setState (state) {
@@ -241,8 +242,14 @@ export default class Game {
     this.nextMonsters.push(creature);
   }
 
-  tick () {
+  tick() {
+    this.turnCount++;
+
     const dead = [];
+
+    // reduce status effects, etc.
+    this.playerBody.tick();
+    this.monsters.forEach(m => m.tick());
 
     // monsters act
     for (let i = this.monsters.length - 1; i >= 0; i--) {

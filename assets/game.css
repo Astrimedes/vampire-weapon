@@ -1,3 +1,7 @@
+html{
+    background-color: #36182c;
+}
+
 #canvas{
     background-color:  #36182c;
     z-index: 0;

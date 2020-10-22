@@ -43,13 +43,15 @@ export default class Creature {
 
     this.attacking = false;
 
-    this.stunned = 1; // stunned for one turn on spawn
+    this.stunned = 2; // stunned for one turn on spawn
 
     this.fire = 0;
     this.ice = 0;
     this.bleed = 0;
 
     this.id = ID++;
+
+    this.spawnTurn = this.game.turnCount;
 
     this.wield(weapon);
   }
@@ -109,34 +111,19 @@ export default class Creature {
     effects.forEach(e => {
       switch (e.type) {
       case 'Fire':
-        this.fire = (this.fire || 0) + e.value;
+        this.fire = (this.fire || 0) + e.value + 1;
         break;
       case 'Ice':
-        this.ice = (this.ice || 0) + e.value;
+        this.ice = (this.ice || 0) + e.value + 1;
         break;
       case 'Bleed':
-        this.bleed = (this.bleed || 0) + e.value;
+        this.bleed = (this.bleed || 0) + e.value + 1;
         break;
       default:
         throw e.type;
       }
     });
     this.dead = this.hp <= 0;
-  }
-
-  addStatus(name, qty = 1) {
-    switch (name) {
-    case 'Fire':
-      this.fire = (this.fire || 0) + qty;
-      break;
-    case 'Ice':
-      this.ice = (this.ice || 0) + qty;
-      break;
-    case 'Bleed':
-      this.bleed = (this.bleed || 0) + qty;
-      break;
-    }
-
   }
 
   die() {
@@ -264,6 +251,7 @@ export default class Creature {
 
   tryAct() {
     if (this.dead) return false;
+
     // apply effects from statuses
     // stunning
     if (this.ice) {
@@ -273,10 +261,10 @@ export default class Creature {
     if (this.fire > 0) {
       this.hp -= 1;
     }
-    if (this.bleed && ((this.bleed - 1) % 3 == 0)) {
+    // bleed
+    if (this.bleed && (this.bleed % 4 == 0)) {
       console.log('bleeding dmg, bleed:', this.bleed);
       this.hp -= 1;
-      this.bleed -= 4;
     }
 
     // die if necessary
@@ -285,14 +273,8 @@ export default class Creature {
       return false;
     }
 
-    // reduce status durations
-    this.stunned = Math.max(this.stunned - 1, 0);
-    this.fire = Math.max(this.fire - 1, 0);
-    this.ice = Math.max(this.ice - 1, 0);
-    this.bleed = Math.max(this.bleed - 1, 0);
-
-    // act if stunned
-    if (this.stunned == 0) {
+    // trigger act
+    if (this.stunned <= 0) {
       this.act();
       return true;
     }
@@ -301,7 +283,20 @@ export default class Creature {
     return false;
   }
 
+  tick() {
+    // reduce status durations after first turn passes
+    if (this.game.turnCount <= this.spawnTurn) {
+      return;
+    }
+    this.stunned = Math.max(this.stunned - 1, 0);
+    this.fire = Math.max(this.fire - 1, 0);
+    this.ice = Math.max(this.ice - 1, 0);
+    this.bleed = Math.max(this.bleed - 1, 0);
+  }
+
   act() {
+    if (this.stunned) return true;
+
     // player controls behavior
     if (this.isPlayer) return false;
 

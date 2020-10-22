@@ -1,6 +1,8 @@
 const levels = {
   1: {
-    chumps: 1,
+    chumps: 0,
+    slimes: 0,
+    spiders: 4
   },
   2: {
     chumps: 1,

@@ -12,7 +12,6 @@ export default class Spider extends Creature {
    */
   constructor(game, map, tile) {
     super(game, map, tile, Sprite.Creature.spider, 1, new Fist(game, map));
-    //comment again
   }
 
   tryMove(dx, dy) {
@@ -31,7 +30,7 @@ export default class Spider extends Creature {
     if (this.isPlayer) return;
 
     // ignore walls!
-    let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => (!t.creature || t.creature.isPlayer) && this.map.inBoundsWall(t.x, t.y));
+    let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => (!t.creature || t.creature.isPlayer) && this.map.inBounds(t.x, t.y));
     let lowDist = Infinity;
     let distA, distB;
     if (seekTiles.length) {
