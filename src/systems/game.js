@@ -12,7 +12,7 @@ import Spider from '../creatures/spider.js';
 import { Rng } from '../tools/randoms.js';
 
 const TILE_SIZE = 16;
-const TILE_COUNT = 12;
+// const TILE_COUNT = 16;
 
 const assets = {};
 
@@ -46,13 +46,14 @@ export default class Game {
     });
   }
 
-  setupRendering (tileSize = TILE_SIZE, numTiles = TILE_COUNT) {
-    this.tileSize = tileSize;
-    this.numTiles = numTiles;
+  setupRendering () {
+    this.tileSize = TILE_SIZE;
+    this.numTiles = (this.currentLevel || levels[1]).size;
     // Create new renderer
-    this.renderer = new Renderer(assets, tileSize, numTiles);
+    this.renderer = new Renderer(assets, this.tileSize, this.numTiles);
 
     window.onresize = () => {
+      this.renderer.setSizes(TILE_SIZE, this?.currentLevel?.size || levels[1].size);
       this.renderer.autoScale();
     };
   }
@@ -61,7 +62,9 @@ export default class Game {
     this.exitReached = false;
     this.level = level;
     this.map = new Dungeon();
-    this.map.generateLevel(this.numTiles);
+    this.map.generateLevel(levels[level].size);
+    this.renderer.setSizes(TILE_SIZE, levels[level].size);
+    this.renderer.autoScale();
     // comment
   }
 
@@ -202,7 +205,7 @@ export default class Game {
     this.playerBody = new Chump(this, this.map, tile, this.player); // will attach to playerBody
 
     // copy over previous values
-    this.playerBody.hp = playerConfig?.playerBody?.hp || 6;
+    this.playerBody.hp = (playerConfig?.playerBody?.hp || 5) + 1;
   }
 
   setupMonsters () {
@@ -452,7 +455,8 @@ export default class Game {
     this.exitReached = true;
   }
 
-  loadLevel (level = 1, playerConfig) {
+  loadLevel(level = 1, playerConfig) {
+    this.currentLevel = levels[level];
     this.setState(State.Loading);
 
     // find previous reference to player
@@ -471,7 +475,7 @@ export default class Game {
 
     this.loadAssets();
 
-    this.setupRendering();
+    this.setupRendering(TILE_SIZE, levels[1].size);
 
     this.setupInput();
 

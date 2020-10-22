@@ -16,6 +16,11 @@ export default class Renderer {
     this.autoScale();
   }
 
+  setSizes(tileSize, numTiles) {
+    this.tileSize = tileSize;
+    this.numTiles = numTiles;
+  }
+
   autoScale() {
     let fullSize = this.tileSize * this.numTiles;
 

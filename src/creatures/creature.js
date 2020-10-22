@@ -262,9 +262,10 @@ export default class Creature {
       this.hp -= 1;
     }
     // bleed
-    if (this.bleed && (this.bleed % 4 == 0)) {
+    if (this.bleed && (this.bleed % 3 == 0)) {
       console.log('bleeding dmg, bleed:', this.bleed);
       this.hp -= 1;
+      this.bleed--;
     }
 
     // die if necessary
