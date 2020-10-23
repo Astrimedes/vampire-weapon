@@ -70,11 +70,11 @@ class Dialog {
 
     // create radio items
     let content = fields.map((f, i ) => {
-      return `<div>
+      return `<label label for="field-${i}">
         <input type="radio" id="field-${i}" name="${DATA_FIELD}" value="${f?.value || f}" required>
         <label for="field-${i}">${f?.label || f}</label>
-        </div>
-      <br></br>`;
+        <br></br>
+        </label>`;
     })?.join('\n');
     // insert into dom
     node.innerHTML = content;

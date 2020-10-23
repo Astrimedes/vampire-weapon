@@ -47,25 +47,28 @@ export default class Game {
   }
 
   setupRendering () {
-    this.tileSize = TILE_SIZE;
-    this.numTiles = (this.currentLevel || levels[1]).size;
+    let  tileSize = TILE_SIZE;
+    let numTiles = (this.currentLevel || levels[1]).size;
     // Create new renderer
-    this.renderer = new Renderer(assets, this.tileSize, this.numTiles);
+    this.renderer = new Renderer(assets, tileSize, numTiles);
 
     window.onresize = () => {
-      this.renderer.setSizes(TILE_SIZE, this?.currentLevel?.size || levels[1].size);
-      this.renderer.autoScale();
+      this.autoScale();
     };
+  }
+
+  autoScale() {
+    this.renderer.setSizes(TILE_SIZE, this?.currentLevel?.size || levels[1].size);
+    this.renderer.autoScale();
   }
 
   setupMap (level = 1) {
     this.exitReached = false;
     this.level = level;
     this.map = new Dungeon();
-    this.map.generateLevel(levels[level].size);
-    this.renderer.setSizes(TILE_SIZE, levels[level].size);
-    this.renderer.autoScale();
-    // comment
+    this.map.generateLevel(this.currentLevel.size);
+    this.renderer.setSizes(TILE_SIZE, this.currentLevel.size);
+    this.renderer.resize();
   }
 
   checkInput (allowLoading = false) {
@@ -406,7 +409,7 @@ export default class Game {
 
         // draw pause icon while input is blocked
         if (this.renderer.animationsRunning) {
-          this.renderer.drawSpriteScaled(Sprite.Icon.stun, this.numTiles - 1, this.numTiles - 2, 2);
+          this.renderer.drawSpriteScaled(Sprite.Icon.stun, this.currentLevel.size - 1, this.currentLevel.size - 2, 2);
         }
 
         if (this.state.dimmed) {
