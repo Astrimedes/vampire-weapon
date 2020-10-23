@@ -10,20 +10,9 @@ export default class Spider extends Creature {
    * @param {Dungeon} map
    * @param {Tile} tile
    */
-  constructor(game, map, tile) {
-    super(game, map, tile, Sprite.Creature.spider, 1, new Fist(game, map));
-  }
-
-  tryMove(dx, dy) {
-    let newTile = this.map.getNeighbor(this.tile, dx, dy);
-    if (!newTile.creature) {
-      this.move(newTile);
-      return true;
-    } else if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
-      this.weapon.attack(newTile.creature, dx, dy);
-      return true;
-    }
-    return false;
+  constructor(game, map, tile, weapon = new Fist(game, map), options = {}) {
+    let opts = Object.assign({}, { ignoreWalls: true }, options);
+    super(game, map, tile, Sprite.Creature.spider, 1, weapon, opts);
   }
 
   act() {

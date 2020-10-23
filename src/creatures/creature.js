@@ -11,13 +11,14 @@ let ID = 0;
 export default class Creature {
   /**
      *
-     * @param {Game} map
+     * @param {Game} game
      * @param {Dungeon} map
      * @param {Tile} tile
      * @param {number} spriteNumber
      * @param {number} hp
+     * @param {object} options - ex: {ignoreWalls: true}
      */
-  constructor(game, map, tile, spriteNumber, hp, weapon) {
+  constructor(game, map, tile, spriteNumber, hp, weapon, options = {}) {
     this.game = game;
     this.map = map;
     this.weapon = weapon;
@@ -53,6 +54,9 @@ export default class Creature {
 
     this.spawnTurn = this.game.turnCount;
 
+    // movement abilities
+    this.ignoreWalls = options.ignoreWalls || false;
+
     this.wield(weapon);
   }
 
@@ -63,7 +67,7 @@ export default class Creature {
 
     // first check movement - 1 square
     let newTile = this.map.getNeighbor(this.tile, dx, dy);
-    let moveTile = newTile.passable && !newTile.creature ? newTile : null;
+    let moveTile = (this.ignoreWalls || newTile.passable) && !newTile.creature ? newTile : null;
     if (moveTile && this.weapon.reach == 1) {
       this.move(moveTile);
       return true;
@@ -74,7 +78,7 @@ export default class Creature {
       return true;
     }
     // bump against wall and return
-    if (!newTile.passable || newTile.creature) {
+    if ((!this.ignoreWalls && !newTile.passable) || newTile.creature) {
       // animation to bump against wrong direction...
       this.beginAnimation(this.x - (dx / 4), this.y - (dy / 4), t => spike(t));
       return false;
@@ -310,5 +314,11 @@ export default class Creature {
       });
       this.tryMove(seekTiles[0].x - this.x, seekTiles[0].y - this.y);
     }
+  }
+
+  createPlayerBody(player) {
+    let playerBody = new this.constructor(this.game, this.map, this.tile, player);
+    // playerBody.hp = Math.max(playerBody.hp, 2);
+    return playerBody;
   }
 }

@@ -68,7 +68,6 @@ html{
 .hide-radio input[type="radio"]:checked + label {
     background-color: whitesmoke;
     color: darkslategray;
-    border-color: #4c4;
     opacity: 1;
 }
 

@@ -205,10 +205,10 @@ export default class Game {
 
     this.player = new Player(this, this.map, {reach: playerConfig?.player?.reach || 1, effects: playerConfig?.player?.effects});
     // copy
-    this.playerBody = new Chump(this, this.map, tile, this.player); // will attach to playerBody
+    this.playerBody = new (playerConfig?.playerBody?.constructor || Slime)(this, this.map, tile, this.player); // will attach to playerBody
 
     // copy over previous values
-    this.playerBody.hp = (playerConfig?.playerBody?.hp || 5) + 1;
+    this.playerBody.hp = Math.max(playerConfig?.playerBody?.hp || 0, 2);
   }
 
   setupMonsters () {
@@ -257,6 +257,7 @@ export default class Game {
     this.playerBody.tick();
     this.monsters.forEach(m => m.tick());
 
+
     // monsters act
     for (let i = this.monsters.length - 1; i >= 0; i--) {
       const mon = this.monsters[i];
@@ -272,6 +273,19 @@ export default class Game {
     }
 
     this.player.tryAct();
+    // take first monster and make new player body?
+    if (dead.length) {
+      this.playerBody.unWield();
+      // mark current body dead...
+      this.playerBody.dead = true;
+      dead.push(this.playerBody);
+      // create new playerBody
+      this.playerBody = dead[0].createPlayerBody(this.player);
+      // remove killed enemy from dead
+      dead[0].die();
+      dead.splice(0, 1);
+    }
+
     if (this.playerBody.dead) {
       dead.push(this.playerBody);
     }
@@ -291,7 +305,7 @@ export default class Game {
   }
 
   spawnExit () {
-    let tile = this.playerBody.tile;
+    let tile = this.map.randomPassableTile();
     let tries = 0;
     const limit = 1000;
     while (tries < limit && tile.creature) {
