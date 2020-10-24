@@ -42,6 +42,9 @@ export default class Weapon {
     this.dead = false;
     this.deathResolved = false;
 
+    // will initialize to defaults
+    this.tick();
+
     this.isPlayer = isPlayer;
   }
 
@@ -100,6 +103,12 @@ export default class Weapon {
     this.animating = true;
     this.beginAnimation(this.x - (dx / 2), this.y - (dy / 2), t => spike(t));
     this.attacking = true;
+    this.lastTarget = creature;
+  }
+
+  tick() {
+    this.attacking = false;
+    this.lastTarget = null;
   }
 
   beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 150) {

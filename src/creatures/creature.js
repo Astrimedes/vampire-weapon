@@ -54,6 +54,8 @@ export default class Creature {
 
     this.spawnTurn = this.game.turnCount;
 
+    this.playerHit = false;
+
     // movement abilities
     this.ignoreWalls = options.ignoreWalls || false;
 
@@ -61,10 +63,6 @@ export default class Creature {
   }
 
   tryMove(dx, dy) {
-    // always change facing even if move doesn't complete
-    // this.lastMoveX = dx;
-    // this.lastMoveY = dy;
-
     // first check movement - 1 square
     let newTile = this.map.getNeighbor(this.tile, dx, dy);
     let moveTile = (this.ignoreWalls || newTile.passable) && this.map.inBounds(newTile.x, newTile.y) && !newTile.creature ? newTile : null;
@@ -72,6 +70,16 @@ export default class Creature {
       this.move(moveTile);
       return true;
     }
+
+    // check if enemy is allowed to attack player
+    let allowedAttack = this.isPlayer || this.playerHit;
+    if (!allowedAttack) {
+      let player = this?.game?.player?.wielder && !this.game.player.wielder.dead ? this.game.player.wielder : {};
+      let playerFacing = player?.tile && Math.sign(this.tile.x - player.tile.x) == player.lastMoveX && Math.sign(this.tile.y - player.tile.y) == player.lastMoveY;
+      allowedAttack = !playerFacing;
+      if (!allowedAttack) return true;
+    }
+
     // attack adjacent
     if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
       this.weapon.attack(newTile.creature, dx, dy);
@@ -126,6 +134,9 @@ export default class Creature {
         break;
       case 'Bleed':
         this.bleed = (this.bleed || 0) + e.value + 1;
+        break;
+      case 'Player':
+        this.playerHit = true;
         break;
       default:
         throw e.type;
@@ -218,11 +229,7 @@ export default class Creature {
     if (idx !== -1) {
       this.game.monsters.splice(idx, 1);
     }
-    // add oldBody to monster pool
-    // let oldBody = this.game.playerBody;
-    // if (oldBody && oldBody !== this) {
-    //   this.game.monsters.push(oldBody);
-    // }
+
     this.game.playerBody = this;
     return true;
   }
@@ -265,19 +272,19 @@ export default class Creature {
 
     // apply effects from statuses
     // stunning
-    if (this.ice) {
-      this.stunned += 2; // add 2 so we can reduce it one later...
-    }
-    // damage
-    if (this.fire > 0) {
-      this.hp -= 1;
-    }
-    // bleed
-    if (this.bleed && (this.bleed % 3 == 0)) {
-      console.log('bleeding dmg, bleed:', this.bleed);
-      this.hp -= 1;
-      this.bleed--;
-    }
+    // if (this.ice) {
+    //   this.stunned += 2; // add 2 so we can reduce it one later...
+    // }
+    // // damage
+    // if (this.fire > 0) {
+    //   this.hp -= 1;
+    // }
+    // // bleed
+    // if (this.bleed && (this.bleed % 3 == 0)) {
+    //   console.log('bleeding dmg, bleed:', this.bleed);
+    //   this.hp -= 1;
+    //   this.bleed--;
+    // }
 
     // die if necessary
     if (this.hp <= 0) {
@@ -304,6 +311,12 @@ export default class Creature {
     this.fire = Math.max(this.fire - 1, 0);
     this.ice = Math.max(this.ice - 1, 0);
     this.bleed = Math.max(this.bleed - 1, 0);
+
+    if (this.weapon) {
+      this.weapon.tick();
+    }
+
+    this.playerHit = Math.max(this.playerHit - 1, 0);
   }
 
   act() {

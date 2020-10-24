@@ -208,7 +208,7 @@ export default class Game {
     this.playerBody = new (playerConfig?.playerBody?.constructor || Slime)(this, this.map, tile, this.player); // will attach to playerBody
 
     // copy over previous values
-    this.playerBody.hp = Math.max(playerConfig?.playerBody?.hp || 0, 2);
+    this.playerBody.hp = Math.max(playerConfig?.playerBody?.hp || 0, 1);
   }
 
   setupMonsters () {
@@ -256,7 +256,6 @@ export default class Game {
     // reduce status effects, etc.
     this.playerBody.tick();
     this.monsters.forEach(m => m.tick());
-
 
     // monsters act
     for (let i = this.monsters.length - 1; i >= 0; i--) {

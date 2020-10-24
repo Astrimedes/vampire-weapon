@@ -42,6 +42,7 @@ export default class Player extends Weapon {
   attack(creature, dx, dy) {
     super.attack(creature, dx, dy);
     this.blood += HIT_GAIN;
+    creature.playerHit = 2;
   }
 
   jump(creature) {
