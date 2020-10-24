@@ -5,10 +5,10 @@ export default class Renderer {
     this.setAssets(assets);
 
     this.canvas = document.querySelector('canvas');
-    const ctx = this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext('2d');
 
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.imageSmoothingQuality = 'high';
 
     this.tileSize = tileSize;
     this.numTiles = numTiles;
@@ -25,7 +25,7 @@ export default class Renderer {
     let fullSize = this.tileSize * this.numTiles;
 
     let windowSize = 0.9 * Math.min(window.innerWidth, window.innerHeight);
-    let scale = Math.max(Math.floor(windowSize / fullSize) , 1);
+    let scale = Math.max(windowSize / fullSize, 1);
 
     this.setScale(scale, scale);
   }

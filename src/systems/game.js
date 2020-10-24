@@ -167,7 +167,7 @@ export default class Game {
     });
 
     document.querySelector('html').addEventListener('mousemove', e => {
-      if (!this.checkInput()) return;
+      if (!this.checkInput(false)) return; // don't allow mousemove to start game
 
       this.highlightTile = null;
 
@@ -306,13 +306,6 @@ export default class Game {
 
   spawnExit () {
     let tile = this.map.randomPassableTile();
-    let tries = 0;
-    const limit = 1000;
-    while (tries < limit && tile.creature) {
-      tile = this.map.randomPassableTile();
-      tries++;
-    }
-    if (!tile) throw 'Couldn\'t place exit tile...';
     this.exitSpawned = true;
     // replace with Exit tile
     this.map.replaceTile(tile, Exit);

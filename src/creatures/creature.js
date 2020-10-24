@@ -33,8 +33,8 @@ export default class Creature {
     this.animStart = null;
     this.animDuration = 0;
 
-    this.lastMoveX = 0;
-    this.lastMoveY = 1;
+    this.lastMoveX = 1;
+    this.lastMoveY = 0;
 
     this.offsetWpnX = 5/16;
     this.offsetWpnY = 5/16;
@@ -62,12 +62,12 @@ export default class Creature {
 
   tryMove(dx, dy) {
     // always change facing even if move doesn't complete
-    this.lastMoveX = dx;
-    this.lastMoveY = dy;
+    // this.lastMoveX = dx;
+    // this.lastMoveY = dy;
 
     // first check movement - 1 square
     let newTile = this.map.getNeighbor(this.tile, dx, dy);
-    let moveTile = (this.ignoreWalls || newTile.passable) && !newTile.creature ? newTile : null;
+    let moveTile = (this.ignoreWalls || newTile.passable) && this.map.inBounds(newTile.x, newTile.y) && !newTile.creature ? newTile : null;
     if (moveTile && this.weapon.reach == 1) {
       this.move(moveTile);
       return true;
@@ -75,6 +75,8 @@ export default class Creature {
     // attack adjacent
     if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
       this.weapon.attack(newTile.creature, dx, dy);
+      this.lastMoveX = dx;
+      this.lastMoveY = dy;
       return true;
     }
     // bump against wall and return
@@ -85,17 +87,19 @@ export default class Creature {
     }
 
     if (this.weapon.reach < 2) return false;
+    let proceed = newTile.passable;
 
     // check attack - weapon reach
     let reachX = dx;
     let reachY = dy;
-    let proceed = true;
-    while ((Math.abs(reachX) < this.weapon.reach && Math.abs(reachY) < this.weapon.reach) && proceed) {
+    while (proceed && (Math.abs(reachX) < this.weapon.reach && Math.abs(reachY) < this.weapon.reach)) {
       reachX += Math.sign(dx);
       reachY += Math.sign(dy);
       newTile = this.map.getNeighbor(this.tile, reachX, reachY);
       if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
         this.weapon.attack(newTile.creature, reachX, reachY);
+        this.lastMoveX = dx;
+        this.lastMoveY = dy;
         return true;
       }
       if (!newTile.passable || newTile.creature) {
@@ -229,6 +233,9 @@ export default class Creature {
   }
 
   move(tile) {
+    this.lastMoveX = tile.x - this.x;
+    this.lastMoveY = tile.y - this.y;
+
     if (this.tile) {
       this.tile.creature = null;
       this.beginAnimation(tile.x, tile.y);

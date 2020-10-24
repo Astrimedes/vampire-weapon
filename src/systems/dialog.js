@@ -84,8 +84,8 @@ class Dialog {
 
   setButtons(submit) {
     let btn = document.getElementById(ID_SUBMIT);
-    const handleSubmit = () => {
-      // e.preventDefault();
+    const handleSubmit = (e) => {
+      e.preventDefault();
       let form = document.getElementById(ID_FORM);
 
       if (!form.checkValidity()) {
