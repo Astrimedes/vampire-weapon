@@ -130,7 +130,7 @@ export default class Game {
 
       if (x != 0 && y != 0) {
         // if both directions indicated, check adjacent tiles, select a passable one
-        neighbors = this.map.getAdjacentPassableNeighbors(this.playerBody.tile);
+        neighbors = this.map.getAdjacentPassableNeighbors(this?.player?.wielder?.tile);
         const xDest = this.player.x + x;
         const yDest = this.player.y + y;
         neighbors.filter(t => (t.x == xDest || t.y == yDest));
@@ -205,10 +205,9 @@ export default class Game {
 
     this.player = new Player(this, this.map, {reach: playerConfig?.player?.reach || 1, effects: playerConfig?.player?.effects});
     // copy
-    this.playerBody = new (playerConfig?.playerBody?.constructor || Slime)(this, this.map, tile, this.player); // will attach to playerBody
-
+    let body = new (playerConfig?.playerBody?.constructor || Slime)(this, this.map, tile, this.player); // will attach to playerBody
     // copy over previous values
-    this.playerBody.hp = Math.max(playerConfig?.playerBody?.hp || 0, 1);
+    body.hp = Math.max(playerConfig?.playerBody?.hp || 0, 1);
   }
 
   setupMonsters () {
@@ -254,7 +253,7 @@ export default class Game {
     const dead = [];
 
     // reduce status effects, etc.
-    this.playerBody.tick();
+    this?.player?.wielder?.tick();
     this.monsters.forEach(m => m.tick());
 
     // monsters act
@@ -274,19 +273,21 @@ export default class Game {
     this.player.tryAct();
     // take first monster and make new player body?
     if (dead.length) {
-      this.playerBody.unWield();
+      let pbody = this?.player?.wielder;
+      pbody.unWield();
       // mark current body dead...
-      this.playerBody.dead = true;
-      dead.push(this.playerBody);
+      pbody.dead = true;
+      dead.push(pbody);
       // create new playerBody
-      this.playerBody = dead[0].createPlayerBody(this.player);
+      dead[0].createPlayerBody(this.player);
       // remove killed enemy from dead
       dead[0].die();
       dead.splice(0, 1);
     }
 
-    if (this.playerBody.dead) {
-      dead.push(this.playerBody);
+    let pbody = this?.player?.wielder;
+    if (pbody && pbody.dead) {
+      dead.push(pbody);
     }
 
     // dead are resolved
@@ -346,7 +347,7 @@ export default class Game {
               this.addAbility(data);
               // load next level (level already incremented)
               this.loadLevel(this.level, {
-                playerBody: this.playerBody,
+                playerBody: this.player.wielder,
                 player: this.player
               });
             }
@@ -390,7 +391,9 @@ export default class Game {
 
         // draw player
         this.renderer.drawTileRect(this.player.tile.x, this.player.tile.y, 'steelblue', 0.4); // outline
-        this.renderer.drawCreature(this.playerBody, true);
+        if (this.player.wielder) {
+          this.renderer.drawCreature(this.player.wielder, true);
+        }
 
         // monsters
         this.monsters.forEach(mon => {
@@ -403,15 +406,23 @@ export default class Game {
         }
 
         // draw level number
-        this.renderer.drawText(`Level ${this.level}`, 'red', 8, 4, 8);
+        let x = 4;
+        let y = 8;
+        let height = 12;
+        this.renderer.drawText(`Level: ${this.level}`, 'red', 8, x, y);
+        y += height;
+        this.renderer.drawText(`Blood: ${this?.player?.blood}`, 'red', 8, x, y);
+        y += height;
         // draw list of abilities
         this.player.effects.forEach((a, i) => {
           let text = a.type;
           if (a.value > 1) {
             text += ' x' + a.value;
           }
-          this.renderer.drawText(text, 'red', 8, 4, 9 + ((i + 1) * 12));
+          y += 12;
+          this.renderer.drawText(text, 'red', 8, x, y);
         });
+
 
         // draw pause icon while input is blocked
         if (this.renderer.animationsRunning) {

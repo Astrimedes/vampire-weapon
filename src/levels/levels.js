@@ -1,12 +1,12 @@
 const levels = {
   1: {
-    size: 10,
+    size: 12,
     chumps: 1,
     slimes: 0,
     spiders: 0
   },
   2: {
-    size: 11,
+    size: 12,
     chumps: 1,
     slimes: 1
   },

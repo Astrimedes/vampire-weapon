@@ -230,7 +230,6 @@ export default class Creature {
       this.game.monsters.splice(idx, 1);
     }
 
-    this.game.playerBody = this;
     return true;
   }
 
@@ -338,7 +337,6 @@ export default class Creature {
 
   createPlayerBody(player) {
     let playerBody = new this.constructor(this.game, this.map, this.tile, player);
-    // playerBody.hp = Math.max(playerBody.hp, 2);
     return playerBody;
   }
 }
