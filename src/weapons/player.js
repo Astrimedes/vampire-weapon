@@ -21,9 +21,9 @@ export default class Player extends Weapon {
      * @param {{reach: string, effects: []}} playerConfig
      */
   constructor(game, map, playerConfig = {}) {
-    super(game, map, Sprite.Weapon.sword, playerConfig?.reach || 1, true, playerConfig?.effects || [], 'whitesmoke');
+    super(game, map, Sprite.Weapon.sword, playerConfig?.reach || 1, true, playerConfig?.effects || [], 'whitesmoke', true);
     this.isPlayer = true;
-    this.blood = 10;
+    this.blood = playerConfig?.blood || 0;
   }
 
   tryAct() {

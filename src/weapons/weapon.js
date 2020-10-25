@@ -17,12 +17,13 @@ export default class Weapon {
      * @param {{type: string, value: number}[]} effects
      * @param {string} drawColor
      */
-  constructor(game, map, spriteNumber, reach = 1, isPlayer = false, effects = [], drawColor = 'maroon') {
+  constructor(game, map, spriteNumber, reach = 1, isPlayer = false, effects = [], drawColor = 'maroon', drawSprite = false) {
     this.game = game;
     this.map = map;
     this.spriteNumber = spriteNumber;
 
     this.drawColor = drawColor;
+    this.drawSprite = drawSprite;
 
     this.x = 0;
     this.y = 0;
@@ -100,8 +101,11 @@ export default class Weapon {
 
   attack(creature, dx, dy) {
     creature.hit(1, this.effects);
-    this.animating = true;
-    this.beginAnimation(this.x - (dx / 2), this.y - (dy / 2), t => spike(t));
+
+    // animate self or creature - weapon.drawSprite flag
+    let sprite = this.drawSprite ? this : this.wielder;
+    sprite.beginAnimation(sprite.x - (dx / 2), sprite.y - (dy / 2), t => spike(t));
+
     this.attacking = true;
     this.lastTarget = creature;
   }

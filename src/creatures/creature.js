@@ -337,6 +337,9 @@ export default class Creature {
 
   createPlayerBody(player) {
     let playerBody = new this.constructor(this.game, this.map, this.tile, player);
+    // set facing to match original body
+    playerBody.lastMoveX = this.lastMoveX;
+    playerBody.lastMoveY = this.lastMoveY;
     return playerBody;
   }
 }

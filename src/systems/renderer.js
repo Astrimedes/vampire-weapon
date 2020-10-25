@@ -140,20 +140,22 @@ export default class Renderer {
       this.animationsRunning = creature.animate() | creature?.weapon?.animate();
     }
 
-    // no weapon
-    if (!creature.weapon) {
-      this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
-      return;
-    }
-
-    // weapon drawing
-    if (creature.lastMoveY < 0) {
-      this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
-      this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
+    // weapon graphics
+    let drawWeapon = creature.weapon && creature.weapon.drawSprite;
+    if (drawWeapon) {
+      // weapon draw order can depend on facing
+      if (creature.lastMoveY < 0) {
+        this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
+        this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
+      } else {
+        this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
+        this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
+      }
     } else {
       this.drawSprite(creature.spriteNumber, creature.getDisplayX(), creature.getDisplayY());
-      this.drawSprite(creature.weapon.spriteNumber, creature.weapon.getDisplayX(), creature.weapon.getDisplayY());
     }
+
+    if (creature.dead) return;
 
     // draw weapon reach
     for (let i = 1; i <= creature.weapon.reach; i++) {
@@ -163,13 +165,11 @@ export default class Renderer {
     }
 
     // draw health
-    if (!creature.dead) {
-      const size = (5 / 16);
-      const row = 3;
-      const height = 0.75;
-      for (let i = 0; i < creature.hp; i++) {
-        this.drawSprite(Sprite.Icon.hp, creature.getDisplayX() + (i % row) * size, creature.getDisplayY() - Math.floor(i / row) * size - height);
-      }
+    const size = (5 / 16);
+    const row = 3;
+    const height = 0.75;
+    for (let i = 0; i < creature.hp; i++) {
+      this.drawSprite(Sprite.Icon.hp, creature.getDisplayX() + (i % row) * size, creature.getDisplayY() - Math.floor(i / row) * size - height);
     }
 
     // draw status effects

@@ -26,6 +26,9 @@ const Sprite = {
     fire: 10,
     bleed: 18,
     ice: 19
+  },
+  Feature: {
+    blood: 20
   }
 };
 

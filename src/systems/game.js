@@ -203,7 +203,7 @@ export default class Game {
     }
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
 
-    this.player = new Player(this, this.map, {reach: playerConfig?.player?.reach || 1, effects: playerConfig?.player?.effects});
+    this.player = new Player(this, this.map, { reach: playerConfig?.player?.reach || 1, effects: playerConfig?.player?.effects, blood: playerConfig?.player?.blood || 0 });
     // copy
     let body = new (playerConfig?.playerBody?.constructor || Slime)(this, this.map, tile, this.player); // will attach to playerBody
     // copy over previous values
@@ -386,6 +386,7 @@ export default class Game {
 
         // draw corpses
         this.corpses.forEach(corpse => {
+          // this.renderer.drawSprite(Sprite.Feature.blood, corpse.x, corpse.y);
           this.renderer.drawCreature(corpse);
         });
 
