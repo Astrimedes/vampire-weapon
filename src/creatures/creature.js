@@ -44,7 +44,7 @@ export default class Creature {
 
     this.attacking = false;
 
-    this.stunned = 2; // stunned for one turn on spawn
+    this.stunned = 2; // stunned thru one player turn on spawn
 
     this.fire = 0;
     this.ice = 0;
@@ -271,19 +271,19 @@ export default class Creature {
 
     // apply effects from statuses
     // stunning
-    // if (this.ice) {
-    //   this.stunned += 2; // add 2 so we can reduce it one later...
-    // }
-    // // damage
-    // if (this.fire > 0) {
-    //   this.hp -= 1;
-    // }
-    // // bleed
-    // if (this.bleed && (this.bleed % 3 == 0)) {
-    //   console.log('bleeding dmg, bleed:', this.bleed);
-    //   this.hp -= 1;
-    //   this.bleed--;
-    // }
+    if (this.ice) {
+      this.stunned++;
+    }
+    // damage
+    if (this.fire > 0) {
+      this.hp -= 1;
+    }
+    // bleed
+    if (this.bleed && (this.bleed % 3 == 0)) {
+      console.log('bleeding dmg, bleed:', this.bleed);
+      this.hp -= 1;
+      this.bleed--;
+    }
 
     // die if necessary
     if (this.hp <= 0) {
