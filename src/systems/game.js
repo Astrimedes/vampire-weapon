@@ -10,6 +10,7 @@ import { Dialog } from './dialog.js';
 import { levels } from '../levels/levels.js';
 import Spider from '../creatures/spider.js';
 import { Rng } from '../tools/randoms.js';
+import SlowGuy from '../creatures/slowguy.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -216,16 +217,18 @@ export default class Game {
     this.monsters = [];
     this.nextMonsters = [];
 
-    let level, chumps, slimes, spiders;
+    let level, chumps, slimes, spiders, slowguys;
     level = levels[this.level];
     if (level) {
       chumps = level.chumps || 0;
       slimes = level.slimes || 0;
       spiders = level.spiders || 0;
+      slowguys = level.slowguys || 0;
     } else {
       chumps = Rng.inRange(1, 3);
       slimes = Rng.inRange(1, 3);
       spiders = Rng.inRange(1, 3);
+      slowguys = Rng.inRange(1, 3);
     }
 
     for(let i = 0; i < chumps; i++) {
@@ -234,6 +237,10 @@ export default class Game {
 
     for(let i = 0; i < slimes; i++) {
       this.monsters.push(new Slime(this, this.map, this.map.randomPassableTile()));
+    }
+
+    for(let i = 0; i < slowguys; i++) {
+      this.monsters.push(new SlowGuy(this, this.map, this.map.randomPassableTile()));
     }
 
     // spiders - choose corners to begin

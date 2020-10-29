@@ -175,7 +175,7 @@ export default class Renderer {
     // draw status effects
     let x = creature.getDisplayX() + 0.65;
     let y = creature.getDisplayY() + 0.2;
-    if (creature.stunned) {
+    if (creature.stunned > (creature.isPlayer ? 0 : 1)) {
       this.drawSprite(Sprite.Icon.stun, x, y);
       x -= 0.25;
     }

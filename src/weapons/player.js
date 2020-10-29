@@ -32,6 +32,10 @@ export default class Player extends Weapon {
 
   tryMove(dx, dy) {
     if (this.wielder) {
+      if (this.wielder.stunned) {
+        // if wielder is stunned we can't move
+        return true;
+      }
       if (this.wielder.tryMove(dx, dy)) {
         return true;
       }
