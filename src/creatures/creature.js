@@ -59,7 +59,13 @@ export default class Creature {
     // movement abilities
     this.ignoreWalls = options.ignoreWalls || false;
 
+    this.startTurn = this.game.turnCount;
+
     this.wield(weapon);
+  }
+
+  isStunned() {
+    return this.stunned > 1 || this.isPlayer && this.stunned;
   }
 
   tryMove(dx, dy) {
@@ -313,6 +319,11 @@ export default class Creature {
 
     if (this.weapon) {
       this.weapon.tick();
+    }
+
+    // give player blood while bleeding
+    if (this.bleed && !this.isPlayer) {
+      this.game.player.blood += this.bleed;
     }
 
     this.playerHit = Math.max(this.playerHit - 1, 0);

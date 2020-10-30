@@ -157,11 +157,13 @@ export default class Renderer {
 
     if (creature.dead) return;
 
-    // draw weapon reach
-    for (let i = 1; i <= creature.weapon.reach; i++) {
-      let tile = creature.map.getTile(creature.tile.x + (creature.lastMoveX * i), creature.tile.y + (creature.lastMoveY * i));
-      if (!tile.passable && !tile.creature) break;
-      this.drawTileRect(tile.x, tile.y, creature.weapon.drawColor, 0.08);
+    // draw weapon reach for non-stunned
+    if (!creature.isStunned()) {
+      for (let i = 1; i <= creature.weapon.reach; i++) {
+        let tile = creature.map.getTile(creature.tile.x + (creature.lastMoveX * i), creature.tile.y + (creature.lastMoveY * i));
+        if (!tile.passable && !tile.creature) break;
+        this.drawTileRect(tile.x, tile.y, creature.weapon.drawColor, 0.08);
+      }
     }
 
     // draw health
@@ -175,7 +177,7 @@ export default class Renderer {
     // draw status effects
     let x = creature.getDisplayX() + 0.65;
     let y = creature.getDisplayY() + 0.2;
-    if (creature.stunned > (creature.isPlayer ? 0 : 1)) {
+    if (creature.isStunned()) {
       this.drawSprite(Sprite.Icon.stun, x, y);
       x -= 0.25;
     }

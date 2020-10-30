@@ -51,6 +51,10 @@ html{
     text-align: center;
 }
 
+#dlg-cancel{
+    text-align: center;
+}
+
 #dlg-fields{
    display: flex;
    flex-direction: column;

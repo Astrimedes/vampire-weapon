@@ -2,8 +2,8 @@ const Sprite = {
   Creature: {
     slime: 4,
     slimeDead: 5,
-    slowguy: 8,
-    slowguyDead: 9,
+    slowguy: 21,
+    slowguyDead: 22,
     chump: 14,
     chumpDead: 15,
     spider: 16,

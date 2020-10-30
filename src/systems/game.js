@@ -7,10 +7,11 @@ import { State } from './gamestate.js';
 import { Sprite } from '../../assets/sprite-index.js';
 import Slime from '../creatures/slime.js';
 import { Dialog } from './dialog.js';
-import { levels } from '../levels/levels.js';
+import { levels } from '../config/levels.js';
 import Spider from '../creatures/spider.js';
 import { Rng } from '../tools/randoms.js';
 import SlowGuy from '../creatures/slowguy.js';
+import { abilities } from '../config/abilities.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -182,12 +183,12 @@ export default class Game {
       this.highlightTile = tile;
     });
 
-    document.querySelector('html').addEventListener('mouseleave', e => {
+    document.querySelector('html').addEventListener('mouseleave', () => {
       this.highlightTile = null;
     });
   }
 
-  setupPlayer(playerConfig = {}) {
+  setupPlayer(currentPlayer) {
     // guarantee starting position neighbors have no monsters and >= 3 passable tiles
     const maxtries = 100;
     let tries = 0;
@@ -204,11 +205,24 @@ export default class Game {
     }
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
 
-    this.player = new Player(this, this.map, { reach: playerConfig?.player?.reach || 1, effects: playerConfig?.player?.effects, blood: playerConfig?.player?.blood || 0 });
-    // copy
-    let body = new (playerConfig?.playerBody?.constructor || Slime)(this, this.map, tile, this.player); // will attach to playerBody
+    let playerConfig = {
+      reach: 1,
+      effects: [],
+      blood: 3
+    };
+    if (currentPlayer) {
+      playerConfig.reach = currentPlayer.reach;
+      playerConfig.effects = currentPlayer.effects;
+      playerConfig.blood = currentPlayer.blood;
+    }
+
+    // create player
+    this.player = new Player(this, this.map, playerConfig);
+    // create player body
+    let BodyCreature = currentPlayer ? currentPlayer.wielder.constructor : Slime;
+    let body = new BodyCreature(this, this.map, tile, this.player); // will attach to playerBody
     // copy over previous values
-    body.hp = Math.max(playerConfig?.playerBody?.hp || 0, 1);
+    body.hp = Math.max(currentPlayer ? currentPlayer.wielder.hp : 0, 1);
   }
 
   setupMonsters () {
@@ -326,6 +340,7 @@ export default class Game {
 
   addAbility(ability) {
     this.player.addEffect(ability);
+    this.player.blood -= abilities.find(a => a.name == ability).cost;
   }
 
   beginGameLoop () {
@@ -336,30 +351,7 @@ export default class Game {
       if (this.exitReached && this.state !== State.Dialog) {
         // let animations finish
         if (!this.player.animating) {
-          // determine which abilities to offer
-          let sizeEffect = (this.level-1) % 3 == 0 || (this.level > 3 && this.player.reach < 2);
-          let fields = ['Bleed', 'Ice', 'Fire'];
-          if (sizeEffect) {
-            let swap = fields[0];
-            fields[0] = 'Size';
-            fields.push(swap);
-          }
-          // setup dialog
-          let dlgSettings = {
-            type: 'prompt',
-            message: 'Choose an ability:',
-            fields: fields,
-            submit: (data) => {
-              // add chosen ability
-              this.addAbility(data);
-              // load next level (level already incremented)
-              this.loadLevel(this.level, {
-                playerBody: this.player.wielder,
-                player: this.player
-              });
-            }
-          };
-          this.callDialog(dlgSettings);
+          this.callAbilityDialog();
         }
 
         // call next rqaf before exiting
@@ -422,7 +414,7 @@ export default class Game {
         this.renderer.drawText(`Blood: ${this?.player?.blood}`, 'red', 8, x, y);
         y += height;
         // draw list of abilities
-        this.player.effects.forEach((a, i) => {
+        this.player.effects.forEach(a => {
           let text = a.type;
           if (a.value > 1) {
             text += ' x' + a.value;
@@ -456,6 +448,34 @@ export default class Game {
     window.requestAnimationFrame(draw);
   }
 
+  callAbilityDialog() {
+    // determine which abilities to offer
+    let fields = abilities.filter(a => a.cost <= this.player.blood).map(a => a.name);
+    const nextLevel = () => {
+      this.loadLevel(this.level, this.player);
+    };
+
+    if (fields.length) {
+      // setup dialog
+      let dlgSettings = {
+        type: 'prompt',
+        message: 'Choose an ability:',
+        fields: fields,
+        submit: (data) => {
+          // add chosen ability
+          this.addAbility(data);
+          nextLevel();
+        },
+        cancel: () => {
+          nextLevel();
+        }
+      };
+      this.callDialog(dlgSettings);
+    } else {
+      nextLevel();
+    }
+  }
+
   systemsUpdate() {
     // add next monsters between ticks
     if (this.nextMonsters.length) {
@@ -483,8 +503,9 @@ export default class Game {
     this.exitReached = true;
   }
 
-  loadLevel(level = 1, playerConfig) {
-    this.currentLevel = levels[level];
+  loadLevel(level = 1, player) {
+    let lastLevel = this.currentLevel;
+    this.currentLevel = levels[level] || lastLevel;
     this.setState(State.Loading);
 
     // find previous reference to player
@@ -492,7 +513,7 @@ export default class Game {
     this.exitSpawned = false;
     this.setupMap(level);
     this.setupMonsters();
-    this.setupPlayer(playerConfig);
+    this.setupPlayer(player);
 
     // update state
     this.setState(State.Play);

@@ -2,6 +2,7 @@ const ID_DIALOG = 'dialog';
 const ID_FORM = 'dlg-form';
 const ID_MESSAGE = 'dlg-msg';
 const ID_SUBMIT = 'btn-submit';
+const ID_CANCEL = 'btn-cancel';
 const ID_FIELDS = 'dlg-fields';
 
 const DATA_FIELD = 'data';
@@ -16,7 +17,8 @@ const defaultSettings = {
     {label: 'Three', value: 3}
   ],
   message: 'Choose one',
-  submit: data => console.log('dialog data: ', data)
+  submit: data => console.log('dialog data: ', data),
+  cancel: () => console.log('cancelled')
 };
 
 const getFormData = form => {
@@ -44,7 +46,7 @@ class Dialog {
     // build form
     this.setMessage(this.settings.message);
     this.setFields(this.settings.fields);
-    this.setButtons(this.settings.submit);
+    this.setButtons(this.settings.submit, this.settings.cancel);
 
     // reveal
     document.getElementById(ID_MESSAGE).focus(); // avoid immediately clicking buttons etc
@@ -82,8 +84,8 @@ class Dialog {
     node.innerHTML = content;
   }
 
-  setButtons(submit) {
-    let btn = document.getElementById(ID_SUBMIT);
+  setButtons(submitFn, cancelFn) {
+    let submitBtn = document.getElementById(ID_SUBMIT);
     const handleSubmit = (e) => {
       e.preventDefault();
       let form = document.getElementById(ID_FORM);
@@ -94,14 +96,25 @@ class Dialog {
 
       // callback
       let result = getFormData(form)?.[DATA_FIELD];
-      submit(result);
+      submitFn(result);
 
       // close dialog
       this.hide();
 
       return false;
     };
-    btn.onclick = handleSubmit;
+    submitBtn.onclick = handleSubmit;
+
+    let cancelBtn = document.getElementById(ID_CANCEL);
+    const handleCancel = e => {
+      e.preventDefault();
+
+      cancelFn(false);
+
+      this.hide();
+      return false;
+    };
+    cancelBtn.onclick = handleCancel;
   }
 
   hide () {
