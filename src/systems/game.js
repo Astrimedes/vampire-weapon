@@ -450,17 +450,18 @@ export default class Game {
 
   callAbilityDialog() {
     // determine which abilities to offer
-    let fields = abilities.filter(a => a.cost <= this.player.blood).map(a => a.name);
+    let available = abilities.filter(a => a.cost <= this.player.blood);
     const nextLevel = () => {
       this.loadLevel(this.level, this.player);
     };
 
-    if (fields.length) {
+    if (available.length) {
       // setup dialog
+      let message = ['Purchase ability?'];
       let dlgSettings = {
         type: 'prompt',
-        message: 'Choose an ability:',
-        fields: fields,
+        message,
+        fields: available,
         submit: (data) => {
           // add chosen ability
           this.addAbility(data);

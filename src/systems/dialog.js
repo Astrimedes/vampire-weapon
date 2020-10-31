@@ -45,7 +45,7 @@ class Dialog {
 
     // build form
     this.setMessage(this.settings.message);
-    this.setFields(this.settings.fields);
+    this.setAbilities(this.settings.fields);
     this.setButtons(this.settings.submit, this.settings.cancel);
 
     // reveal
@@ -56,7 +56,33 @@ class Dialog {
 
   setMessage(message) {
     let node = document.getElementById(ID_MESSAGE);
-    node.innerHTML = `<p>${message}</p>`;
+    let lines = Array.isArray(message) ? message : [message];
+    node.innerHTML = lines.map(m => `<p>${m}</p>`).join('\n');
+  }
+
+  setAbilities(available) {
+    // get parent node
+    let node = document.getElementById(ID_FIELDS);
+
+    // clear it out
+    node.innerHTML = '';
+
+    // clear previous validation failures
+    let form = document.getElementById(ID_FORM);
+    form.reset();
+
+    // create radio items
+    let content = available.map((a, i ) => {
+      return `
+      <label for="field-${i}">
+        <input type="radio" id="field-${i}" name="${DATA_FIELD}" value="${a.name}" required>
+        <label class="dlg-label" for="field-${i}">${a.name}: ${a.description} [${a.cost} blood]</label>
+        <br></br>
+      </label>
+      `;
+    })?.join('\n');
+    // insert into dom
+    node.innerHTML = content;
   }
 
   setFields(fields) {

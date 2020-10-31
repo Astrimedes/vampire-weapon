@@ -278,11 +278,11 @@ export default class Creature {
     // apply effects from statuses
     // stunning
     if (this.ice) {
-      this.stunned++;
+      this.stunned += 1 + Math.floor((this.ice-1) / 2);
     }
     // damage
     if (this.fire > 0) {
-      this.hp -= 1;
+      this.hp -= this.fire;
     }
     // bleed
     if (this.bleed && (this.bleed % 3 == 0)) {
