@@ -11,7 +11,7 @@ import { levels } from '../config/levels.js';
 import Spider from '../creatures/spider.js';
 import { Rng } from '../tools/randoms.js';
 import SlowGuy from '../creatures/slowguy.js';
-import { abilities } from '../config/abilities.js';
+import { Abilities } from '../config/abilities.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -340,7 +340,7 @@ export default class Game {
 
   addAbility(ability) {
     this.player.addEffect(ability);
-    this.player.blood -= abilities.find(a => a.name == ability).cost;
+    this.player.blood -= Abilities.find(a => a.name == ability).cost;
   }
 
   beginGameLoop () {
@@ -450,7 +450,7 @@ export default class Game {
 
   callAbilityDialog() {
     // determine which abilities to offer
-    let available = abilities.filter(a => a.cost <= this.player.blood);
+    let available = Abilities.filter(a => a.cost <= this.player.blood);
     const nextLevel = () => {
       this.loadLevel(this.level, this.player);
     };
