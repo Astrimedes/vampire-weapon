@@ -68,7 +68,8 @@ export default class Game {
     this.exitReached = false;
     this.level = level;
     this.map = new Dungeon();
-    this.map.generateLevel(this.currentLevel.size);
+    let shop = this.level % 2 == 0;
+    this.map.generateLevel(this.currentLevel.size, shop);
     this.renderer.setSizes(TILE_SIZE, this.currentLevel.size);
     this.renderer.resize();
   }
@@ -320,9 +321,9 @@ export default class Game {
     });
 
     // check for all monsters dead - spawn exit
-    if (!this.monsters.length && !this.nextMonsters.length && !this.exitSpawned) {
-      this.spawnExit();
-    }
+    // if (!this.monsters.length && !this.nextMonsters.length && !this.exitSpawned) {
+    //   this.spawnExit();
+    // }
   }
 
   spawnExit () {
@@ -348,15 +349,19 @@ export default class Game {
     this.time = 0;
     draw = (elapsedTimeMs) => {
       // check for exit from level
-      if (this.exitReached && this.state !== State.Dialog) {
-        // let animations finish
-        if (!this.player.animating) {
-          this.callAbilityDialog();
-        }
+      // if (this.exitReached && this.state !== State.Dialog) {
+      //   // let animations finish
+      //   if (!this.player.animating) {
+      //     this.callAbilityDialog();
+      //   }
 
-        // call next rqaf before exiting
-        window.requestAnimationFrame(draw);
-        return;
+      //   // call next rqaf before exiting
+      //   window.requestAnimationFrame(draw);
+      //   return;
+      // }
+
+      if (this.exitReached && !this.renderer.animationsRunning) {
+        this.loadLevel(this.level, this.player);
       }
 
       this.frameSpeed = Math.min(Math.max((elapsedTimeMs - this.time) / 1000.0, 0.001), 1);
@@ -448,12 +453,14 @@ export default class Game {
     window.requestAnimationFrame(draw);
   }
 
+
+
   callAbilityDialog() {
     // determine which abilities to offer
     let available = Abilities.filter(a => a.cost <= this.player.blood);
-    const nextLevel = () => {
-      this.loadLevel(this.level, this.player);
-    };
+    // const nextLevel = () => {
+    //   this.loadLevel(this.level, this.player);
+    // };
 
     if (available.length) {
       // setup dialog
@@ -465,15 +472,18 @@ export default class Game {
         submit: (data) => {
           // add chosen ability
           this.addAbility(data);
-          nextLevel();
+          // nextLevel();
+          this.state = State.Play;
         },
         cancel: () => {
-          nextLevel();
+          // nextLevel();
+          this.state = State.Play;
         }
       };
       this.callDialog(dlgSettings);
     } else {
-      nextLevel();
+      // nextLevel();
+      // do nothing
     }
   }
 

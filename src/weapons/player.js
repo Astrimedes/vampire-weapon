@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-unused-vars
 import { Sprite } from '../../assets/sprite-index.js';
-import { abilities } from '../config/abilities.js';
 // eslint-disable-next-line no-unused-vars
 import Dungeon from '../map/map.js';
 // eslint-disable-next-line no-unused-vars

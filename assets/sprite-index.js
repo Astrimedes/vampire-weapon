@@ -18,7 +18,8 @@ const Sprite = {
   Map: {
     floor: 2,
     wall: 3,
-    exit: 11
+    exit: 11,
+    shop: 23
   },
   Icon: {
     hp: 6,

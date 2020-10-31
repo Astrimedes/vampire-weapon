@@ -80,10 +80,12 @@ export default class Creature {
     // check if enemy is allowed to attack player
     let allowedAttack = this.isPlayer || this.playerHit;
     if (!allowedAttack) {
-      let player = this?.game?.player?.wielder && !this.game.player.wielder.dead ? this.game.player.wielder : {};
-      let playerFacing = player?.tile && Math.sign(this.tile.x - player.tile.x) == player.lastMoveX && Math.sign(this.tile.y - player.tile.y) == player.lastMoveY;
+      let playerBody = this?.game?.player?.wielder ? this.game.player.wielder : {lastMoveX: 0, lastMoveY: 0};
+      let tile = this.game.player.tile || {x: 0, y: 0};
+      let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
       allowedAttack = !playerFacing;
       if (!allowedAttack) return true;
+      moveTile = null;
     }
 
     // attack adjacent

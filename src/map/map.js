@@ -1,10 +1,10 @@
 
 // eslint-disable-next-line no-unused-vars
-import { Tile, Floor, Wall, Exit } from './tile.js';
+import { Tile, Floor, Wall, Exit, Shop } from './tile.js';
 import { Rng } from '../tools/randoms.js';
 
 export default class Dungeon {
-  generateLevel(numTiles) {
+  generateLevel(numTiles, shop) {
     this.numTiles = numTiles;
     let success = false;
     let tries = 0;
@@ -14,9 +14,32 @@ export default class Dungeon {
       tries--;
     }
     if (!success) throw `Error in level generation - couldn't complete in ${maxTries}`;
+
     // add exit tile
-    this.randomPassableTile();
-    return true;
+    let exitAdded = false;
+    while (!exitAdded) {
+      let tile = this.getAdjacentNeighbors(this.randomPassableTile()).find(t => t.type == 'wall' && !t.creature);
+      if (tile) {
+        this.replaceTile(tile, Exit);
+        exitAdded = true;
+      }
+    }
+    if (!exitAdded) throw 'Error in level generation - couldnt add exit tile';
+
+    // add shop every 3rd floor?
+    if (shop) {
+      let shopAdded = false;
+      while (!shopAdded) {
+        let tile = this.getAdjacentNeighbors(this.randomPassableTile()).find(t => t.type == 'wall' && !t.creature);
+        if (tile) {
+          this.replaceTile(tile, Shop);
+          shopAdded = true;
+        }
+      }
+    }
+
+
+    return exitAdded;
   }
 
   generateTiles(numTiles) {
@@ -53,7 +76,7 @@ export default class Dungeon {
       y = Rng.inRange(0, maxTile);
 
       tile = this.getTile(x, y);
-      found = tile.passable && !tile.creature;
+      found = tile.passable && !tile.creature && tile.type === 'floor';
       maxTries++;
     }
 

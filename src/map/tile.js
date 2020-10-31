@@ -5,6 +5,8 @@ class Tile {
     this.x = x;
     this.y = y;
 
+    this.type = '';
+
     this.spriteNumber = spriteNumber;
 
     this.passable = passable;
@@ -20,18 +22,21 @@ class Tile {
 class Floor extends Tile {
   constructor(x, y) {
     super(x, y, Sprite.Map.floor, true);
+    this.type = 'floor';
   }
 }
 
 class Wall extends Tile {
   constructor(x, y) {
     super(x, y, Sprite.Map.wall, false);
+    this.type = 'wall';
   }
 }
 
 class Exit extends Tile {
   constructor(x, y) {
     super(x, y, Sprite.Map.exit, true);
+    this.type = 'exit';
   }
 
   stepOn(creature) {
@@ -41,4 +46,17 @@ class Exit extends Tile {
   }
 }
 
-export { Tile, Floor, Wall, Exit };
+class Shop extends Tile {
+  constructor(x, y) {
+    super(x, y, Sprite.Map.shop, true);
+    this.type = 'shop';
+  }
+
+  stepOn(creature) {
+    if (creature.isPlayer) {
+      creature.game.callAbilityDialog();
+    }
+  }
+}
+
+export { Tile, Floor, Wall, Exit, Shop };
