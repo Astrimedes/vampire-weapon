@@ -40,13 +40,15 @@ class Dialog {
     return document.getElementById(ID_DIALOG);
   }
 
-  reveal () {
+  reveal() {
     const dialog = this.getDialog();
+    const { type, message, fields, player, submit, cancel } = this.settings;
+    console.log(this.settings);
 
     // build form
-    this.setMessage(this.settings.message);
-    this.setAbilities(this.settings.fields);
-    this.setButtons(this.settings.submit, this.settings.cancel);
+    this.setMessage(message);
+    this.setAbilities(fields, player);
+    this.setButtons(submit, cancel);
 
     // reveal
     document.getElementById(ID_MESSAGE).focus(); // avoid immediately clicking buttons etc
@@ -60,7 +62,7 @@ class Dialog {
     node.innerHTML = lines.map(m => `<p>${m}</p>`).join('\n');
   }
 
-  setAbilities(available) {
+  setAbilities(available, player) {
     // get parent node
     let node = document.getElementById(ID_FIELDS);
 
@@ -76,7 +78,7 @@ class Dialog {
       return `
       <label for="field-${i}">
         <input type="radio" id="field-${i}" name="${DATA_FIELD}" value="${a.name}" required>
-        <label class="dlg-label" for="field-${i}">${a.name}: ${a.description} [${a.cost} blood]</label>
+        <label class="dlg-label" for="field-${i}">${a.name}: ${a.description} [${a.getUpgradeCost(player)} blood]</label>
         <br></br>
       </label>
       `;

@@ -340,8 +340,8 @@ export default class Game {
   }
 
   addAbility(ability) {
+    this.player.blood -= Abilities.find(a => a.name == ability).getUpgradeCost(this.player);
     this.player.addEffect(ability);
-    this.player.blood -= Abilities.find(a => a.name == ability).cost;
   }
 
   beginGameLoop () {
@@ -457,7 +457,7 @@ export default class Game {
 
   callAbilityDialog() {
     // determine which abilities to offer
-    let available = Abilities.filter(a => a.cost <= this.player.blood);
+    let available = Abilities.filter(a => a.getUpgradeCost(this.player) <= this.player.blood);
     // const nextLevel = () => {
     //   this.loadLevel(this.level, this.player);
     // };
@@ -478,7 +478,8 @@ export default class Game {
         cancel: () => {
           // nextLevel();
           this.state = State.Play;
-        }
+        },
+        player: this.player
       };
       this.callDialog(dlgSettings);
     } else {
