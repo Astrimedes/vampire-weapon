@@ -104,7 +104,7 @@ export default class Creature {
     }
 
     // 'smart' enemies run away
-    if (!this.isPlayer && this.isSmart) {
+    if (!this.isPlayer && this.isSmart && dy == 0) {
       // move in a random direction when player takes step towards and facing
       let neighbors = this.ignoreWalls ? this.map.getAdjacentNeighbors(this.tile) : this.map.getAdjacentPassableNeighbors(this.tile);
       neighbors = neighbors.filter(t => t !== moveTile);
@@ -142,6 +142,12 @@ export default class Creature {
     if (newTile.creature && (newTile.creature.isPlayer !== this.isPlayer)) {
       if (!allowedAttack) return false;
       this.weapon.attack(newTile.creature, newTile.x - this.x, newTile.y - this.y);
+      return true;
+    }
+
+    if (moveTile) {
+      this.move(moveTile);
+      return true;
     }
 
     return false;

@@ -170,7 +170,7 @@ export default class Renderer {
     const size = (5 / 16);
     const row = 3;
     const height = 0.75;
-    for (let i = 0; i < creature.hp; i++) {
+    for (let i = 0; i < creature.hp-1; i++) {
       this.drawSprite(Sprite.Icon.hp, creature.getDisplayX() + (i % row) * size, creature.getDisplayY() - Math.floor(i / row) * size - height);
     }
 
