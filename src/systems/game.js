@@ -209,7 +209,7 @@ export default class Game {
     let playerConfig = {
       reach: 1,
       effects: [],
-      blood: 100
+      blood: 1
     };
     if (currentPlayer) {
       playerConfig.reach = currentPlayer.reach;

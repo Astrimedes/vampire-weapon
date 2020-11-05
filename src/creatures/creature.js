@@ -84,8 +84,19 @@ export default class Creature {
       let tile = this.game.player.tile || {x: 0, y: 0};
       let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
       allowedAttack = !playerFacing;
-      if (!allowedAttack) return true;
-      moveTile = null;
+      if (allowedAttack || this.isSmart) {
+        // move in a random direction when player takes step towards and facing
+        let neighbors = this.ignoreWalls ? this.map.getAdjacentNeighbors(this.tile) : this.map.getAdjacentPassableNeighbors(this.tile);
+        neighbors = neighbors.filter(t => t !== moveTile);
+        let moved = false;
+        for (let idx = 0; !moved && idx < neighbors.length; idx++) {
+          let tile = neighbors[idx];
+          moved = this.tryMove(tile.x - this.tile.x, tile.y - this.tile.y);
+        }
+        return moved;
+      } else {
+        return false;
+      }
     }
 
     // attack adjacent
@@ -95,6 +106,7 @@ export default class Creature {
       this.lastMoveY = dy;
       return true;
     }
+
     // bump against wall and return
     if ((!this.ignoreWalls && !newTile.passable) || newTile.creature) {
       // animation to bump against wrong direction...
@@ -124,10 +136,11 @@ export default class Creature {
     }
 
     if (moveTile) {
-      this.move(moveTile);
+      this.move(dx, dy);
+      return true;
     }
 
-    return !!moveTile;
+    return false;
   }
 
   hit(dmg, effects) {
