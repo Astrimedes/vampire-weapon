@@ -81,7 +81,7 @@ export default class Creature {
     let allowedAttack = this.isPlayer || this.playerHit;
     if (!allowedAttack) {
       let playerBody = this?.game?.player?.wielder ? this.game.player.wielder : {lastMoveX: 0, lastMoveY: 0};
-      let tile = this.game.player.tile || {x: 0, y: 0};
+      let tile = this?.game?.player?.tile;
       let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
       allowedAttack = !playerFacing;
       if (allowedAttack || this.isSmart) {
@@ -90,8 +90,8 @@ export default class Creature {
         neighbors = neighbors.filter(t => t !== moveTile);
         let moved = false;
         for (let idx = 0; !moved && idx < neighbors.length; idx++) {
-          let tile = neighbors[idx];
-          moved = this.tryMove(tile.x - this.tile.x, tile.y - this.tile.y);
+          let nextTile = neighbors[idx];
+          moved = this.tryMove(nextTile.x - this.tile.x, nextTile.y - this.tile.y);
         }
         return moved;
       } else {
