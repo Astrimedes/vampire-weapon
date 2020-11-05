@@ -5,6 +5,7 @@ import { Tile } from '../map/tile.js';
 // eslint-disable-next-line no-unused-vars
 import Game from '../systems/game.js';
 import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
+import { Rng } from '../tools/randoms.js';
 
 let ID = 0;
 
@@ -58,6 +59,7 @@ export default class Creature {
 
     // movement abilities
     this.ignoreWalls = options.ignoreWalls || false;
+    this.isSmart = false;
 
     this.startTurn = this.game.turnCount;
 
@@ -84,23 +86,10 @@ export default class Creature {
       let tile = this.game.player.tile;
       let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
       allowedAttack = !playerFacing;
-      if (allowedAttack || this.isSmart) {
-        // move in a random direction when player takes step towards and facing
-        let neighbors = this.ignoreWalls ? this.map.getAdjacentNeighbors(this.tile) : this.map.getAdjacentPassableNeighbors(this.tile);
-        neighbors = neighbors.filter(t => t !== moveTile);
-        let moved = false;
-        for (let idx = 0; !moved && idx < neighbors.length; idx++) {
-          let nextTile = neighbors[idx];
-          moved = this.tryMove(nextTile.x - this.tile.x, nextTile.y - this.tile.y);
-        }
-        return moved;
-      } else {
-        return false;
-      }
     }
 
     // attack adjacent
-    if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
+    if (allowedAttack && newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
       this.weapon.attack(newTile.creature, dx, dy);
       this.lastMoveX = dx;
       this.lastMoveY = dy;
@@ -108,13 +97,28 @@ export default class Creature {
     }
 
     // bump against wall and return
-    if ((!this.ignoreWalls && !newTile.passable) || newTile.creature) {
+    if ((!this.ignoreWalls && !newTile.passable) && (!newTile.creature || newTile?.creature?.isPlayer === this.isPlayer)) {
       // animation to bump against wrong direction...
       this.beginAnimation(this.x - (dx / 4), this.y - (dy / 4), t => spike(t));
       return false;
     }
 
-    if (this.weapon.reach < 2) return false;
+    // 'smart' enemies run away
+    if (!this.isPlayer && this.isSmart) {
+      // move in a random direction when player takes step towards and facing
+      let neighbors = this.ignoreWalls ? this.map.getAdjacentNeighbors(this.tile) : this.map.getAdjacentPassableNeighbors(this.tile);
+      neighbors = neighbors.filter(t => t !== moveTile);
+      let moved = false;
+      for (let idx = 0; !moved && idx < neighbors.length; idx++) {
+        let nextTile = neighbors[idx];
+        moved = this.tryMove(nextTile.x - this.tile.x, nextTile.y - this.tile.y);
+      }
+      if (moved) return true;
+    }
+
+    if (this.weapon.reach < 2) {
+      return false;
+    }
     let proceed = newTile.passable;
 
     // check attack - weapon reach
@@ -135,15 +139,9 @@ export default class Creature {
       }
     }
 
-    if (moveTile) {
-      if (moveTile.creature && (moveTile.creature.isPlayer !== this.isPlayer)) {
-        if (!allowedAttack) return false;
-        this.weapon.attack(moveTile.creature, moveTile.x - this.x, moveTile.y - this.y);
-      } else {
-        this.move(moveTile);
-      }
-
-      return true;
+    if (newTile.creature && (newTile.creature.isPlayer !== this.isPlayer)) {
+      if (!allowedAttack) return false;
+      this.weapon.attack(newTile.creature, newTile.x - this.x, newTile.y - this.y);
     }
 
     return false;

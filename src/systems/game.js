@@ -492,7 +492,11 @@ export default class Game {
     }
   }
 
-  endGame () {
+  endGame() {
+    if (this.dlg) {
+      this.dlg.hide();
+      this.dlg = null;
+    }
     this.setState(State.GameOver);
   }
 
