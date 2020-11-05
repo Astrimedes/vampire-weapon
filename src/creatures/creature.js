@@ -220,7 +220,7 @@ export default class Creature {
 
     // elapsed animation time
     let animTime = this.game.time - this.animStart;
-    let fraction = animTime / this.animDuration;
+    let fraction = Math.max(0, Math.min(animTime / this.animDuration, 1));
     this.offsetX =  lerp(this.offsetX, 0, this.animInterp(fraction));
     this.offsetY = lerp(this.offsetY, 0, this.animInterp(fraction));
 
