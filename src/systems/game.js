@@ -209,7 +209,7 @@ export default class Game {
     let playerConfig = {
       reach: 1,
       effects: [],
-      blood: 3
+      blood: 100
     };
     if (currentPlayer) {
       playerConfig.reach = currentPlayer.reach;
@@ -334,8 +334,11 @@ export default class Game {
   }
 
   callDialog(settings) {
-    this.dlg = new Dialog(settings);
+    if (this.dlg) {
+      this.dlg.hide();
+    }
     this.setState(State.Dialog);
+    this.dlg = new Dialog(settings);
     this.dlg.reveal();
   }
 
@@ -373,13 +376,6 @@ export default class Game {
 
       // cls
       this.renderer.clearScreen();
-
-      // draw title
-      if (this.state == State.Title) {
-        this.renderer.dimOverlay();
-        this.renderer.drawText('Vampire Weapon', 'red');
-        this.renderer.drawText('Press any key to start', 'red', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
-      }
 
       // draw dungeon etc
       if (this.state.hasMap) {
@@ -428,21 +424,26 @@ export default class Game {
           this.renderer.drawText(text, 'red', 8, x, y);
         });
 
-
         // draw pause icon while input is blocked
         if (this.renderer.animationsRunning) {
           this.renderer.drawSpriteScaled(Sprite.Icon.stun, this.currentLevel.size - 1, this.currentLevel.size - 2, 2);
         }
+      }
 
-        if (this.state.dimmed) {
-          this.renderer.dimOverlay();
-        }
+      if (this.state.dimmed) {
+        this.renderer.dimOverlay();
+      }
 
-        // draw gameover state
-        if (this.state == State.GameOver) {
-          this.renderer.drawText('Game Over', 'red', 20);
-          this.renderer.drawText('Press any key to try again', 'red', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
-        }
+      // draw title
+      if (this.state == State.Title) {
+        this.renderer.drawText('Vampire Weapon', 'red');
+        this.renderer.drawText('Press any key to start', 'red', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
+      }
+
+      // draw gameover state
+      if (this.state == State.GameOver) {
+        this.renderer.drawText('Game Over', 'red', 20);
+        this.renderer.drawText('Press any key to try again', 'red', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
       }
 
       // call next frame
@@ -453,39 +454,34 @@ export default class Game {
     window.requestAnimationFrame(draw);
   }
 
-
-
   callAbilityDialog() {
     // determine which abilities to offer
     let available = Abilities.filter(a => a.getUpgradeCost(this.player) <= this.player.blood);
-    // const nextLevel = () => {
-    //   this.loadLevel(this.level, this.player);
-    // };
+    if (!available.length) return false;
 
-    if (available.length) {
-      // setup dialog
-      let message = ['Purchase ability?'];
-      let dlgSettings = {
-        type: 'prompt',
-        message,
-        fields: available,
-        submit: (data) => {
-          // add chosen ability
-          this.addAbility(data);
-          // nextLevel();
-          this.state = State.Play;
-        },
-        cancel: () => {
-          // nextLevel();
-          this.state = State.Play;
-        },
-        player: this.player
-      };
-      this.callDialog(dlgSettings);
-    } else {
-      // nextLevel();
-      // do nothing
-    }
+    // setup dialog
+    let message = ['Purchase ability?'];
+    let dlgSettings = {
+      type: 'abilities',
+      message,
+      fields: available,
+      submit: (data) => {
+        // add chosen ability
+        this.addAbility(data);
+        // try to call again
+        let called = this.callAbilityDialog();
+        if (!called) {
+          this.setState(this.lastState);
+        }
+      },
+      cancel: () => {
+        this.setState(this.lastState);
+      },
+      player: this.player
+    };
+    this.callDialog(dlgSettings);
+
+    return true;
   }
 
   systemsUpdate() {
@@ -493,16 +489,6 @@ export default class Game {
     if (this.nextMonsters.length) {
       this.monsters = this.monsters.concat(this.nextMonsters);
       this.nextMonsters.length = 0;
-    }
-
-    // check dialog status
-    if (this.state == State.Dialog) {
-      let off = !this.dlg || !this.dlg.open;
-      if (off) {
-        this.dlg = null;
-        this.setState(this.lastState !== State.Dialog ? this.lastState : State.Play);
-      }
-
     }
   }
 

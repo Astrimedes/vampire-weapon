@@ -43,17 +43,32 @@ class Dialog {
   reveal() {
     const dialog = this.getDialog();
     const { type, message, fields, player, submit, cancel } = this.settings;
-    console.log(this.settings);
 
-    // build form
-    this.setMessage(message);
-    this.setAbilities(fields, player);
-    this.setButtons(submit, cancel);
+    switch (type) {
+    case 'abilities':
+      this.setMessage(message);
+      this.setAbilities(fields, player);
+      this.setButtons(submit, cancel);
+      break;
+    case 'prompt':
+      this.setMessage(message);
+      this.setFields(fields);
+      this.setButtons(submit, cancel);
+      break;
+    default:
+      throw 'unimplemented dialog type';
+    }
+
+    this.open = true;
 
     // reveal
-    document.getElementById(ID_MESSAGE).focus(); // avoid immediately clicking buttons etc
-    dialog.classList.remove(CLASS_HIDDEN);
-    this.open = true;
+    const reveal = () => {
+      let form = document?.forms?.[0];
+      if (form) form.reset();
+      dialog.classList.remove(CLASS_HIDDEN);
+      document.getElementById(ID_MESSAGE).focus(); // avoid immediately clicking buttons etc
+    };
+    this.revealTimeout = setTimeout(reveal, 1000 / 59); // delay a frame?
   }
 
   setMessage(message) {
@@ -145,9 +160,13 @@ class Dialog {
     cancelBtn.onclick = handleCancel;
   }
 
-  hide () {
+  hide() {
     this.getDialog().classList.add(CLASS_HIDDEN);
     this.open = false;
+    if (this.revealTimeout) {
+      clearTimeout(this.revealTimeout);
+      this.revealTimeout = undefined;
+    }
   }
 }
 

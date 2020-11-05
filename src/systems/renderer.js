@@ -184,17 +184,14 @@ export default class Renderer {
     if (creature.ice > 0) {
       this.drawSprite(Sprite.Icon.ice, x, y);
       x -= 0.25;
-      // x -= 0.65;
     }
     if (creature.fire > 0) {
       this.drawSprite(Sprite.Icon.fire, x, y);
       x -= 0.25;
-      // x -= 0.65;
     }
     if (creature.bleed > 0) {
       this.drawSprite(Sprite.Icon.bleed, x, y);
       x -= 0.25;
-      // x -= 0.65;
     }
   }
 
