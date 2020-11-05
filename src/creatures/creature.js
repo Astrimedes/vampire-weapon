@@ -136,7 +136,7 @@ export default class Creature {
     }
 
     if (moveTile) {
-      this.move(dx, dy);
+      this.move(moveTile);
       return true;
     }
 
@@ -352,7 +352,7 @@ export default class Creature {
 
     // seek player by default
     let seekTiles = this.map.getAdjacentPassableNeighbors(this.tile);
-    seekTiles = seekTiles.filter(tile => !tile.creature || tile.creature.isPlayer);
+    seekTiles = seekTiles.filter(tile => tile && (!tile.creature || tile.creature.isPlayer));
     if (seekTiles.length) {
       seekTiles.sort((a,b) => {
         return this.map.dist(a, this.game.player.tile) - this.map.dist(b, this.game.player.tile);
