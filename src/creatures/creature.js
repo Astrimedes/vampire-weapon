@@ -80,8 +80,8 @@ export default class Creature {
     // check if enemy is allowed to attack player
     let allowedAttack = this.isPlayer || this.playerHit;
     if (!allowedAttack) {
-      let playerBody = this?.game?.player?.wielder ? this.game.player.wielder : {lastMoveX: 0, lastMoveY: 0};
-      let tile = this?.game?.player?.tile;
+      let playerBody = this.game.player.wielder;
+      let tile = this.game.player.tile;
       let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
       allowedAttack = !playerFacing;
       if (allowedAttack || this.isSmart) {
@@ -136,7 +136,13 @@ export default class Creature {
     }
 
     if (moveTile) {
-      this.move(moveTile);
+      if (moveTile.creature && (moveTile.creature.isPlayer !== this.isPlayer)) {
+        if (!allowedAttack) return false;
+        this.weapon.attack(moveTile.creature, moveTile.x - this.x, moveTile.y - this.y);
+      } else {
+        this.move(moveTile);
+      }
+
       return true;
     }
 
