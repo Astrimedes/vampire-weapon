@@ -83,7 +83,7 @@ export default class Creature {
     let allowedAttack = this.isPlayer || this.playerHit;
     if (!allowedAttack) {
       let playerBody = this.game.player.wielder;
-      let tile = this.game.player.tile;
+      let tile = this.game.player.tile || this?.game?.player?.wielder?.tile;
       let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
       allowedAttack = !playerFacing;
     }
@@ -311,7 +311,6 @@ export default class Creature {
     }
     // bleed
     if (this.bleed && (this.bleed % 3 == 0)) {
-      console.log('bleeding dmg, bleed:', this.bleed);
       this.hp -= 1;
       this.bleed--;
     }
