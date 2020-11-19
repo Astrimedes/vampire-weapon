@@ -6,12 +6,13 @@ import { Exit } from '../map/tile.js';
 import { State } from './gamestate.js';
 import { Sprite } from '../../assets/sprite-index.js';
 import Slime from '../creatures/slime.js';
-import { Dialog } from './dialog.js';
+import { Dialog } from '../ui/dialog.js';
 import { levels } from '../config/levels.js';
 import Spider from '../creatures/spider.js';
 import { Rng } from '../tools/randoms.js';
 import SlowGuy from '../creatures/slowguy.js';
 import { Abilities } from '../config/abilities.js';
+import HeadsUpDisplay from './hud.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -112,7 +113,7 @@ export default class Game {
       }
     };
 
-    document.querySelector('html').addEventListener('mousedown', e => {
+    document.querySelector('canvas').addEventListener('mousedown', e => {
       e.preventDefault();
       if (!this.checkInput(true)) return;
 
@@ -169,24 +170,24 @@ export default class Game {
       }
     });
 
-    document.querySelector('html').addEventListener('mousemove', e => {
-      if (!this.checkInput(false)) return; // don't allow mousemove to start game
+    // document.querySelector('canvas').addEventListener('mousemove', e => {
+    //   if (!this.checkInput(false) || this.state !== State.Play) return; // don't allow mousemove to start game
 
-      this.highlightTile = null;
+    //   this.highlightTile = null;
 
-      const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
-      if (!tile) return;
+    //   const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
 
-      if (tile == this.player.tile || !this.map.inBounds(tile.x, tile.y)) {
-        return;
-      }
+    //   if (!tile || tile == this.player.tile || !this.map.inBounds(tile.x, tile.y)) {
+    //     this.highlightTile = null;
+    //     return;
+    //   }
 
-      this.highlightTile = tile;
-    });
+    //   this.highlightTile = tile;
+    // });
 
-    document.querySelector('html').addEventListener('mouseleave', () => {
-      this.highlightTile = null;
-    });
+    // document.querySelector('html').addEventListener('mouseleave', () => {
+    //   this.highlightTile = null;
+    // });
   }
 
   setupPlayer(currentPlayer) {
@@ -407,22 +408,22 @@ export default class Game {
         }
 
         // draw level number
-        let x = 4;
-        let y = 8;
-        let height = 12;
-        this.renderer.drawText(`Level: ${this.level}`, 'red', 8, x, y);
-        y += height;
-        this.renderer.drawText(`Blood: ${this?.player?.blood}`, 'red', 8, x, y);
-        y += height;
-        // draw list of abilities
-        this.player.effects.forEach(a => {
-          let text = a.type;
-          if (a.value > 1) {
-            text += ' x' + a.value;
-          }
-          y += 12;
-          this.renderer.drawText(text, 'red', 8, x, y);
-        });
+        // let x = 4;
+        // let y = 8;
+        // let height = 12;
+        // this.renderer.drawText(`Level: ${this.level}`, 'red', 8, x, y);
+        // y += height;
+        // this.renderer.drawText(`Blood: ${this?.player?.blood}`, 'red', 8, x, y);
+        // y += height;
+        // // draw list of abilities
+        // this.player.effects.forEach(a => {
+        //   let text = a.type;
+        //   if (a.value > 1) {
+        //     text += ' x' + a.value;
+        //   }
+        //   y += 12;
+        //   this.renderer.drawText(text, 'red', 8, x, y);
+        // });
 
         // draw pause icon while input is blocked
         if (this.renderer.animationsRunning) {
@@ -490,6 +491,10 @@ export default class Game {
       this.monsters = this.monsters.concat(this.nextMonsters);
       this.nextMonsters.length = 0;
     }
+    // update hud
+    if (this.state == State.Play) {
+      this.updateHud();
+    }
   }
 
   endGame() {
@@ -519,9 +524,26 @@ export default class Game {
 
     // update state
     this.setState(State.Play);
+
+    // set hud
+    this.updateHud();
+    this.hud.reveal();
   }
 
-  init () {
+  updateHud() {
+    this.hud.setStatusField('Level', this.level);
+    this.hud.setStatusField('Blood', this.player.blood);
+  }
+
+  initDom() {
+    // create & hide hud
+    this.hud = new HeadsUpDisplay('hud', 'hud-status', 'hud-controls');
+    this.hud.hide();
+  }
+
+  init() {
+    this.initDom();
+
     this.setState(State.Loading);
 
     this.loadAssets();

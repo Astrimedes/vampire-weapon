@@ -4,6 +4,7 @@ const ID_MESSAGE = 'dlg-msg';
 const ID_SUBMIT = 'btn-submit';
 const ID_CANCEL = 'btn-cancel';
 const ID_FIELDS = 'dlg-fields';
+const ID_CANVAS = 'canvas';
 
 const DATA_FIELD = 'data';
 
@@ -34,10 +35,27 @@ class Dialog {
   constructor(settings = {}) {
     this.settings = Object.assign({}, defaultSettings, settings);
     this.open = !(this.getDialog()).classList.contains(CLASS_HIDDEN);
+
+    let resize = window.onresize || (() => { });
+    window.onresize = () => {
+      resize();
+      this.setPosition();
+    };
   }
 
   getDialog () {
     return document.getElementById(ID_DIALOG);
+  }
+
+  setPosition() {
+    const dialog = this.getDialog();
+    // set position
+    let rect = document.getElementById(ID_CANVAS).getBoundingClientRect();
+    dialog.style.position = 'absolute';
+    dialog.style.top = rect.top + 'px';
+    dialog.style.left = rect.left + 'px';
+    dialog.style.width = rect.width;
+    dialog.style.height = rect.height;
   }
 
   reveal() {
@@ -63,8 +81,14 @@ class Dialog {
 
     // reveal
     const reveal = () => {
+      // reset form values
       let form = document?.forms?.[0];
       if (form) form.reset();
+
+      // adjust position
+      this.setPosition(dialog);
+
+      // show
       dialog.classList.remove(CLASS_HIDDEN);
       document.getElementById(ID_MESSAGE).focus(); // avoid immediately clicking buttons etc
     };
