@@ -346,6 +346,8 @@ export default class Game {
   addAbility(ability) {
     this.player.blood -= Abilities.find(a => a.name == ability).getUpgradeCost(this.player);
     this.player.addEffect(ability);
+    // force hud recalc
+    this.effectsUpdated = true;
   }
 
   beginGameLoop () {
@@ -526,13 +528,27 @@ export default class Game {
     this.setState(State.Play);
 
     // set hud
-    this.updateHud();
+    this.updateHud(level == 1); // always clear on level 1
     this.hud.reveal();
   }
 
-  updateHud() {
+  updateHud(clearAll) {
+    if (clearAll) {
+      this.hud.clearAllStatus();
+    }
+
     this.hud.setStatusField('Level', this.level);
     this.hud.setStatusField('Blood', this.player.blood);
+    this.hud.addEmpty('empty1');
+    if (clearAll || this.effectsUpdated) {
+      this.player.effects.filter(e => e.type !== 'Player').forEach(e => {
+        this.hud.setStatusField(e.type, e.value, true);
+      });
+      if (this.player.reach > 1) {
+        this.hud.setStatusField('Size', this.player.reach - 1);
+      }
+      this.effectsUpdated = false;
+    }
   }
 
   initDom() {
