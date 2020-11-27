@@ -127,7 +127,7 @@ export default class Game {
       if (!this.checkInput()) return;
 
       let tile = null;
-      if (this.map && this.player) {
+      if (this?.gameState?.hasMap) {
         let dir = { x: 0, y: 0 };
         if (e.key == 'w') {
           dir.y = -1;
@@ -138,20 +138,10 @@ export default class Game {
         } else if (e.key == 'd') {
           dir.x = 1;
         }
-        tile = this.map && this.player ? this.map.getTile(this.player.x + dir.x, this.player.y + dir.y) : null;
+        tile = this.map.getTile(this.player.x + dir.x, this.player.y + dir.y);
       }
 
       this.callInputActionForTarget(tile);
-
-      // let acted = false;
-      // if (e.key === 'w') acted = this.player.tryMove(0, -1);
-      // if (e.key === 's') acted = this.player.tryMove(0, 1);
-      // if (e.key === 'a') acted = this.player.tryMove(-1, 0);
-      // if (e.key === 'd') acted = this.player.tryMove(1, 0);
-
-      // if (acted) {
-      //   this.tick();
-      // }
     };
 
     document.querySelector('canvas').addEventListener('mousedown', e => {
@@ -164,7 +154,7 @@ export default class Game {
     });
 
     document.querySelector('canvas').addEventListener('mousemove', e => {
-      if (!this.checkInput(false) || this.inputState == InputState.None) {
+      if (!this.checkInput() || this.inputState == InputState.None) {
         this.highlightTile = null;
         return;
       }
