@@ -57,6 +57,8 @@ html{
 
 #dlg-msg{
     text-align: center;
+    font-size: 3vw;
+    color: purple;
 }
 
 .button-area {
@@ -93,11 +95,22 @@ html{
     font-size: 1.5vw;
 }
 
-.dlg-button {
+button {
     border-radius: 0.5rem;
     font-weight: bold;
     width: auto;
     height: auto;
+}
+
+.dialog input[type="radio"] {
+    display: none;
+}
+
+.dialog input[type="radio"]:checked+label {
+    background:lightslategrey;
+}
+
+.dlg-button {
     min-width: 15vmin;
     min-height: 5vmin;
     font-size: 2vmin;

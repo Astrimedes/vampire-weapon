@@ -9,6 +9,7 @@ const ID_CANVAS = 'canvas';
 const DATA_FIELD = 'data';
 
 const CLASS_HIDDEN = 'hidden';
+const CLASS_DIALOG = 'dialog';
 
 const defaultSettings = {
   type: 'prompt',
@@ -170,6 +171,7 @@ class Dialog {
 
       return false;
     };
+    submitBtn.classList.add(CLASS_HIDDEN);
     submitBtn.onclick = handleSubmit;
 
     let cancelBtn = document.getElementById(ID_CANCEL);
@@ -182,6 +184,11 @@ class Dialog {
       return false;
     };
     cancelBtn.onclick = handleCancel;
+
+    document.querySelectorAll(`.${CLASS_DIALOG} input[type="radio"]`).forEach((ele) => {
+      console.log('found element', ele);
+      ele.addEventListener('change', () => { document.getElementById(ID_SUBMIT).classList.remove(CLASS_HIDDEN); });
+    });
   }
 
   hide() {
