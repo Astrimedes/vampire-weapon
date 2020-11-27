@@ -3,7 +3,7 @@ import Renderer from './renderer.js';
 import Player from '../weapons/player.js';
 import Chump from '../creatures/chump.js';
 import { Exit } from '../map/tile.js';
-import { State } from './gamestate.js';
+import { GameState } from './gamestate.js';
 import { Sprite } from '../../assets/sprite-index.js';
 import Slime from '../creatures/slime.js';
 import { Dialog } from '../ui/dialog.js';
@@ -13,6 +13,7 @@ import { Rng } from '../tools/randoms.js';
 import SlowGuy from '../creatures/slowguy.js';
 import { Abilities } from '../config/abilities.js';
 import HeadsUpDisplay from './hud.js';
+import { InputState } from './inputstate.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -22,17 +23,45 @@ const assets = {};
 export default class Game {
   constructor () {
     this.unloadAssets();
-    this.state = null;
+    this.gameState = null;
+    this.inputState = InputState.None;
     this.turnCount = 0;
   }
 
-  setState (state) {
-    if (state !== this.state) {
-      this.lastState = this.state;
-      this.state = state;
+  setGameState (state) {
+    if (state !== this.gameState) {
+      this.lastGameState = this.gameState;
+      this.gameState = state;
+      // set default input state
+      this.setInputState(state.input);
       return true;
     }
     return false;
+  }
+
+  setInputState(state) {
+    if (this.inputState !== state) {
+      this.inputState = state;
+      this.inputAction = state.defaultAction;
+      console.log(state);
+      return true;
+    }
+    return false;
+  }
+
+  setInputAction(action) {
+    this.inputAction = action;
+  }
+
+  resetInputAction() {
+    this.setInputAction(this.inputState.defaultAction);
+  }
+
+  callInputActionForTarget(tile) {
+    if (this.inputState !== InputState.None) {
+      // call input callback
+      this.inputAction(this, tile);
+    }
   }
 
   loadAssets (force = false) {
@@ -60,6 +89,10 @@ export default class Game {
     };
   }
 
+  setupHud() {
+    this.hud;
+  }
+
   autoScale() {
     this.renderer.setSizes(TILE_SIZE, this?.currentLevel?.size || levels[1].size);
     this.renderer.autoScale();
@@ -75,21 +108,12 @@ export default class Game {
     this.renderer.resize();
   }
 
-  checkInput (allowLoading = false) {
+  checkInput () {
     // restart on button press after death
-    if ((this.state == State.GameOver && !this.animationsRunning) || this.state == State.Title) {
-      if (allowLoading) {
-        this.loadLevel(1);
-      }
-
-      return false;
-    }
-
-    // block movement during animation / death / active dialog
-    if (this.renderer.animationsRunning || !this.player || this.player.dead || this.state == State.Dialog) return false;
+    if (!this.inputState || this.inputState == InputState.None || this?.renderer?.animationsRunning) return false;
 
     // if stunned, advance by one tick on key press
-    if (this.player.stunned) {
+    if (this?.player?.stunned) {
       this.tick();
       return false;
     }
@@ -100,94 +124,66 @@ export default class Game {
   setupInput () {
     document.querySelector('html').onkeypress = (e) => {
       e.preventDefault();
-      if (!this.checkInput(true)) return;
+      if (!this.checkInput()) return;
 
-      let acted = false;
-      if (e.key === 'w') acted = this.player.tryMove(0, -1);
-      if (e.key === 's') acted = this.player.tryMove(0, 1);
-      if (e.key === 'a') acted = this.player.tryMove(-1, 0);
-      if (e.key === 'd') acted = this.player.tryMove(1, 0);
-
-      if (acted) {
-        this.tick();
+      let tile = null;
+      if (this.map && this.player) {
+        let dir = { x: 0, y: 0 };
+        if (e.key == 'w') {
+          dir.y = -1;
+        } else if (e.key == 's') {
+          dir.y = 1;
+        } else if (e.key == 'a') {
+          dir.x = -1;
+        } else if (e.key == 'd') {
+          dir.x = 1;
+        }
+        tile = this.map && this.player ? this.map.getTile(this.player.x + dir.x, this.player.y + dir.y) : null;
       }
+
+      this.callInputActionForTarget(tile);
+
+      // let acted = false;
+      // if (e.key === 'w') acted = this.player.tryMove(0, -1);
+      // if (e.key === 's') acted = this.player.tryMove(0, 1);
+      // if (e.key === 'a') acted = this.player.tryMove(-1, 0);
+      // if (e.key === 'd') acted = this.player.tryMove(1, 0);
+
+      // if (acted) {
+      //   this.tick();
+      // }
     };
 
     document.querySelector('canvas').addEventListener('mousedown', e => {
       e.preventDefault();
-      if (!this.checkInput(true)) return;
+      if (!this.checkInput()) return;
 
-      const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
-      if (!tile) return;
+      const tile = this.map ? this.renderer.getTileAt(e.clientX, e.clientY, this.map) : null;
 
-      // raw distance
-      const xDist = tile.x - this.player.x;
-      const yDist = tile.y - this.player.y;
-
-      // raw direction
-      let x = Math.sign(xDist);
-      let y = Math.sign(yDist);
-
-      // flag
-      let solved = false;
-      let neighbors;
-
-      if (x != 0 && y != 0) {
-        // if both directions indicated, check adjacent tiles, select a passable one
-        neighbors = this.map.getAdjacentPassableNeighbors(this?.player?.wielder?.tile);
-        const xDest = this.player.x + x;
-        const yDest = this.player.y + y;
-        neighbors.filter(t => (t.x == xDest || t.y == yDest));
-        if (neighbors.length) {
-          let idx = 0;
-          // if we've chosen a 'diagonal' move...
-          if (neighbors[idx].x == xDest && neighbors[idx].y == yDest) {
-            if (neighbors.length > 1) {
-              idx++;
-            } else {
-              idx = -1;
-            }
-          }
-          if (idx != -1) {
-            x = neighbors[idx].x == xDest ? x : 0;
-            y = neighbors[idx].y == yDest ? y : 0;
-            solved = true;
-          }
-        }
-      }
-
-      if (!solved) {
-        // choose the longer distance
-        x = Math.abs(xDist) >= Math.abs(yDist) ? x : 0;
-        y = x == 0 ? y : 0;
-      }
-
-      if (x == 0 && y == 0) return;
-
-      // finally move
-      if (this.player.tryMove(x, y)) {
-        this.tick();
-      }
+      this.callInputActionForTarget(tile);
     });
 
-    // document.querySelector('canvas').addEventListener('mousemove', e => {
-    //   if (!this.checkInput(false) || this.state !== State.Play) return; // don't allow mousemove to start game
+    document.querySelector('canvas').addEventListener('mousemove', e => {
+      if (!this.checkInput(false) || this.inputState == InputState.None) {
+        this.highlightTile = null;
+        return;
+      }
 
-    //   this.highlightTile = null;
+      this.highlightTile = null;
 
-    //   const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
+      const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
 
-    //   if (!tile || tile == this.player.tile || !this.map.inBounds(tile.x, tile.y)) {
-    //     this.highlightTile = null;
-    //     return;
-    //   }
+      if (!tile || tile == this.player.tile || !this.map.inBounds(tile.x, tile.y)) {
+        this.highlightTile = null;
+        return;
+      }
 
-    //   this.highlightTile = tile;
-    // });
+      this.highlightTile = tile;
+    });
 
-    // document.querySelector('html').addEventListener('mouseleave', () => {
-    //   this.highlightTile = null;
-    // });
+    document.querySelector('html').addEventListener('mouseleave', () => {
+      this.highlightTile = null;
+    });
   }
 
   setupPlayer(currentPlayer) {
@@ -338,7 +334,7 @@ export default class Game {
     if (this.dlg) {
       this.dlg.hide();
     }
-    this.setState(State.Dialog);
+    this.setGameState(GameState.Dialog);
     this.dlg = new Dialog(settings);
     this.dlg.reveal();
   }
@@ -355,7 +351,7 @@ export default class Game {
     this.time = 0;
     draw = (elapsedTimeMs) => {
       // check for exit from level
-      // if (this.exitReached && this.state !== State.Dialog) {
+      // if (this.exitReached && this.state !== GameState.Dialog) {
       //   // let animations finish
       //   if (!this.player.animating) {
       //     this.callAbilityDialog();
@@ -381,7 +377,7 @@ export default class Game {
       this.renderer.clearScreen();
 
       // draw dungeon etc
-      if (this.state.hasMap) {
+      if (this.gameState.hasMap) {
         this.systemsUpdate();
 
         // draw map
@@ -405,7 +401,7 @@ export default class Game {
         });
 
         // draw highlighted tile
-        if (this.highlightTile && this.state == State.Play) {
+        if (this.highlightTile && this.gameState == GameState.Play) {
           this.renderer.drawTileRect(this.highlightTile.x, this.highlightTile.y, 'blue', 0.11);
         }
 
@@ -433,18 +429,18 @@ export default class Game {
         }
       }
 
-      if (this.state.dimmed) {
+      if (this.gameState.dimmed) {
         this.renderer.dimOverlay();
       }
 
       // draw title
-      if (this.state == State.Title) {
+      if (this.gameState == GameState.Title) {
         this.renderer.drawText('Vampire Weapon', 'red');
         this.renderer.drawText('Press any key to start', 'red', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
       }
 
       // draw gameover state
-      if (this.state == State.GameOver) {
+      if (this.gameState == GameState.GameOver) {
         this.renderer.drawText('Game Over', 'red', 20);
         this.renderer.drawText('Press any key to try again', 'red', 6, null, Math.floor(this.renderer.canvas.height * 0.55));
       }
@@ -463,7 +459,7 @@ export default class Game {
     if (!available.length) return false;
 
     // setup dialog
-    let message = ['Purchase ability?'];
+    let message = ['Choose an ability'];
     let dlgSettings = {
       type: 'abilities',
       message,
@@ -474,11 +470,11 @@ export default class Game {
         // try to call again
         let called = this.callAbilityDialog();
         if (!called) {
-          this.setState(this.lastState);
+          this.setGameState(this.lastGameState);
         }
       },
       cancel: () => {
-        this.setState(this.lastState);
+        this.setGameState(this.lastGameState);
       },
       player: this.player
     };
@@ -494,7 +490,7 @@ export default class Game {
       this.nextMonsters.length = 0;
     }
     // update hud
-    if (this.state == State.Play) {
+    if (this.gameState == GameState.Play) {
       this.updateHud();
     }
   }
@@ -504,7 +500,7 @@ export default class Game {
       this.dlg.hide();
       this.dlg = null;
     }
-    this.setState(State.GameOver);
+    this.setGameState(GameState.GameOver);
   }
 
   exit () {
@@ -515,7 +511,7 @@ export default class Game {
   loadLevel(level = 1, player) {
     let lastLevel = this.currentLevel;
     this.currentLevel = levels[level] || lastLevel;
-    this.setState(State.Loading);
+    this.setGameState(GameState.Loading);
 
     // find previous reference to player
     this.exitReached = false;
@@ -525,7 +521,7 @@ export default class Game {
     this.setupPlayer(player);
 
     // update state
-    this.setState(State.Play);
+    this.setGameState(GameState.Play);
 
     // set hud
     this.updateHud(level == 1); // always clear on level 1
@@ -539,7 +535,7 @@ export default class Game {
 
     this.hud.setStatusField('Level', this.level);
     this.hud.setStatusField('Blood', this.player.blood);
-    this.hud.addEmpty('empty1');
+    this.hud.addEmptyStatus('empty1');
     if (clearAll || this.effectsUpdated) {
       this.player.effects.filter(e => e.type !== 'Player').forEach(e => {
         this.hud.setStatusField(e.type, e.value, true);
@@ -547,6 +543,13 @@ export default class Game {
       if (this.player.reach > 1) {
         this.hud.setStatusField('Size', this.player.reach - 1);
       }
+
+      // add possess button to hud
+      this.hud.addControl('Possess', (e) => {
+        e.preventDefault();
+        console.log('Possessed!!!');
+      }, 'red');
+
       this.effectsUpdated = false;
     }
   }
@@ -554,13 +557,14 @@ export default class Game {
   initDom() {
     // create & hide hud
     this.hud = new HeadsUpDisplay('hud', 'hud-status', 'hud-controls');
+
     this.hud.hide();
   }
 
   init() {
     this.initDom();
 
-    this.setState(State.Loading);
+    this.setGameState(GameState.Loading);
 
     this.loadAssets();
 
@@ -568,7 +572,7 @@ export default class Game {
 
     this.setupInput();
 
-    this.setState(State.Title);
+    this.setGameState(GameState.Title);
     this.beginGameLoop();
   }
 }
