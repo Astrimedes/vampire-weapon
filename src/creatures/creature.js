@@ -1,11 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-import Dungeon from '../map/map.js';
-// eslint-disable-next-line no-unused-vars
-import { Tile } from '../map/tile.js';
-// eslint-disable-next-line no-unused-vars
-import Game from '../systems/game.js';
 import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
-import { Rng } from '../tools/randoms.js';
 
 let ID = 0;
 

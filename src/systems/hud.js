@@ -1,4 +1,5 @@
 const getFieldName = name => `hud-status-${name}`;
+const getControlName = name => `hud-ctrl-${name}`;
 const getEmptyName = name => `hud-empty-${name}`;
 
 const stringToColour = str => {
@@ -16,6 +17,10 @@ const stringToColour = str => {
 
 const createField = (id, label, value, color) => {
   return `<div id="${id}" style="color:${color};">${label}: ${(value || 0).toString()}</div>`;
+};
+
+const createButton = (id, label, color) => {
+  return `<button id=${id} style="color:${color};" class="button">${label}</button>`;
 };
 
 const emptyLine = '<p></p>';
@@ -39,12 +44,24 @@ export default class HeadsUpDisplay {
     document.getElementById(this.hudId).classList.remove('hidden');
   }
 
+  clearAll() {
+    this.clearAllStatus();
+    this.clearAllControl();
+  }
+
   clearAllStatus() {
     let parent = document.getElementById(this.statusId);
     while (parent.firstChild) {
       parent.removeChild(parent.firstChild);
     }
     this.fields = {};
+  }
+
+  clearAllControl() {
+    let parent = document.getElementById(this.controlsId);
+    while (parent.firstChild) {
+      parent.removeChild(parent.firstChild);
+    }
   }
 
   setStatusField(name, value, color) {
@@ -70,6 +87,27 @@ export default class HeadsUpDisplay {
     this.fields[id] = value;
   }
 
+  addControl(name, callback, color) {
+    // get parent text color if not specified
+    if (!color) {
+      color = document.getElementById(this.hudId).style.color;
+    }
+    const id = getControlName(name);
+
+    let btn = document.getElementById(id);
+    let wrapper = btn ? btn.parentElement : null;
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      let controlsParent = document.getElementById(this.controlsId);
+      controlsParent.appendChild(wrapper);
+    }
+    wrapper.innerHTML = createButton(id, name, color);
+    btn = wrapper.firstChild;
+
+    // set callback
+    btn.onclick = callback;
+  }
+
   removeStatusField(name) {
     const id = getFieldName(name);
     if (this.fields[id] !== undefined) {
@@ -81,7 +119,7 @@ export default class HeadsUpDisplay {
     }
   }
 
-  addEmpty(name) {
+  addEmptyStatus(name) {
     const id = getEmptyName(name);
     if (document.getElementById(id)) return;
 

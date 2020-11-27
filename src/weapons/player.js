@@ -1,13 +1,5 @@
-// eslint-disable-next-line no-unused-vars
 import { Sprite } from '../../assets/sprite-index.js';
-// eslint-disable-next-line no-unused-vars
-import Dungeon from '../map/map.js';
-// eslint-disable-next-line no-unused-vars
-import { Tile } from '../map/tile.js';
-// eslint-disable-next-line no-unused-vars
-import Game from '../systems/game.js';
-// eslint-disable-next-line no-unused-vars
-import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
+import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 import Weapon from './weapon.js';
 
 const HIT_GAIN = 2;
