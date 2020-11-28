@@ -58,7 +58,8 @@ html{
 #dlg-msg{
     text-align: center;
     font-size: 3vw;
-    color: purple;
+    color: #8f4072;
+    font-weight: bold;
 }
 
 .button-area {
