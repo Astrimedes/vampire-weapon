@@ -82,10 +82,10 @@ export default class Creature {
     //   let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
     //   allowedAttack = !playerFacing;
     // }
-    let allowedAttack = this.allowedAttack;
+    let allowedAttack = this.allowedAttack && newTile.creature && newTile.creature.isPlayer !== this.isPlayer;
 
     // attack adjacent
-    if (allowedAttack && newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
+    if (allowedAttack) {
       this.weapon.attack(newTile.creature, dx, dy);
       this.lastMoveX = dx;
       this.lastMoveY = dy;
@@ -97,19 +97,6 @@ export default class Creature {
       // animation to bump against wrong direction...
       this.beginAnimation(this.x - (dx / 4), this.y - (dy / 4), t => spike(t));
       return false;
-    }
-
-    // 'smart' enemies run away
-    if (!allowedAttack) {
-      // move in a random direction when player takes step towards and facing
-      let neighbors = this.ignoreWalls ? this.map.getAdjacentNeighbors(this.tile) : this.map.getAdjacentPassableNeighbors(this.tile);
-      neighbors = neighbors.filter(t => t !== moveTile);
-      let moved = false;
-      for (let idx = 0; !moved && idx < neighbors.length; idx++) {
-        let nextTile = neighbors[idx];
-        moved = this.tryMove(nextTile.x - this.tile.x, nextTile.y - this.tile.y);
-      }
-      if (moved) return true;
     }
 
     if (this.weapon.reach < 2) {
@@ -356,8 +343,7 @@ export default class Creature {
     if (this.isPlayer) return false;
 
     // seek player by default
-    let seekTiles = this.map.getAdjacentPassableNeighbors(this.tile);
-    seekTiles = seekTiles.filter(tile => tile && (!tile.creature || tile.creature.isPlayer));
+    let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => t?.creature?.isPlayer || t.passable || this.ignoreWalls);
     if (seekTiles.length) {
       seekTiles.sort((a,b) => {
         return this.map.dist(a, this.game.player.tile) - this.map.dist(b, this.game.player.tile);
