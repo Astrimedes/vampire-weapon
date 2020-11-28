@@ -43,7 +43,6 @@ export default class Game {
     if (this.inputState !== state) {
       this.inputState = state;
       this.inputAction = state.defaultAction;
-      console.log(state);
       return true;
     }
     return false;
@@ -154,7 +153,6 @@ export default class Game {
     });
 
     document.querySelector('canvas').addEventListener('mousemove', e => {
-      console.log(e);
       if (!this.checkInput()) {
         this.highlightTile = null;
         return;
@@ -198,7 +196,7 @@ export default class Game {
     let playerConfig = {
       reach: 1,
       effects: [],
-      blood: 1
+      blood: 5
     };
     if (currentPlayer) {
       playerConfig.reach = currentPlayer.reach;
@@ -209,7 +207,7 @@ export default class Game {
     // create player
     this.player = new Player(this, this.map, playerConfig);
     // create player body
-    let BodyCreature = currentPlayer ? currentPlayer.wielder.constructor : Slime;
+    let BodyCreature = currentPlayer ? currentPlayer.wielder.constructor : Chump;
     let body = new BodyCreature(this, this.map, tile, this.player); // will attach to playerBody
     if (currentPlayer) {
       // copy over previous values
@@ -400,24 +398,6 @@ export default class Game {
         if (this.highlightTile && this.gameState == GameState.Play) {
           this.renderer.drawTileRect(this.highlightTile.x, this.highlightTile.y, 'blue', 0.11);
         }
-
-        // draw level number
-        // let x = 4;
-        // let y = 8;
-        // let height = 12;
-        // this.renderer.drawText(`Level: ${this.level}`, 'red', 8, x, y);
-        // y += height;
-        // this.renderer.drawText(`Blood: ${this?.player?.blood}`, 'red', 8, x, y);
-        // y += height;
-        // // draw list of abilities
-        // this.player.effects.forEach(a => {
-        //   let text = a.type;
-        //   if (a.value > 1) {
-        //     text += ' x' + a.value;
-        //   }
-        //   y += 12;
-        //   this.renderer.drawText(text, 'red', 8, x, y);
-        // });
 
         // draw pause icon while input is blocked
         if (this.renderer.animationsRunning) {
