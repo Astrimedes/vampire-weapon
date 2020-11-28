@@ -171,10 +171,10 @@ export default class Game {
 
   wait() {
     if (this.inputState == InputState.Move) {
-      this.tick();
-      if (this.player.blood > 0 && !this.player.body.stunned) {
+      if (this.player.blood > 0 && !this.player.wielder.stunned && this.monsters.length > 0) {
         this.player.blood--;
       }
+      this.tick();
     }
   }
 

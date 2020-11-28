@@ -74,18 +74,8 @@ export default class Creature {
       return true;
     }
 
-    // check if enemy is allowed to attack player
-    // let allowedAttack = this.isPlayer || this.playerHit;
-    // if (!allowedAttack) {
-    //   let playerBody = this.game.player.wielder;
-    //   let tile = this.game.player.tile || this?.game?.player?.wielder?.tile;
-    //   let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
-    //   allowedAttack = !playerFacing;
-    // }
-    let allowedAttack = this.allowedAttack;
-
     // attack adjacent
-    if (allowedAttack && newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
+    if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
       this.weapon.attack(newTile.creature, dx, dy);
       this.lastMoveX = dx;
       this.lastMoveY = dy;
@@ -123,7 +113,6 @@ export default class Creature {
     }
 
     if (newTile.creature && (newTile.creature.isPlayer !== this.isPlayer)) {
-      if (!allowedAttack) return false;
       this.weapon.attack(newTile.creature, newTile.x - this.x, newTile.y - this.y);
       return true;
     }
@@ -235,7 +224,8 @@ export default class Creature {
 
     this.isPlayer = !!weapon.isPlayer;
     if (this.isPlayer) {
-      this.stunned = 0; //reset stun
+      this.stunned = 0; // reset stun
+      this.allowedAttack = true; // player always allowed attack
     }
 
     // remove self from monster list, assign to playerBody
@@ -346,8 +336,9 @@ export default class Creature {
     // seek player by default
     let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => t?.creature?.isPlayer || t.passable || this.ignoreWalls);
     if (seekTiles.length) {
+      let seekSign = this.allowedAttack ? 1 : -1;
       seekTiles.sort((a,b) => {
-        return this.map.dist(a, this.game.player.tile) - this.map.dist(b, this.game.player.tile);
+        return seekSign * (this.map.dist(a, this.game.player.tile) - this.map.dist(b, this.game.player.tile));
       });
       this.tryMove(seekTiles[0].x - this.x, seekTiles[0].y - this.y);
     }

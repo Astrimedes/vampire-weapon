@@ -11,6 +11,6 @@ export default class Chump extends Creature {
    */
   constructor(game, map, tile, weapon = new Fist(game, map)) {
     super(game, map, tile, Sprite.Creature.chump, 1, weapon);
-    // this.allowedAttack = false;
+    this.allowedAttack = false;
   }
 }
