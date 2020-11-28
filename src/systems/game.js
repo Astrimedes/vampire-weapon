@@ -113,7 +113,7 @@ export default class Game {
     if (!this.inputState || this.inputState == InputState.None || this?.renderer?.animationsRunning) return false;
 
     // if stunned, advance by one tick on key press
-    if (this?.player?.stunned) {
+    if (this.inputState == InputState.Move && this?.player?.stunned) {
       this.tick();
       return false;
     }
@@ -137,6 +137,12 @@ export default class Game {
           dir.x = -1;
         } else if (e.key == 'd') {
           dir.x = 1;
+        } else if (e.key == ' ') {
+          dir.wait = true;
+        }
+        if (this.inputState == InputState.Move && dir.wait) {
+          this.wait();
+          return true;
         }
         tile = this.map.getTile(this.player.x + dir.x, this.player.y + dir.y);
       }
@@ -174,6 +180,15 @@ export default class Game {
     document.querySelector('html').addEventListener('mouseleave', () => {
       this.highlightTile = null;
     });
+  }
+
+  wait() {
+    if (this.inputState == InputState.Move) {
+      this.tick();
+      if (this.player.blood > 0) {
+        this.player.blood--;
+      }
+    }
   }
 
   setupPlayer(currentPlayer) {
@@ -457,6 +472,8 @@ export default class Game {
       submit: (data) => {
         // add chosen ability
         this.addAbility(data);
+        // update ui for new blood total etc
+        this.updateHud(true);
         // try to call again
         let called = this.callAbilityDialog();
         if (!called) {
@@ -534,10 +551,10 @@ export default class Game {
         this.hud.setStatusField('Size', this.player.reach - 1);
       }
 
-      // add possess button to hud
-      this.hud.addControl('Possess', (e) => {
+      // add wait button to hud
+      this.hud.addControl('Wait', (e) => {
         e.preventDefault();
-        console.log('Possessed!!!');
+        this.wait();
       }, 'red');
 
       this.effectsUpdated = false;

@@ -20,6 +20,8 @@ export default class Creature {
     this.spriteNumber = spriteNumber;
     this.hp = hp;
 
+    this.allowedAttack = true;
+
     // set these after move to prevent any initial animation
     this.offsetX = 0;
     this.offsetY = 0;
@@ -73,13 +75,14 @@ export default class Creature {
     }
 
     // check if enemy is allowed to attack player
-    let allowedAttack = this.isPlayer || this.playerHit;
-    if (!allowedAttack) {
-      let playerBody = this.game.player.wielder;
-      let tile = this.game.player.tile || this?.game?.player?.wielder?.tile;
-      let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
-      allowedAttack = !playerFacing;
-    }
+    // let allowedAttack = this.isPlayer || this.playerHit;
+    // if (!allowedAttack) {
+    //   let playerBody = this.game.player.wielder;
+    //   let tile = this.game.player.tile || this?.game?.player?.wielder?.tile;
+    //   let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
+    //   allowedAttack = !playerFacing;
+    // }
+    let allowedAttack = this.allowedAttack;
 
     // attack adjacent
     if (allowedAttack && newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
@@ -97,7 +100,7 @@ export default class Creature {
     }
 
     // 'smart' enemies run away
-    if (!this.isPlayer && this.isSmart && dy == 0) {
+    if (!allowedAttack) {
       // move in a random direction when player takes step towards and facing
       let neighbors = this.ignoreWalls ? this.map.getAdjacentNeighbors(this.tile) : this.map.getAdjacentPassableNeighbors(this.tile);
       neighbors = neighbors.filter(t => t !== moveTile);
