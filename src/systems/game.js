@@ -112,12 +112,6 @@ export default class Game {
     // restart on button press after death
     if (!this.inputState || this.inputState == InputState.None || this?.renderer?.animationsRunning) return false;
 
-    // if stunned, advance by one tick on key press
-    if (this.inputState == InputState.Move && this?.player?.stunned) {
-      this.tick();
-      return false;
-    }
-
     return true;
   }
 
@@ -160,24 +154,17 @@ export default class Game {
     });
 
     document.querySelector('canvas').addEventListener('mousemove', e => {
-      if (!this.checkInput() || this.inputState == InputState.None) {
+      console.log(e);
+      if (!this.checkInput()) {
         this.highlightTile = null;
         return;
       }
-
-      this.highlightTile = null;
 
       const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
-
-      if (!tile || tile == this.player.tile || !this.map.inBounds(tile.x, tile.y)) {
-        this.highlightTile = null;
-        return;
-      }
-
-      this.highlightTile = tile;
+      this.highlightTile = tile && this.map.inBounds(tile.x, tile.y) ? tile : null;
     });
 
-    document.querySelector('html').addEventListener('mouseleave', () => {
+    document.querySelector('canvas').addEventListener('mouseleave', () => {
       this.highlightTile = null;
     });
   }
@@ -185,7 +172,7 @@ export default class Game {
   wait() {
     if (this.inputState == InputState.Move) {
       this.tick();
-      if (this.player.blood > 0) {
+      if (this.player.blood > 0 && !this.player.body.stunned) {
         this.player.blood--;
       }
     }
@@ -224,8 +211,11 @@ export default class Game {
     // create player body
     let BodyCreature = currentPlayer ? currentPlayer.wielder.constructor : Slime;
     let body = new BodyCreature(this, this.map, tile, this.player); // will attach to playerBody
-    // copy over previous values
-    body.hp = Math.max(currentPlayer ? currentPlayer.wielder.hp : 0, 1);
+    if (currentPlayer) {
+      // copy over previous values
+      body.hp = currentPlayer.wielder.hp;
+    }
+
   }
 
   setupMonsters () {
@@ -272,6 +262,7 @@ export default class Game {
   }
 
   tick() {
+    this.highlightTile = null;
     this.turnCount++;
 
     const dead = [];

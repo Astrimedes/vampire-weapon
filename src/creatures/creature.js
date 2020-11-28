@@ -82,10 +82,10 @@ export default class Creature {
     //   let playerFacing = tile && Math.sign(this.tile.x - tile.x) == playerBody.lastMoveX && Math.sign(this.tile.y - tile.y) == playerBody.lastMoveY;
     //   allowedAttack = !playerFacing;
     // }
-    let allowedAttack = this.allowedAttack && newTile.creature && newTile.creature.isPlayer !== this.isPlayer;
+    let allowedAttack = this.allowedAttack;
 
     // attack adjacent
-    if (allowedAttack) {
+    if (allowedAttack && newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
       this.weapon.attack(newTile.creature, dx, dy);
       this.lastMoveX = dx;
       this.lastMoveY = dy;
@@ -93,7 +93,7 @@ export default class Creature {
     }
 
     // bump against wall and return
-    if ((!this.ignoreWalls && !newTile.passable) && (!newTile.creature || newTile?.creature?.isPlayer === this.isPlayer)) {
+    if ((!this.ignoreWalls && !newTile.passable) && (!newTile.creature || newTile.creature.isPlayer === this.isPlayer)) {
       // animation to bump against wrong direction...
       this.beginAnimation(this.x - (dx / 4), this.y - (dy / 4), t => spike(t));
       return false;
@@ -128,7 +128,7 @@ export default class Creature {
       return true;
     }
 
-    if (moveTile) {
+    if (moveTile && !moveTile.creature) {
       this.move(moveTile);
       return true;
     }
@@ -253,6 +253,7 @@ export default class Creature {
   }
 
   move(tile) {
+
     this.lastMoveX = tile.x - this.x;
     this.lastMoveY = tile.y - this.y;
 

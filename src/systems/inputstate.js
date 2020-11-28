@@ -11,6 +11,11 @@ class InputType {
 }
 
 const moveToTile = (game, tile) => {
+  // advance by 1 when player tries to move when stunned
+  if (game.player.stunned) {
+    return game.tick();
+  }
+
   // raw distance
   const xDist = tile.x - game.player.x;
   const yDist = tile.y - game.player.y;
