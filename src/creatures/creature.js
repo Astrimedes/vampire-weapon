@@ -243,6 +243,20 @@ export default class Creature {
   }
 
   move(tile) {
+    if (tile?.creature?.alive) {
+      let dx = tile.x - this.tile.x;
+      let dy = tile.y - this.tile.y;
+      // attack
+      if (this.weapon && tile.creature.isPlayer !== this.isPlayer) {
+        return this.weapon.attack(tile.creature, dx, dy);
+      }
+      // try to move the other direction?
+      if (this.tryMove(-dx, -dy)) {
+        return true;
+      }
+      // give up
+      return false;
+    }
 
     this.lastMoveX = tile.x - this.x;
     this.lastMoveY = tile.y - this.y;
@@ -340,7 +354,13 @@ export default class Creature {
       seekTiles.sort((a,b) => {
         return seekSign * (this.map.dist(a, this.game.player.tile) - this.map.dist(b, this.game.player.tile));
       });
-      this.tryMove(seekTiles[0].x - this.x, seekTiles[0].y - this.y);
+      let moved = false;
+      let idx = 0;
+      while (!moved && idx < seekTiles.length) {
+        moved = this.tryMove(seekTiles[idx].x - this.tile.x, seekTiles[idx].y - this.tile.y);
+        idx++;
+      }
+      return moved;
     }
   }
 
