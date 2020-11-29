@@ -118,7 +118,7 @@ class Dialog {
       return `
       <label for="field-${i}">
         <input type="radio" id="field-${i}" name="${DATA_FIELD}" value="${a.name}" required>
-        <label class="dlg-label" for="field-${i}">${a.name}: ${a.description} [${a.getUpgradeCost(player)} blood]</label>
+        <label class="dlg-label" for="field-${i}">${a.name}: ${a.description} [-${a.getUpgradeCost(player)} 💉]</label>
         <br></br>
       </label>
       `;

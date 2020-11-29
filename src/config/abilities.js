@@ -18,10 +18,10 @@ class Reach extends Ability {
 }
 
 const Abilities = [
-  new Ability('Bleed', 5, 'More blood gain (+1/pt), some damage (+1/3 pts)'),
-  new Ability('Fire', 50, 'More attack damage (+1/pt)'),
-  new Ability('Ice', 50, 'Stuns opponents (1 turn +1 turn / 2 add\'l pts)'),
-  new Reach('Size', 100, 'Increases reach (+1 tile/pt)')
+  new Ability('Bleed', 5, '+1 💉, +1/3 dmg'),
+  new Ability('Fire', 50, '+1 dmg'),
+  new Ability('Ice', 50, '+1 turn stun'),
+  new Reach('Size', 100, '+1 tile attack reach')
 ];
 
 export { Ability, Abilities };

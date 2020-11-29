@@ -169,10 +169,25 @@ export default class Game {
 
   wait() {
     if (this.inputState == InputState.Move) {
-      if (this.player.blood > 0 && !this.player.wielder.stunned && this.monsters.length > 0) {
-        this.player.blood--;
+      if (this.player.wielder.stunned || this.monsters.length < 1) {
+        this.tick();
+        return;
       }
-      this.tick();
+
+      if (this.player.blood > 0) {
+        this.player.blood--;
+        this.tick();
+        return;
+      }
+
+      this.callDialog({
+        type: 'prompt',
+        message: 'Not enough 💉',
+        fields: [],
+        cancel: () => { this.setGameState(this.lastGameState); }
+      }
+      );
+
     }
   }
 
@@ -511,8 +526,8 @@ export default class Game {
       this.hud.clearAllStatus();
     }
 
-    this.hud.setStatusField('Level', this.level);
-    this.hud.setStatusField('Blood', this.player.blood);
+    this.hud.setStatusField('↗', this.level);
+    this.hud.setStatusField('💉', this.player.blood);
     this.hud.addEmptyStatus('empty1');
     if (clearAll || this.effectsUpdated) {
       this.player.effects.filter(e => e.type !== 'Player').forEach(e => {
@@ -523,7 +538,7 @@ export default class Game {
       }
 
       // add wait button to hud
-      this.hud.addControl('Wait', (e) => {
+      this.hud.addControl('⌛', (e) => {
         e.preventDefault();
         this.wait();
       }, 'red');

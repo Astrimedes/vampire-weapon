@@ -17,6 +17,7 @@ html{
     grid-area: HUD;
     text-align: right;
     color: white;
+    padding-right: 0.5rem;
 }
 
 .Canvas {
@@ -97,11 +98,12 @@ html{
 }
 
 button {
-    border-radius: 0.5rem;
+    border-radius: 0.3rem;
     font-weight: bold;
     width: auto;
     height: auto;
-    font-size: 0.7rem;
+    font-size: 1rem;
+    margin-top: 0.2rem;
 }
 
 .dialog input[type="radio"] {

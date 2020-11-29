@@ -1,6 +1,6 @@
-const getFieldName = name => `hud-status-${name}`;
-const getControlName = name => `hud-ctrl-${name}`;
-const getEmptyName = name => `hud-empty-${name}`;
+const getFieldName = name => `hud-status-${name?.toString()}`;
+const getControlName = name => `hud-ctrl-${name?.toString()}`;
+const getEmptyName = name => `hud-empty-${name?.toString()}`;
 
 const stringToColour = str => {
   switch (str) {
@@ -16,7 +16,7 @@ const stringToColour = str => {
 };
 
 const createField = (id, label, value, color) => {
-  return `<div id="${id}" style="color:${color};">${label}: ${(value || 0).toString()}</div>`;
+  return `<pre id="${id}" style="color:${color};margin:0px">${label}${(value || 0).toString().padStart(3)}</pre>`;
 };
 
 const createButton = (id, label, color) => {
