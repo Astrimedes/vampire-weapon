@@ -100,8 +100,8 @@ button[disabled]{
    min-height: 20%;
 }
 
-.dlg-label {
-}
+/* .dlg-label {
+} */
 
 button {
     border-radius: 0.3rem;
