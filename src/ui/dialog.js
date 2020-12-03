@@ -171,7 +171,7 @@ class Dialog {
 
       return false;
     };
-    submitBtn.classList.add(CLASS_HIDDEN);
+    submitBtn.disabled = true;
     submitBtn.onclick = handleSubmit;
 
     let cancelBtn = document.getElementById(ID_CANCEL);
@@ -187,7 +187,7 @@ class Dialog {
 
     document.querySelectorAll(`.${CLASS_DIALOG} input[type="radio"]`).forEach((ele) => {
       console.log('found element', ele);
-      ele.addEventListener('change', () => { document.getElementById(ID_SUBMIT).classList.remove(CLASS_HIDDEN); });
+      ele.addEventListener('change', () => { document.getElementById(ID_SUBMIT).disabled = false; });
     });
   }
 

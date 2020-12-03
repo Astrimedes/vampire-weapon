@@ -1,7 +1,8 @@
 html{
     background-color: #36182c;
     font-family: 'Roboto Mono';
-    font-size: 1.8vw;
+    font-size: 1.6rem;
+    user-select: none;
 }
 
 .grid-container {
@@ -37,12 +38,18 @@ html{
 
 .dialog{
     z-index: 100;
-    font-size: 2vw;
     display: inline;
 }
 
 .hidden{
     display: none;
+}
+
+button:disabled,
+button[disabled]{
+  border-color: #534949;
+  background-color: #665959;
+  color: #534949;
 }
 
 #input-box{
@@ -58,9 +65,9 @@ html{
 
 #dlg-msg{
     text-align: center;
-    font-size: 3vw;
     color: #8f4072;
     font-weight: bold;
+    font-size: 1.8rem;
 }
 
 .button-area {
@@ -94,7 +101,6 @@ html{
 }
 
 .dlg-label {
-    font-size: 1.5vw;
 }
 
 button {
@@ -107,21 +113,41 @@ button {
 }
 
 .dialog input[type="radio"] {
-    display: none;
+    transform: scale(1.4);
+    position: relative;
+    bottom: 0.1rem;
 }
 
+
 .dialog input[type="radio"]:checked+label {
-    background:lightslategrey;
+    background-color: rgb(42, 36, 80);
 }
 
 .dlg-button {
     min-width: 15vmin;
     min-height: 5vmin;
-    font-size: 2vmin;
 }
 
 #game-container{
     width: 100%;
     margin: 0 auto;
     position: relative;
+}
+
+@media screen and (max-width: 900px), screen and (max-height: 900px) {
+  html {
+    font-size: 1.1rem;
+  }
+  #dlg-msg {
+    font-size: 1.2rem;
+  }
+}
+
+@media screen and (max-width: 600px), screen and (max-height: 600px) {
+  html {
+    font-size: 1.0rem;
+  }
+  #dlg-msg {
+    font-size: 1.1rem;
+  }
 }

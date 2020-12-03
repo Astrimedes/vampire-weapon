@@ -450,7 +450,7 @@ export default class Game {
     if (!available.length) return false;
 
     // setup dialog
-    let message = ['Choose an ability'];
+    let message = ['Choose an ability:'];
     let dlgSettings = {
       type: 'abilities',
       message,
@@ -526,7 +526,7 @@ export default class Game {
       this.hud.clearAllStatus();
     }
 
-    this.hud.setStatusField('↗', this.level);
+    this.hud.setStatusField('🗺️', this.level);
     this.hud.setStatusField('💉', this.player.blood);
     this.hud.addEmptyStatus('empty1');
     if (clearAll || this.effectsUpdated) {
