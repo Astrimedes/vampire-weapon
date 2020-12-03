@@ -13,14 +13,10 @@ const CLASS_DIALOG = 'dialog';
 
 const defaultSettings = {
   type: 'prompt',
-  fields: [
-    {label: 'One', value: 1},
-    {label: 'Two', value: 2},
-    {label: 'Three', value: 3}
-  ],
-  message: 'Choose one',
-  submit: data => console.log('dialog data: ', data),
-  cancel: () => console.log('cancelled')
+  fields: [],
+  message: '',
+  submit: null,
+  cancel: null
 };
 
 const getFormData = form => {
@@ -154,41 +150,53 @@ class Dialog {
 
   setButtons(submitFn, cancelFn) {
     let submitBtn = document.getElementById(ID_SUBMIT);
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      let form = document.getElementById(ID_FORM);
+    submitBtn.classList.add(CLASS_HIDDEN);
+    if (submitFn) {
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        let form = document.getElementById(ID_FORM);
 
-      if (!form.checkValidity()) {
-        return;
+        if (!form.checkValidity()) {
+          return;
+        }
+
+        // callback
+        let result = getFormData(form)?.[DATA_FIELD];
+        submitFn(result);
+
+        // close dialog
+        this.hide();
+
+        return false;
+      };
+      submitBtn.classList.remove(CLASS_HIDDEN);
+      submitBtn.onclick = handleSubmit;
+      submitBtn.disabled = false;
+
+      // add disabled if any fields are present
+      let radios = document.querySelectorAll(`.${CLASS_DIALOG} input[type="radio"]`);
+      if (radios.length) {
+        submitBtn.disabled = true;
+        radios.forEach((ele) => {
+          ele.addEventListener('change', () => { document.getElementById(ID_SUBMIT).disabled = false; });
+        });
       }
-
-      // callback
-      let result = getFormData(form)?.[DATA_FIELD];
-      submitFn(result);
-
-      // close dialog
-      this.hide();
-
-      return false;
-    };
-    submitBtn.disabled = true;
-    submitBtn.onclick = handleSubmit;
+    }
 
     let cancelBtn = document.getElementById(ID_CANCEL);
-    const handleCancel = e => {
-      e.preventDefault();
+    cancelBtn.classList.add(CLASS_HIDDEN);
+    if (cancelFn) {
+      const handleCancel = e => {
+        e.preventDefault();
 
-      cancelFn(false);
+        cancelFn(false);
 
-      this.hide();
-      return false;
-    };
-    cancelBtn.onclick = handleCancel;
-
-    document.querySelectorAll(`.${CLASS_DIALOG} input[type="radio"]`).forEach((ele) => {
-      console.log('found element', ele);
-      ele.addEventListener('change', () => { document.getElementById(ID_SUBMIT).disabled = false; });
-    });
+        this.hide();
+        return false;
+      };
+      cancelBtn.classList.remove(CLASS_HIDDEN);
+      cancelBtn.onclick = handleCancel;
+    }
   }
 
   hide() {

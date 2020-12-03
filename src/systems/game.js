@@ -85,6 +85,7 @@ export default class Game {
 
     window.onresize = () => {
       this.autoScale();
+      this.setupInput();
     };
   }
 
@@ -115,9 +116,8 @@ export default class Game {
   }
 
   setupInput () {
-    document.querySelector('html').onkeypress = (e) => {
-      e.preventDefault();
-      if (!this.checkInput()) return;
+    document.onkeydown = (e) => {
+      if (!this.checkInput() || !e.key) return;
 
       let tile = null;
       if (this?.gameState?.hasMap) {
@@ -184,7 +184,7 @@ export default class Game {
         type: 'prompt',
         message: 'Not enough 💉',
         fields: [],
-        cancel: () => { this.setGameState(this.lastGameState); }
+        submit: () => { this.setGameState(this.lastGameState); }
       }
       );
 
