@@ -89,9 +89,6 @@ export default class Game {
     };
   }
 
-  setupHud() {
-    this.hud;
-  }
 
   autoScale() {
     this.renderer.setSizes(TILE_SIZE, this?.currentLevel?.size || levels[1].size);
@@ -115,8 +112,10 @@ export default class Game {
     return true;
   }
 
-  setupInput () {
-    document.onkeydown = (e) => {
+  setupInput() {
+
+    // keyboard - document listens
+    const keyboardListen = (e) => {
       if (!this.checkInput() || !e.key) return;
 
       let tile = null;
@@ -142,17 +141,24 @@ export default class Game {
 
       this.callInputActionForTarget(tile);
     };
+    document.removeEventListener('keydown', keyboardListen);
+    document.addEventListener('keydown',  keyboardListen);
 
-    document.querySelector('canvas').addEventListener('mousedown', e => {
+    // mouse events - canvas listens
+    let canvas = document.querySelector('canvas');
+
+    const mousedownListen = e => {
       e.preventDefault();
       if (!this.checkInput()) return;
 
       const tile = this.map ? this.renderer.getTileAt(e.clientX, e.clientY, this.map) : null;
 
       this.callInputActionForTarget(tile);
-    });
+    };
+    canvas.removeEventListener('mousedown', mousedownListen);
+    canvas.addEventListener('mousedown', mousedownListen);
 
-    document.querySelector('canvas').addEventListener('mousemove', e => {
+    const mousemoveListen = e => {
       if (!this.checkInput()) {
         this.highlightTile = null;
         return;
@@ -160,11 +166,15 @@ export default class Game {
 
       const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
       this.highlightTile = tile && this.map.inBounds(tile.x, tile.y) ? tile : null;
-    });
+    };
+    canvas.removeEventListener('mousemove', mousemoveListen);
+    canvas.addEventListener('mousemove', mousemoveListen);
 
-    document.querySelector('canvas').addEventListener('mouseleave', () => {
+    const mouseleaveListen = () => {
       this.highlightTile = null;
-    });
+    };
+    canvas.removeEventListener('mouseleave', mouseleaveListen);
+    canvas.addEventListener('mouseleave', mouseleaveListen);
   }
 
   wait() {
@@ -299,6 +309,7 @@ export default class Game {
     }
 
     this.player.tryAct();
+    let newBody = false;
     // take first monster and make new player body?
     if (dead.length) {
       let pbody = this?.player?.wielder;
@@ -309,8 +320,9 @@ export default class Game {
       // create new playerBody
       dead[0].createPlayerBody(this.player);
       // remove killed enemy from dead
-      dead[0].die();
+      dead[0].die(true);
       dead.splice(0, 1);
+      newBody = true;
     }
 
     let pbody = this?.player?.wielder;
@@ -330,6 +342,11 @@ export default class Game {
     // if (!this.monsters.length && !this.nextMonsters.length && !this.exitSpawned) {
     //   this.spawnExit();
     // }
+
+    if (newBody) {
+      // write to hud
+      this.hud.writeMessage('You have a new owner, the fool!');
+    }
   }
 
   spawnExit () {
@@ -353,6 +370,8 @@ export default class Game {
     this.player.addEffect(ability);
     // force hud recalc
     this.effectsUpdated = true;
+
+    this.hud.writeMessage(`You learn ${ability} at Rank ${this.player.effects.find(a => a.type == ability).value}!`);
   }
 
   beginGameLoop () {
@@ -447,7 +466,10 @@ export default class Game {
   callAbilityDialog() {
     // determine which abilities to offer
     let available = Abilities.filter(a => a.getUpgradeCost(this.player) <= this.player.blood);
-    if (!available.length) return false;
+    if (!available.length) {
+      this.hud.writeMessage('Not enough blood.');
+      return false;
+    }
 
     // setup dialog
     let message = ['Choose an ability:'];
@@ -517,8 +539,13 @@ export default class Game {
     this.setGameState(GameState.Play);
 
     // set hud
-    this.updateHud(level == 1); // always clear on level 1
-    this.hud.reveal();
+    let clearAll = level == 1; // always clear on level 1
+    this.updateHud(clearAll);
+    if (clearAll) {
+      this.hud.clearMessages();
+      this.hud.writeMessage('You awaken from your magical slumber, thirsty for blood!');
+      this.hud.reveal();
+    }
   }
 
   updateHud(clearAll) {
@@ -549,7 +576,7 @@ export default class Game {
 
   initDom() {
     // create & hide hud
-    this.hud = new HeadsUpDisplay('hud', 'hud-status', 'hud-controls');
+    this.hud = new HeadsUpDisplay('hud', 'hud-status', 'hud-controls', 'msg-display');
 
     this.hud.hide();
   }

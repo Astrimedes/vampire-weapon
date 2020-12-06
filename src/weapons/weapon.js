@@ -102,7 +102,18 @@ export default class Weapon {
 
     this.attacking = true;
     this.lastTarget = creature;
+
+    this.game.hud.writeMessage(this.getAttackMessage(creature));
   }
+
+  getAttackMessage(targetCreature) {
+    let name = targetCreature?.name || 'Creature';
+    if (this.isPlayer) {
+      return `You attack the ${name}!`;
+    }
+    return `${name} attacks you!`;
+  }
+
 
   tick() {
     this.attacking = false;

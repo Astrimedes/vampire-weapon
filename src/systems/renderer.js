@@ -8,7 +8,7 @@ export default class Renderer {
     this.ctx = this.canvas.getContext('2d');
 
     this.ctx.imageSmoothingEnabled = true;
-    this.ctx.imageSmoothingQuality = 'high';
+    this.ctx.imageSmoothingQuality = 'low';
 
     this.tileSize = tileSize;
     this.numTiles = numTiles;
@@ -24,8 +24,10 @@ export default class Renderer {
   autoScale() {
     let fullSize = this.tileSize * this.numTiles;
 
-    let windowSize = 0.9 * Math.min(window.innerWidth, window.innerHeight);
+    let windowSize = 0.75 * Math.min(window.innerWidth, window.innerHeight);
     let scale = Math.max(windowSize / fullSize, 1);
+
+
 
     this.setScale(scale, scale);
   }

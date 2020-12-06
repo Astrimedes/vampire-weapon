@@ -148,7 +148,7 @@ export default class Creature {
     this.dead = this.hp <= 0;
   }
 
-  die() {
+  die(silent = false) {
     this.stopAnimation();
     if (!this.deathResolved) {
       this.stunned = 0;
@@ -160,6 +160,11 @@ export default class Creature {
       if (this.tile) this.tile.creature = null;
       this.tile = null;
       this.spriteNumber++; // corpse tile should be next tile...
+
+      if (!silent) {
+        let msg = this.isPlayer ? 'You die!' : 'Creature\'s will is destroyed!';
+        this.game.hud.writeMessage(msg);
+      }
 
       // destroy weapon
       this?.weapon?.die();

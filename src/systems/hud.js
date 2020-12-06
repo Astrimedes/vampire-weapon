@@ -29,11 +29,13 @@ const emptyLine = '<p></p>';
  *
  */
 export default class HeadsUpDisplay {
-  constructor(hudId, hudStatusId, hudControlsId) {
+  constructor(hudId, hudStatusId, hudControlsId, messagesId) {
     this.hudId = hudId;
     this.statusId = hudStatusId;
     this.controlsId = hudControlsId;
+    this.messagesId = messagesId;
     this.fields = {};
+    this.messages = [];
   }
 
   hide() {
@@ -47,6 +49,7 @@ export default class HeadsUpDisplay {
   clearAll() {
     this.clearAllStatus();
     this.clearAllControl();
+    this.clearMessages();
   }
 
   clearAllStatus() {
@@ -128,5 +131,21 @@ export default class HeadsUpDisplay {
     ele.innerHTML = emptyLine;
     let parent = document.getElementById(this.statusId);
     parent.appendChild(ele);
+  }
+
+  writeMessage(message) {
+    this.messages.push(message);
+    let ele = document.getElementById(this.messagesId);
+    let txt = message;
+    if (this.messages.length > 1) {
+      txt = Array.from(this.messages).reverse().slice(0, 3).join('\n');
+    }
+    ele.innerHTML = txt;
+  }
+
+  clearMessages() {
+    this.messages = [];
+    let ele = document.getElementById(this.messagesId);
+    ele.innerHTML = '';
   }
 }
