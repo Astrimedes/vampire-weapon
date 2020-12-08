@@ -141,8 +141,7 @@ export default class Game {
 
       this.callInputActionForTarget(tile);
     };
-    document.removeEventListener('keydown', keyboardListen);
-    document.addEventListener('keydown',  keyboardListen);
+    document.onkeydown = keyboardListen;
 
     // mouse events - canvas listens
     let canvas = document.querySelector('canvas');
@@ -155,8 +154,7 @@ export default class Game {
 
       this.callInputActionForTarget(tile);
     };
-    canvas.removeEventListener('mousedown', mousedownListen);
-    canvas.addEventListener('mousedown', mousedownListen);
+    canvas.onmousedown = mousedownListen;
 
     const mousemoveListen = e => {
       if (!this.checkInput()) {
@@ -167,14 +165,12 @@ export default class Game {
       const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
       this.highlightTile = tile && this.map.inBounds(tile.x, tile.y) ? tile : null;
     };
-    canvas.removeEventListener('mousemove', mousemoveListen);
-    canvas.addEventListener('mousemove', mousemoveListen);
+    canvas.onmousemove = mousemoveListen;
 
     const mouseleaveListen = () => {
       this.highlightTile = null;
     };
-    canvas.removeEventListener('mouseleave', mouseleaveListen);
-    canvas.addEventListener('mouseleave', mouseleaveListen);
+    canvas.onmouseleave = mouseleaveListen;
   }
 
   wait() {
