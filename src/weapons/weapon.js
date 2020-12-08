@@ -107,11 +107,13 @@ export default class Weapon {
   }
 
   getAttackMessage(targetCreature) {
-    let name = targetCreature?.name || 'Creature';
     if (this.isPlayer) {
-      return `You attack the ${name}!`;
+      return `You attack the ${targetCreature.name}!`;
     }
-    return `${name} attacks you!`;
+    if (targetCreature.isPlayer) {
+      return `${this.wielder.name} attacks you!`;
+    }
+    return `${this.name} attacks ${targetCreature.name}!`;
   }
 
 

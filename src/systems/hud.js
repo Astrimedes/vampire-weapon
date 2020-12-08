@@ -136,10 +136,18 @@ export default class HeadsUpDisplay {
   writeMessage(message) {
     this.messages.push(message);
     let ele = document.getElementById(this.messagesId);
-    let txt = message;
-    if (this.messages.length > 1) {
-      txt = Array.from(this.messages).reverse().slice(0, 3).join('\n');
+    let lines = this.messages.length;
+    let txt = '';
+    while (lines < 3) {
+      txt += '\n';
+      lines++;
     }
+    if (this.messages.length > 1) {
+      txt += Array.from(this.messages).reverse().slice(0, 3).join('\n');
+    } else {
+      txt += message;
+    }
+
     ele.innerHTML = txt;
   }
 

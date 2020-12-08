@@ -184,6 +184,8 @@ export default class Game {
         return;
       }
 
+      this.hud.writeMessage('You wait.');
+
       if (this.player.blood > 0) {
         this.player.blood--;
         this.tick();
@@ -290,6 +292,10 @@ export default class Game {
 
     const dead = [];
 
+    if (this.player.wielder.stunned) {
+      this.hud.writeMessage('You are stunned.');
+    }
+
     // reduce status effects, etc.
     this?.player?.wielder?.tick();
     this.monsters.forEach(m => m.tick());
@@ -316,11 +322,12 @@ export default class Game {
       pbody.unWield();
       // mark current body dead...
       pbody.dead = true;
+      pbody.dieSilent = true;
       dead.push(pbody);
       // create new playerBody
       dead[0].createPlayerBody(this.player);
       // remove killed enemy from dead
-      dead[0].die(true);
+      dead[0].die();
       dead.splice(0, 1);
       newBody = true;
     }
@@ -328,6 +335,7 @@ export default class Game {
     let pbody = this?.player?.wielder;
     if (pbody && pbody.dead) {
       dead.push(pbody);
+      pbody.dieSilent = newBody; // last body dies without msg if we're jumping to another
     }
 
     // dead are resolved
@@ -345,7 +353,7 @@ export default class Game {
 
     if (newBody) {
       // write to hud
-      this.hud.writeMessage('You have a new owner, the fool!');
+      this.hud.writeMessage(`${this.player.wielder.name} is your new owner, the fool!`);
     }
   }
 
@@ -463,11 +471,11 @@ export default class Game {
     window.requestAnimationFrame(draw);
   }
 
-  callAbilityDialog() {
+  callAbilityDialog(silent = false) {
     // determine which abilities to offer
     let available = Abilities.filter(a => a.getUpgradeCost(this.player) <= this.player.blood);
     if (!available.length) {
-      this.hud.writeMessage('Not enough blood.');
+      if (!silent) this.hud.writeMessage('Not enough blood.');
       return false;
     }
 
@@ -483,7 +491,7 @@ export default class Game {
         // update ui for new blood total etc
         this.updateHud(true);
         // try to call again
-        let called = this.callAbilityDialog();
+        let called = this.callAbilityDialog(true);
         if (!called) {
           this.setGameState(this.lastGameState);
         }
@@ -545,6 +553,8 @@ export default class Game {
       this.hud.clearMessages();
       this.hud.writeMessage('You awaken from your magical slumber, thirsty for blood!');
       this.hud.reveal();
+    } else {
+      this.hud.writeMessage('You enter the portal, thirsty for blood!');
     }
   }
 

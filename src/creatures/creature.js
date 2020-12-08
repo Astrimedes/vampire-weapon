@@ -58,6 +58,8 @@ export default class Creature {
 
     this.startTurn = this.game.turnCount;
 
+    this.name = this.constructor.name;
+
     this.wield(weapon);
   }
 
@@ -150,6 +152,7 @@ export default class Creature {
 
   die(silent = false) {
     this.stopAnimation();
+    this.dieSilent = this.dieSilent || silent;
     if (!this.deathResolved) {
       this.stunned = 0;
       this.fire = 0;
@@ -161,8 +164,8 @@ export default class Creature {
       this.tile = null;
       this.spriteNumber++; // corpse tile should be next tile...
 
-      if (!silent) {
-        let msg = this.isPlayer ? 'You die!' : 'Creature\'s will is destroyed!';
+      if (!(silent || this.dieSilent)) {
+        let msg = this.isPlayer ? 'You die!' : `${this.name}'s will is destroyed!`;
         this.game.hud.writeMessage(msg);
       }
 
