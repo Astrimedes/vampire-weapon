@@ -8,11 +8,20 @@ html{
 .grid-container {
   display: grid;
   grid-template-columns: 1fr 4fr;
-  grid-template-rows: 7fr 1fr;
-  gap: 0px 0px;
+  grid-template-rows: auto 5rem;
   grid-template-areas:
     "HUD Canvas"
     ". Messages";
+}
+
+/* Hide but allow scrollbar for IE, Edge and Firefox */
+.hide-scroll {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+/* Hide but allow scrollbar for Chrome */
+.hide-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .HUD {
@@ -28,6 +37,7 @@ html{
 
  .Messages {
      color: lightgray;
+     overflow: auto;
  }
 
 #canvas{

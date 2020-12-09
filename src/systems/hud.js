@@ -35,7 +35,7 @@ export default class HeadsUpDisplay {
     this.controlsId = hudControlsId;
     this.messagesId = messagesId;
     this.fields = {};
-    this.messages = [];
+    this.clearMessages();
   }
 
   hide() {
@@ -134,21 +134,16 @@ export default class HeadsUpDisplay {
   }
 
   writeMessage(message) {
+    if (this.messages.length > 255) {
+      this.messages = this.messages.slice(200, 255);
+    }
     this.messages.push(message);
     let ele = document.getElementById(this.messagesId);
-    let lines = this.messages.length;
-    let txt = '';
-    while (lines < 3) {
-      txt += '\n';
-      lines++;
-    }
-    if (this.messages.length > 1) {
-      txt += Array.from(this.messages).reverse().slice(0, 3).join('\n');
-    } else {
-      txt += message;
-    }
-
+    let txt = Array.from(this.messages).reverse().join('\n');
     ele.innerHTML = txt;
+
+    // scroll parent to top
+    ele.parentElement.scrollTop = 0;
   }
 
   clearMessages() {
