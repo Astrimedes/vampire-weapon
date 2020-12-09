@@ -7,11 +7,11 @@ html{
 
 .grid-container {
   display: grid;
-  grid-template-columns: 1fr 4fr;
-  grid-template-rows: auto 5rem;
+  grid-template-columns: 5rem min-content;
+  grid-template-rows: min-content 5rem;
   grid-template-areas:
     "HUD Canvas"
-    ". Messages";
+    "HUD Messages";
 }
 
 /* Hide but allow scrollbar for IE, Edge and Firefox */
@@ -164,5 +164,29 @@ button {
   }
   #dlg-msg {
     font-size: 1.1em;
+  }
+}
+
+@media screen and (max-height: 600px) {
+  .grid-container {
+    display: grid;
+    grid-template-columns: 5rem min-content auto;
+    grid-template-rows: min-content;
+    grid-template-areas:
+      "HUD Canvas Messages";
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .grid-container {
+    display: grid;
+    grid-template-columns: min-content;
+    grid-template-rows: min-content min-content auto;
+    grid-template-areas:
+      "HUD" "Canvas" "Messages";
+  }
+  .HUD {
+    text-align: left;
+    padding-left: 0.5em;
   }
 }
