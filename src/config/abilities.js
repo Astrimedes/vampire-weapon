@@ -13,7 +13,7 @@ class Ability {
 
 class Reach extends Ability {
   getUpgradeCost(player) {
-    return player.reach * this.cost;
+    return this.cost * ((player.reach * 2) - 1);
   }
 }
 

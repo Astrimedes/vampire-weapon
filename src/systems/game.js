@@ -188,13 +188,7 @@ export default class Game {
         return;
       }
 
-      this.callDialog({
-        type: 'prompt',
-        message: 'Not enough 💉',
-        fields: [],
-        submit: () => { this.setGameState(this.lastGameState); }
-      }
-      );
+      this.callMessageDialog('Not enough 💉');
 
     }
   }
@@ -375,7 +369,8 @@ export default class Game {
     // force hud recalc
     this.effectsUpdated = true;
 
-    this.hud.writeMessage(`You learn ${ability} at Rank ${this.player.effects.find(a => a.type == ability).value}!`);
+    let rank = this.player.effects.find(a => a.type == ability)?.value || (this.player.reach - 1);
+    this.hud.writeMessage(`You learn ${ability} at Rank ${rank}!`);
   }
 
   beginGameLoop () {
@@ -467,11 +462,25 @@ export default class Game {
     window.requestAnimationFrame(draw);
   }
 
+  callMessageDialog(message, settings) {
+    this.callDialog({
+      type: 'prompt',
+      message,
+      fields: [],
+      submit: () => { this.setGameState(this.lastGameState); },
+      ...settings
+    }
+    );
+  }
+
   callAbilityDialog(silent = false) {
     // determine which abilities to offer
     let available = Abilities.filter(a => a.getUpgradeCost(this.player) <= this.player.blood);
     if (!available.length) {
-      if (!silent) this.hud.writeMessage('Not enough blood.');
+      if (!silent) {
+        this.hud.writeMessage('Not enough blood.');
+        this.callMessageDialog('Not enough 💉');
+      }
       return false;
     }
 
@@ -547,10 +556,10 @@ export default class Game {
     this.updateHud(clearAll);
     if (clearAll) {
       this.hud.clearMessages();
-      this.hud.writeMessage('You awaken from your magical slumber, thirsty for blood!');
+      this.hud.writeMessage('You awaken from your magical slumber thirsty for blood!');
       this.hud.reveal();
     } else {
-      this.hud.writeMessage('You enter the portal, thirsty for blood!');
+      this.hud.writeMessage('You enter the portal, in search of more blood...');
     }
   }
 

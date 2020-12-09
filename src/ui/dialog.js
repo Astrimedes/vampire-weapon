@@ -87,7 +87,8 @@ class Dialog {
 
       // show
       dialog.classList.remove(CLASS_HIDDEN);
-      document.getElementById(ID_MESSAGE).focus(); // avoid immediately clicking buttons etc
+      // highlight first option
+      document?.getElementById(ID_FIELDS)?.querySelector('input')?.focus();
     };
     this.revealTimeout = setTimeout(reveal, 1000 / 59); // delay a frame?
   }
