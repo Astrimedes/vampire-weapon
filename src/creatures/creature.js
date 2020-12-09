@@ -377,6 +377,7 @@ export default class Creature {
     // set facing to match original body
     playerBody.lastMoveX = this.lastMoveX;
     playerBody.lastMoveY = this.lastMoveY;
+    playerBody.isPlayer = true;
     return playerBody;
   }
 }

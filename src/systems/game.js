@@ -315,7 +315,17 @@ export default class Game {
       pbody.dieSilent = true;
       dead.push(pbody);
       // create new playerBody
-      dead[0].createPlayerBody(this.player);
+      let tile = dead[0].tile;
+      pbody = dead[0].createPlayerBody(this.player);
+      // carefully swap tile references...
+      dead[0].tile = null;
+      tile.stepOn(pbody);
+      tile.creature = pbody;
+      pbody.tile = tile;
+      // apply 1 turn stun
+      if (!this.player.speed) {
+        pbody.stunned = 1;
+      }
       // remove killed enemy from dead
       dead[0].die();
       dead.splice(0, 1);
@@ -343,7 +353,11 @@ export default class Game {
 
     if (newBody) {
       // write to hud
-      this.hud.writeMessage(`${this.player.wielder.name} is your new owner, the fool!`);
+      this.hud.writeMessage(`${this.player.wielder.name} is your new wielder!`);
+      // message to indicate stun
+      if (!this.player.speed) {
+        this.hud.writeMessage('You adjust to your new wielder...');
+      }
     }
   }
 

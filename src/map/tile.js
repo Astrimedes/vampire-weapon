@@ -41,7 +41,18 @@ class Exit extends Tile {
 
   stepOn(creature) {
     if (creature.isPlayer) {
-      creature.game.exit();
+      let game = creature.game;
+      game.callDialog({
+        message: 'Enter the portal?',
+        submit: () => {
+          game.setGameState(game.lastGameState);
+          game.exit();
+        },
+        cancel: () => {
+          game.setGameState(game.lastGameState);
+        },
+        type: 'prompt'
+      });
     }
   }
 }
