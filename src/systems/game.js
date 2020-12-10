@@ -308,28 +308,13 @@ export default class Game {
     let newBody = false;
     // take first monster and make new player body?
     if (dead.length) {
-      let pbody = this?.player?.wielder;
-      pbody.unWield();
-      // mark current body dead...
-      pbody.dead = true;
-      pbody.dieSilent = true;
-      dead.push(pbody);
-      // create new playerBody
-      let tile = dead[0].tile;
-      pbody = dead[0].createPlayerBody(this.player);
-      // carefully swap tile references...
-      dead[0].tile = null;
-      tile.stepOn(pbody);
-      tile.creature = pbody;
-      pbody.tile = tile;
+      this.charmMonster(dead[0]);
+
       // apply 1 turn stun
       if (!this.player.speed) {
-        pbody.stunned = 1;
+        this.hud.writeMessage('You adjust to your new wielder...');
+        this.player.wielder.stunned += 1;
       }
-      // remove killed enemy from dead
-      dead[0].die();
-      dead.splice(0, 1);
-      newBody = true;
     }
 
     let pbody = this?.player?.wielder;
@@ -342,8 +327,6 @@ export default class Game {
     dead.forEach(mon => {
       this.corpses.push(mon);
       mon.die();
-      // clean up if creature hasn't
-      if (mon?.tile?.creature == mon) mon.tile.creature = null;
     });
 
     // check for all monsters dead - spawn exit
@@ -375,6 +358,39 @@ export default class Game {
     this.setGameState(GameState.Dialog);
     this.dlg = new Dialog(settings);
     this.dlg.reveal();
+  }
+
+  charmMonster(monster) {
+    // check valid target
+    let pbody = this?.player?.wielder;
+    let tile = monster.tile;
+    if (!pbody || !monster || monster?.isPlayer || !tile) return false;
+
+    pbody.unWield();
+    // mark current body dead...
+    pbody.die(true);
+    // this.dead.push(pbody);
+
+    // create new playerBody
+    let newBody = monster.createPlayerBody(this.player);
+    // carefully swap tile references...
+    tile.stepOn(newBody);
+    tile.creature = newBody;
+    newBody.tile = tile;
+
+    // silently kill target, remove corpse
+    monster.die(true);
+    // remove from list
+    let idx = this.monsters.findIndex(m => m == monster);
+    if (idx > -1) {
+      this.monsters.splice(idx, 1);
+    }
+    idx = this.dead.findIndex(d => d == monster);
+    if (idx > -1) {
+      this.dead.splice(idx, 1);
+    }
+
+    this.hud.writeMessage(`The charmed ${monster.name} wields you!`);
   }
 
   addAbility(ability) {
