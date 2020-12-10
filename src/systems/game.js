@@ -13,7 +13,7 @@ import { Rng } from '../tools/randoms.js';
 import SlowGuy from '../creatures/slowguy.js';
 import { Abilities } from '../config/abilities.js';
 import HeadsUpDisplay from './hud.js';
-import { InputState } from './inputstate.js';
+import { InputStates } from '../actions/InputStates';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -24,7 +24,7 @@ export default class Game {
   constructor () {
     this.unloadAssets();
     this.gameState = null;
-    this.inputState = InputState.None;
+    this.inputState = InputStates.None;
     this.turnCount = 0;
   }
 
@@ -49,7 +49,10 @@ export default class Game {
   }
 
   setInputAction(action) {
-    this.inputAction = action;
+    if (this.inputAction !== action) {
+      this.lastInputAction = this.inputAction;
+      this.inputAction = action;
+    }
   }
 
   resetInputAction() {
@@ -57,7 +60,7 @@ export default class Game {
   }
 
   callInputActionForTarget(tile) {
-    if (this.inputState !== InputState.None) {
+    if (this.inputState !== InputStates.None) {
       // call input callback
       this.inputAction(this, tile);
     }
@@ -107,7 +110,7 @@ export default class Game {
 
   checkInput () {
     // restart on button press after death
-    if (!this.inputState || this.inputState == InputState.None || this?.renderer?.animationsRunning) return false;
+    if (!this.inputState || this.inputState == InputStates.None || this?.renderer?.animationsRunning) return false;
 
     return true;
   }
@@ -132,7 +135,7 @@ export default class Game {
         } else if (e.key == ' ') {
           dir.wait = true;
         }
-        if (this.inputState == InputState.Move && dir.wait) {
+        if (this.inputState == InputStates.Move && dir.wait) {
           this.wait();
           return true;
         }
@@ -174,7 +177,7 @@ export default class Game {
   }
 
   wait() {
-    if (this.inputState == InputState.Move) {
+    if (this.inputState == InputStates.Move) {
       if (this.player.wielder.stunned || this.monsters.length < 1) {
         this.tick();
         return;

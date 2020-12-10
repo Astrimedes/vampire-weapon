@@ -1,35 +1,35 @@
-import { InputState } from './inputstate';
+import { InputStates } from '../actions/InputStates';
 
 const GameState = {
   Loading: {
     id: 0,
     dimmed: false,
     hasMap: false,
-    input: InputState.None
+    input: InputStates.None
   },
   Title: {
     id: 1,
     dimmed: true,
     hasMap: false,
-    input: InputState.Restart
+    input: InputStates.Restart
   },
   Play: {
     id: 2,
     dimmed: false,
     hasMap: true,
-    input: InputState.Move
+    input: InputStates.Move
   },
   GameOver: {
     id: 3,
     dimmed: true,
     hasMap: true,
-    input: InputState.Restart
+    input: InputStates.Restart
   },
   Dialog: {
     id: 4,
     dimmed: true,
     hasMap: true,
-    input: InputState.None
+    input: InputStates.None
   },
 };
 

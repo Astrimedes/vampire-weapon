@@ -2,7 +2,7 @@ let INDEX = 0;
 
 const NO_OP = () => { };
 
-class InputType {
+export class InputType {
   constructor(name, callback = NO_OP) {
     this.id = INDEX++;
     this.name = name;
@@ -10,7 +10,7 @@ class InputType {
   }
 }
 
-const moveToTile = (game, tile) => {
+export const moveToTile = (game, tile) => {
   // advance by 1 when player tries to move when stunned
   if (game.player.stunned) {
     return game.tick();
@@ -66,15 +66,6 @@ const moveToTile = (game, tile) => {
   }
 };
 
-const restartGame = (game) => {
+export const restartGame = (game) => {
   game.loadLevel(1);
 };
-
-const InputState = {
-  Move: new InputType('move', moveToTile),
-  Target: new InputType('target'),
-  Restart: new InputType('restart', restartGame),
-  None: new InputType('none'),
-};
-
-export { InputState };
