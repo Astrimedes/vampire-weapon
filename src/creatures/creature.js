@@ -160,12 +160,12 @@ export default class Creature {
       this.bleed = 0;
       this.hp = 0;
       this.deathResolved = true;
-      if (this.tile) this.tile.creature = null;
+      if (this.tile && this.tile.creature == this) this.tile.creature = null;
       this.tile = null;
       this.spriteNumber++; // corpse tile should be next tile...
 
       if (!(silent || this.dieSilent)) {
-        let msg = this.isPlayer ? 'You die!' : `${this.name}'s will is destroyed!`;
+        let msg = this.isPlayer ? 'You die!' : `${this.name} is destroyed!`;
         this.game.hud.writeMessage(msg);
       }
 
