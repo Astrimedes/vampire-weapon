@@ -17,11 +17,19 @@ class Reach extends Ability {
   }
 }
 
-const Abilities = [
-  new Ability('Bleed', 5, '+1 💉, +1/3 dmg per attack'),
+const startingAbilities = [
+  new Ability('Bleed', 5, '+1 💉 gain per attack'),
+  new Ability('Charm', 10, 'Removes stun after charm'),
   new Ability('Fire', 25, '+1 dmg per attack'),
   new Ability('Ice', 35, '+1 turn stun per attack'),
   new Reach('Size', 50, '+1 tile attack reach')
 ];
+
+const Abilities = Array.from(startingAbilities);
+
+Abilities.reset = () => {
+  Abilities.splice(0, Abilities.length);
+  startingAbilities.forEach(a => Abilities.push(a));
+};
 
 export { Ability, Abilities };

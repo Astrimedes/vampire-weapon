@@ -306,10 +306,10 @@ export default class Creature {
       this.hp -= this.fire;
     }
     // bleed
-    if (this.bleed && (this.bleed % 3 == 0)) {
-      this.hp -= 1;
-      this.bleed--;
-    }
+    // if (this.bleed && (this.bleed % 3 == 0)) {
+    //   this.hp -= 1;
+    //   this.bleed--;
+    // }
 
     // die if necessary
     if (this.hp <= 0) {

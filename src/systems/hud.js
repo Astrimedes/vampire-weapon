@@ -159,7 +159,7 @@ export default class HeadsUpDisplay {
     if (this.messages.length > limit) {
       this.messages = this.messages.slice(limit / 2, this.messages.length - 1);
     }
-    let prefix = showTurns ? `T${this.game.turnCount}: ` : '';
+    let prefix = showTurns ? `L${this.game.level} T${this.game.turnCount} ` : '';
     this.messages.push(prefix + message);
     let ele = document.getElementById(this.messagesId);
     let txt = Array.from(this.messages).reverse().join('\n');

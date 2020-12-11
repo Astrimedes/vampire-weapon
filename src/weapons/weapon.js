@@ -1,3 +1,4 @@
+import { Abilities } from '../config/abilities.js';
 import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
 export default class Weapon {
@@ -46,6 +47,14 @@ export default class Weapon {
   addEffect(effect) {
     if (effect == 'Size') {
       this.reach++;
+      // remove the Size ability after purchase
+      Abilities.splice(Abilities.findIndex(a => a.name == 'Size'), 1);
+      return;
+    }
+    if (effect == 'Charm') {
+      this.speed = (this.speed || 0) + 1;
+      // remove the Charm ability after purchase
+      Abilities.splice(Abilities.findIndex(a => a.name == 'Charm'), 1);
       return;
     }
     let idx = this.effects.findIndex(e => e.type == effect);
@@ -53,6 +62,11 @@ export default class Weapon {
       idx = this.effects.push({ type: effect, value: 0 }) - 1;
     }
     this.effects[idx].value++;
+
+    if (this.effects[idx].value > 2) {
+      // remove the ability
+      Abilities.splice(Abilities.findIndex(a => a.name == effect), 1);
+    }
 
     this.updateDrawColor();
   }

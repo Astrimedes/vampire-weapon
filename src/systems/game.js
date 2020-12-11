@@ -216,12 +216,14 @@ export default class Game {
     let playerConfig = {
       reach: 1,
       effects: [],
-      blood: 5
+      blood: 5,
+      speed: 0
     };
     if (currentPlayer) {
       playerConfig.reach = currentPlayer.reach;
       playerConfig.effects = currentPlayer.effects;
       playerConfig.blood = currentPlayer.blood;
+      playerConfig.speed = currentPlayer.speed;
     }
 
     // create player
@@ -286,7 +288,7 @@ export default class Game {
     const dead = [];
 
     if (this.player.wielder.stunned) {
-      this.hud.writeMessage('You are stunned.');
+      this.hud.writeMessage('You were stunned.');
     }
 
     // reduce status effects, etc.
@@ -506,23 +508,23 @@ export default class Game {
     );
   }
 
-  callAbilityDialog(silent = false) {
+  callAbilityDialog(restricted = false) {
     // determine which abilities to offer
     let available = Abilities.filter(a => a.getUpgradeCost(this.player) <= this.player.blood);
-    if (!available.length) {
-      if (!silent) {
-        this.hud.writeMessage('Not enough blood.');
-        this.callMessageDialog('Not enough 💉');
-      }
+    if (restricted && !available.length) {
       return false;
     }
+    let text = available.length ? 'Choose an ability:' : 'Not enough 💉';
+
+    // update hud for blood total
+    this.updateHud();
 
     // setup dialog
-    let message = ['Choose an ability:'];
+    let message = [text];
     let dlgSettings = {
       type: 'abilities',
       message,
-      fields: available,
+      fields: Abilities,
       submit: (data) => {
         // add chosen ability
         this.addAbility(data);
@@ -571,7 +573,7 @@ export default class Game {
 
   loadLevel(level = 1, player) {
     let firstLevel = level == 1;
-    if (firstLevel) this.turnCount = 0;
+    this.turnCount = 0;
 
     let lastLevel = this.currentLevel;
     this.currentLevel = levels[level] || lastLevel;
@@ -590,6 +592,8 @@ export default class Game {
     // set hud
     this.updateHud(firstLevel);
     if (firstLevel) {
+      Abilities.reset();
+
       this.hud.clearMessages();
       this.hud.writeMessage('You awaken from your magical slumber thirsty for blood!');
       this.hud.reveal();
@@ -611,7 +615,10 @@ export default class Game {
         this.hud.setStatusField(e.type, e.value, true);
       });
       if (this.player.reach > 1) {
-        this.hud.setStatusField('Size', this.player.reach - 1);
+        this.hud.setStatusField('Size', this.player.reach - 1, 'darkgray');
+      }
+      if (this.player.speed > 0) {
+        this.hud.setStatusField('Charm', this.player.speed, 'pink');
       }
 
       // add wait button to hud

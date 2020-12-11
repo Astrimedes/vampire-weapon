@@ -15,7 +15,8 @@ export default class Player extends Weapon {
   constructor(game, map, playerConfig = {}) {
     super(game, map, Sprite.Weapon.sword, playerConfig?.reach || 1, true, playerConfig?.effects || [], 'whitesmoke', true);
     this.isPlayer = true;
-    this.blood = playerConfig?.blood || 0;
+    this.blood = playerConfig.blood || 0;
+    this.speed = playerConfig.speed || 0;
   }
 
   tryAct() {
