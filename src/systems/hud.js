@@ -19,8 +19,11 @@ const createField = (id, label, value, color) => {
   return `<pre id="${id}" style="color:${color};margin:0px">${label}${(value || 0).toString().padStart(3)}</pre>`;
 };
 
-const createButton = (id, label, color) => {
-  return `<button id=${id} style="color:${color};" class="button">${label}</button>`;
+const createControl = (id, label, cost, color) => {
+  return `<div id=${id} style="display: flex; justify-content: space-between;">
+  <span><button id="${id}-btn" data-cost=${cost} style="color:${color};" class="button">${label}</button></span>
+  <span style="font-size: 0.5em; align-text: right;"><p>Cost: ${cost}</p></span>
+  </div>`;
 };
 
 const emptyLine = '<p></p>';
@@ -29,12 +32,14 @@ const emptyLine = '<p></p>';
  *
  */
 export default class HeadsUpDisplay {
-  constructor(hudId, hudStatusId, hudControlsId, messagesId) {
+  constructor(game, hudId, hudStatusId, hudControlsId, messagesId) {
+    this.game = game;
     this.hudId = hudId;
     this.statusId = hudStatusId;
     this.controlsId = hudControlsId;
     this.messagesId = messagesId;
     this.fields = {};
+    this.controls = {};
     this.clearMessages();
   }
 
@@ -67,6 +72,16 @@ export default class HeadsUpDisplay {
     }
   }
 
+  updateControls(available) {
+    Object.getOwnPropertyNames(this.controls).forEach(controlId => {
+      let ctrl = document.getElementById(controlId);
+      let btn = ctrl?.querySelector('button');
+      if (!btn) return;
+      let cost = this.controls?.[controlId] || 0;
+      btn.disabled = available < cost;
+    });
+  }
+
   setStatusField(name, value, color) {
     // get parent text color if not specified
     if (!color) {
@@ -90,25 +105,31 @@ export default class HeadsUpDisplay {
     this.fields[id] = value;
   }
 
-  addControl(name, callback, color) {
+  addControl(name, cost, callback, color) {
     // get parent text color if not specified
     if (!color) {
       color = document.getElementById(this.hudId).style.color;
     }
     const id = getControlName(name);
 
-    let btn = document.getElementById(id);
-    let wrapper = btn ? btn.parentElement : null;
+    let eleControl = document.getElementById(id);
+    let wrapper = eleControl?.parentElement;
     if (!wrapper) {
       wrapper = document.createElement('div');
       let controlsParent = document.getElementById(this.controlsId);
       controlsParent.appendChild(wrapper);
     }
-    wrapper.innerHTML = createButton(id, name, color);
-    btn = wrapper.firstChild;
+    wrapper.innerHTML = createControl(id, name, cost, color);
+    eleControl = wrapper.firstChild;
 
-    // set callback
+    // set controls / costs
+    this.controls[id] = cost;
+
+    // set callback on button
+    let btn = eleControl.querySelector('button');
     btn.onclick = callback;
+    // avoid control buttons being triggered with space
+    btn.onkeyup = e => e.preventDefault();
   }
 
   removeStatusField(name) {
@@ -133,11 +154,13 @@ export default class HeadsUpDisplay {
     parent.appendChild(ele);
   }
 
-  writeMessage(message) {
-    if (this.messages.length > 255) {
-      this.messages = this.messages.slice(200, 255);
+  writeMessage(message, showTurns = true) {
+    const limit = 1000;
+    if (this.messages.length > limit) {
+      this.messages = this.messages.slice(limit / 2, this.messages.length - 1);
     }
-    this.messages.push(message);
+    let prefix = showTurns ? `T${this.game.turnCount}: ` : '';
+    this.messages.push(prefix + message);
     let ele = document.getElementById(this.messagesId);
     let txt = Array.from(this.messages).reverse().join('\n');
     ele.innerHTML = txt;

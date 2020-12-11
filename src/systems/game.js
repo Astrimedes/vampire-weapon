@@ -570,6 +570,9 @@ export default class Game {
   }
 
   loadLevel(level = 1, player) {
+    let firstLevel = level == 1;
+    if (firstLevel) this.turnCount = 0;
+
     let lastLevel = this.currentLevel;
     this.currentLevel = levels[level] || lastLevel;
     this.setGameState(GameState.Loading);
@@ -585,9 +588,8 @@ export default class Game {
     this.setGameState(GameState.Play);
 
     // set hud
-    let clearAll = level == 1; // always clear on level 1
-    this.updateHud(clearAll);
-    if (clearAll) {
+    this.updateHud(firstLevel);
+    if (firstLevel) {
       this.hud.clearMessages();
       this.hud.writeMessage('You awaken from your magical slumber thirsty for blood!');
       this.hud.reveal();
@@ -613,18 +615,20 @@ export default class Game {
       }
 
       // add wait button to hud
-      this.hud.addControl('⌛', (e) => {
+      this.hud.addControl('wait', 1, (e) => {
         e.preventDefault();
         this.wait();
       }, 'red');
 
       this.effectsUpdated = false;
     }
+
+    this.hud.updateControls(this.player.blood);
   }
 
   initDom() {
     // create & hide hud
-    this.hud = new HeadsUpDisplay('hud', 'hud-status', 'hud-controls', 'msg-display');
+    this.hud = new HeadsUpDisplay(this, 'hud', 'hud-status', 'hud-controls', 'msg-display');
 
     this.hud.hide();
   }

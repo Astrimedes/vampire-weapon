@@ -161,7 +161,7 @@ export default class Renderer {
 
     // draw weapon reach for non-stunned
     if (!creature.isStunned()) {
-      for (let i = 1; i <= creature.weapon.reach; i++) {
+      for (let i = 1; i <= (creature?.weapon?.reach || 1); i++) {
         let tile = creature.map.getTile(creature.tile.x + (creature.lastMoveX * i), creature.tile.y + (creature.lastMoveY * i));
         if (!tile.passable && !tile.creature) break;
         this.drawTileRect(tile.x, tile.y, creature.weapon.drawColor, 0.08);
