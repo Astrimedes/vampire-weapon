@@ -73,7 +73,6 @@ class InputReader {
     // keyboard - document listens
     const keyboardListen = (e) => {
       let action = keyConfig.find(kc => kc.keys.find(k => k == e.key))?.action;
-      console.log(e, action);
       if (!action || !game.isInputAllowed()) return;
 
       game.sendUserAction(action);
