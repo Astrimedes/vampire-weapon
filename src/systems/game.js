@@ -13,7 +13,8 @@ import { Rng } from '../tools/randoms.js';
 import SlowGuy from '../creatures/slowguy.js';
 import { Abilities } from '../config/abilities.js';
 import HeadsUpDisplay from './hud.js';
-import { InputStates } from '../actions/InputStates';
+import { InputStates } from '../actions/InputStates.js';
+import { InputReader } from './inputReader.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -21,7 +22,7 @@ const TILE_SIZE = 16;
 const assets = {};
 
 export default class Game {
-  constructor () {
+  constructor() {
     this.unloadAssets();
     this.gameState = null;
     this.inputState = InputStates.None;
@@ -42,27 +43,51 @@ export default class Game {
   setInputState(state) {
     if (this.inputState !== state) {
       this.inputState = state;
-      this.inputAction = state.defaultAction;
+      this.setTileAction(state.tileAction);
+      this.setCommandAction(state.commandAction);
       return true;
     }
     return false;
   }
 
-  setInputAction(action) {
-    if (this.inputAction !== action) {
-      this.lastInputAction = this.inputAction;
-      this.inputAction = action;
+  setTileAction(callback) {
+    if (this.inputTile !== callback) {
+      this.lastTileAction = this.inputTile;
+      this.inputTile = callback;
     }
   }
 
-  resetInputAction() {
-    this.setInputAction(this.inputState.defaultAction);
+  setCommandAction(callback) {
+    if (this.inputCommand !== callback) {
+      this.lastCommandAction = this.inputCommand;
+      this.inputCommand = callback;
+    }
   }
 
-  callInputActionForTarget(tile) {
+  resetInputActions() {
+    this.setTileAction(this.inputState.tileAction);
+    this.setCommandAction(this.inputState.commandAction);
+  }
+
+  /**
+   * Send an action from Actions enum (numbers)
+   * @param {number} action - Actions.up, .down, etc
+   */
+  sendUserAction(action) {
+    this.callInputCommand(action);
+  }
+
+  callInputCommand(action) {
     if (this.inputState !== InputStates.None) {
       // call input callback
-      this.inputAction(this, tile);
+      this.inputCommand(this, action);
+    }
+  }
+
+  sendUserTileSelect(tile) {
+    if (this.inputState !== InputStates.None) {
+      // call input callback
+      this.inputTile(this, tile);
     }
   }
 
@@ -108,7 +133,7 @@ export default class Game {
     this.renderer.resize();
   }
 
-  checkInput () {
+  isInputAllowed () {
     // restart on button press after death
     if (!this.inputState || this.inputState == InputStates.None || this?.renderer?.animationsRunning) return false;
 
@@ -116,64 +141,15 @@ export default class Game {
   }
 
   setupInput() {
-
-    // keyboard - document listens
-    const keyboardListen = (e) => {
-      if (!this.checkInput() || !e.key) return;
-
-      let tile = null;
-      if (this?.gameState?.hasMap) {
-        let dir = { x: 0, y: 0 };
-        if (e.key == 'w') {
-          dir.y = -1;
-        } else if (e.key == 's') {
-          dir.y = 1;
-        } else if (e.key == 'a') {
-          dir.x = -1;
-        } else if (e.key == 'd') {
-          dir.x = 1;
-        } else if (e.key == ' ') {
-          dir.wait = true;
-        }
-        if (this.inputState == InputStates.Move && dir.wait) {
-          this.wait();
-          return true;
-        }
-        tile = this.map.getTile(this.player.x + dir.x, this.player.y + dir.y);
-      }
-
-      this.callInputActionForTarget(tile);
-    };
-    document.onkeydown = keyboardListen;
-
-    // mouse events - canvas listens
-    let canvas = document.querySelector('canvas');
-
-    const mousedownListen = e => {
-      e.preventDefault();
-      if (!this.checkInput()) return;
-
-      const tile = this.map ? this.renderer.getTileAt(e.clientX, e.clientY, this.map) : null;
-
-      this.callInputActionForTarget(tile);
-    };
-    canvas.onmousedown = mousedownListen;
-
-    const mousemoveListen = e => {
-      if (!this.checkInput()) {
-        this.highlightTile = null;
-        return;
-      }
-
-      const tile = this.renderer.getTileAt(e.clientX, e.clientY, this.map);
-      this.highlightTile = tile && this.map.inBounds(tile.x, tile.y) ? tile : null;
-    };
-    canvas.onmousemove = mousemoveListen;
-
-    const mouseleaveListen = () => {
-      this.highlightTile = null;
-    };
-    canvas.onmouseleave = mouseleaveListen;
+    if (!this.input) {
+      this.input = new InputReader({
+        doc: document,
+        game: this,
+        useKeyboard: true,
+        usePointer: true
+      });
+    }
+    this.input.setupInput();
   }
 
   wait() {

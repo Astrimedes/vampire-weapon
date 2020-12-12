@@ -24,16 +24,8 @@ export default class Player extends Weapon {
   }
 
   tryMove(dx, dy) {
-    if (this.wielder) {
-      if (this.wielder.stunned) {
-        // if wielder is stunned we can't move
-        return true;
-      }
-      if (this.wielder.tryMove(dx, dy)) {
-        return true;
-      }
-    }
-    return false;
+    if (this?.wielder?.stunned) return true;
+    return this.wielder.tryMove(dx, dy);
   }
 
   attack(creature, dx, dy) {
@@ -49,16 +41,6 @@ export default class Player extends Weapon {
       this.setWielder(creature);
     }
   }
-
-  // tryMove(dx, dy) {
-  //   // can't move without wielder, or blood to spend
-  //   if (!this.wielder || this.blood < MOVE_COST) {
-  //     return false;
-  //   }
-  //   let moved = this.wielder.tryMove(dx, dy);
-  //   this.blood -= moved ? MOVE_COST : 0;
-  //   return !!moved;
-  // }
 
   die() {
     this.stopAnimation();

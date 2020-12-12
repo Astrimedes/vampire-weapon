@@ -1,9 +1,11 @@
-import { InputType, moveToTile, restartGame } from './inputstate';
+import { InputType } from './inputstate';
+import { MoveInput } from './moveInput';
+import { restartGame } from './sharedActions';
 
 const InputStates = {
-  Move: new InputType('move', moveToTile),
+  Move: MoveInput,
   Target: new InputType('target'),
-  Restart: new InputType('restart', restartGame),
+  Restart: new InputType('restart', restartGame, restartGame),
   None: new InputType('none'),
 };
 

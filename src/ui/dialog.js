@@ -29,6 +29,10 @@ const getFormData = form => {
 };
 
 class Dialog {
+  /**
+   * create the dialog with given settings
+   * @param {{type: string, fields: Array, message: string, submit: function, cancel: function}} settings
+   */
   constructor(settings = {}) {
     this.settings = Object.assign({}, defaultSettings, settings);
     this.open = !(this.getDialog()).classList.contains(CLASS_HIDDEN);
