@@ -57,6 +57,9 @@ html{
 .dialog{
     z-index: 100;
     display: inline;
+   overflow: auto;
+   border-radius: 16px;
+   background-color: #35212e
 }
 
 .hidden{

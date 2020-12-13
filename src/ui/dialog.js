@@ -6,10 +6,14 @@ const ID_CANCEL = 'btn-cancel';
 const ID_FIELDS = 'dlg-fields';
 const ID_CANVAS = 'canvas';
 
+const ID_SHADE = 'dialog-bg-shade';
+
 const DATA_FIELD = 'data';
 
 const CLASS_HIDDEN = 'hidden';
 const CLASS_DIALOG = 'dialog';
+
+const Z = 100;
 
 const defaultSettings = {
   type: 'prompt',
@@ -50,13 +54,43 @@ class Dialog {
 
   setPosition() {
     const dialog = this.getDialog();
+
     // set position
     let rect = document.getElementById(ID_CANVAS).getBoundingClientRect();
     dialog.style.position = 'absolute';
     dialog.style.top = rect.top + 'px';
-    dialog.style.left = rect.left + 'px';
-    dialog.style.width = rect.width;
-    dialog.style.height = rect.height;
+    dialog.style.left = (rect.left - 6) + 'px';
+    dialog.style.width = rect.width - 4 + 'px';
+    dialog.style.height = 'min-content';
+
+    dialog.style.zIndex = Z;
+  }
+
+  showShade() {
+    let shade = document.getElementById(ID_SHADE);
+    if (!shade) {
+      shade = document.createElement('div');
+      shade.style.position = 'absolute';
+      shade.style.top = 0;
+      shade.style.left = 0;
+      shade.style.width = '100vw';
+      shade.style.height = '100vh';
+      shade.id = ID_SHADE;
+
+      shade.style.backgroundColor =  'rgba(0, 0, 0, 0.65)';
+
+      shade.style.zIndex = Z - 1;
+
+      document.body.appendChild(shade);
+    }
+    shade.style.display = 'inline';
+  }
+
+  hideShade() {
+    let shade = document.getElementById(ID_SHADE);
+    if (shade) {
+      shade.style.display = 'none';
+    }
   }
 
   reveal() {
@@ -94,8 +128,13 @@ class Dialog {
       // highlight first option if present, or ok button
       let selected = document?.getElementById(ID_FIELDS)?.querySelector('input') || document.getElementById(ID_SUBMIT);
       selected.focus();
+
+      // scroll to top
+      dialog.scrollTop = 0;
     };
     this.revealTimeout = setTimeout(reveal, 1000 / 59); // delay a frame?
+
+    this.showShade();
   }
 
   setMessage(message) {
@@ -214,6 +253,7 @@ class Dialog {
       clearTimeout(this.revealTimeout);
       this.revealTimeout = undefined;
     }
+    this.hideShade();
   }
 }
 
