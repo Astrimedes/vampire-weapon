@@ -11,9 +11,9 @@ import { levels } from '../config/levels.js';
 import Spider from '../creatures/spider.js';
 import { Rng } from '../tools/randoms.js';
 import SlowGuy from '../creatures/slowguy.js';
-import { Abilities } from '../config/abilities.js';
+import { Abilities } from '../abilities/abilities.js';
 import HeadsUpDisplay from './hud.js';
-import { InputStates } from '../actions/InputStates.js';
+import { InputStates } from '../input/InputStates.js';
 import { InputReader } from './inputReader.js';
 
 const TILE_SIZE = 16;
@@ -161,8 +161,9 @@ export default class Game {
 
       this.hud.writeMessage('You wait.');
 
-      if (this.player.blood > 0) {
-        this.player.blood--;
+      let cost = this.level;
+      if (this.player.blood >= cost) {
+        this.player.blood -= cost;
         this.tick();
         return;
       }
@@ -258,7 +259,7 @@ export default class Game {
   }
 
   tick() {
-    this.highlightTile = null;
+    this.selectedTile = null;
     this.turnCount++;
 
     const dead = [];
@@ -439,8 +440,8 @@ export default class Game {
         });
 
         // draw highlighted tile
-        if (this.highlightTile && this.gameState == GameState.Play) {
-          this.renderer.drawTileRect(this.highlightTile.x, this.highlightTile.y, 'blue', 0.11);
+        if (this.selectedTile && this.gameState == GameState.Play) {
+          this.renderer.drawTileRect(this.selectedTile.x, this.selectedTile.y, 'blue', 0.11);
         }
 
         // draw pause icon while input is blocked
@@ -566,7 +567,7 @@ export default class Game {
     this.setGameState(GameState.Play);
 
     // set hud
-    this.updateHud(firstLevel);
+    this.updateHud(true);
     if (firstLevel) {
       Abilities.reset();
 
@@ -598,7 +599,7 @@ export default class Game {
       }
 
       // add wait button to hud
-      this.hud.addControl('wait', 1, (e) => {
+      this.hud.addControl('wait', this.level, (e) => {
         e.preventDefault();
         this.wait();
       }, 'red');

@@ -1,4 +1,4 @@
-import { Abilities } from '../config/abilities.js';
+import { Abilities } from '../abilities/abilities.js';
 import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
 export default class Weapon {

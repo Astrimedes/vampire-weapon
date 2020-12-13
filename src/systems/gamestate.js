@@ -1,4 +1,4 @@
-import { InputStates } from '../actions/InputStates';
+import { InputStates } from '../input/InputStates';
 
 const GameState = {
   Loading: {

@@ -93,17 +93,17 @@ class InputReader {
 
     const mousemoveListen = e => {
       if (!game.isInputAllowed()) {
-        game.highlightTile = null;
+        game.selectedTile = null;
         return;
       }
 
       const tile = game.renderer.getTileAt(e.clientX, e.clientY, game.map);
-      game.highlightTile = tile && game.map.inBounds(tile.x, tile.y) ? tile : null;
+      game.selectedTile = tile && game.map.inBounds(tile.x, tile.y) ? tile : null;
     };
     canvas.onmousemove = mousemoveListen;
 
     const mouseleaveListen = () => {
-      game.highlightTile = null;
+      game.selectedTile = null;
     };
     canvas.onmouseleave = mouseleaveListen;
   }
