@@ -54,14 +54,23 @@ html{
     height: 100%;
 }
 
+.pop-on-top{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+}
+
 .dialog{
-    z-index: 100;
-    display: inline;
+   z-index: 100;
    overflow: auto;
    border-radius: 16px;
    background-color: #35212e;
+   min-width: 50vw;
+   max-width: 75vw;
    min-height: 25vh;
-   max-height: 75vh;
+   max-height: 80vh;
 }
 
 .hidden{
@@ -162,16 +171,42 @@ button {
   html {
     font-size: 1.1em;
   }
+  .dialog{
+    min-width: 50vw;
+    max-width: 80vw;
+    min-height: 25vh;
+    max-height: 80vh;
+  }
   #dlg-msg {
     font-size: 1.2em;
   }
 }
 
-@media screen and (max-width: 600px), screen and (max-height: 600px) {
+@media screen and (max-width: 600px) {
+  html {
+    font-size: 1.0em;
+  }
+  .dialog{
+    min-width: 70vw;
+    max-width: 90vw;
+  }
+  #dlg-msg {
+    font-size: 1.1em;
+  }
+}
+
+@media screen and (max-height: 600px) {
   html {
     font-size: 1.0em;
   }
   #dlg-msg {
     font-size: 1.1em;
+  }
+}
+
+@media screen and (max-width: 300px) {
+  .dialog{
+   min-width: 85vw;
+   max-width: 95vw;
   }
 }

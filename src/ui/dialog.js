@@ -4,7 +4,6 @@ const ID_MESSAGE = 'dlg-msg';
 const ID_SUBMIT = 'btn-submit';
 const ID_CANCEL = 'btn-cancel';
 const ID_FIELDS = 'dlg-fields';
-const ID_CANVAS = 'canvas';
 
 const ID_SHADE = 'dialog-bg-shade';
 
@@ -53,17 +52,20 @@ class Dialog {
   }
 
   setPosition() {
-    const dialog = this.getDialog();
+    // const dialog = this.getDialog();
 
     // set position
-    let rect = document.getElementById(ID_CANVAS).getBoundingClientRect();
-    dialog.style.position = 'absolute';
-    dialog.style.top = rect.top + 'px';
-    dialog.style.left = (rect.left - 6) + 'px';
-    dialog.style.width = rect.width - 4 + 'px';
-    dialog.style.height = 'min-content';
+    // let rect = document.getElementById(ID_CANVAS).getBoundingClientRect();
+    // dialog.style.position = 'relative';
+    // dialog.style.top = rect.top + 'px';
+    // dialog.style.left = '16px';
+    // dialog.style.minWidth = '25vw';
+    // dialog.style.maxWidth = '75vw';
+    // dialog.style.minHeight = '25vh';
+    // dialog.style.maxHeight = '75vh';
+    // dialog.style.padding = '10%vmin';
 
-    dialog.style.zIndex = Z;
+    // dialog.style.zIndex = Z;
   }
 
   showShade() {
