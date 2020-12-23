@@ -35,16 +35,22 @@
 
 
         <!-- Dialog -->
-        <div class="pop-on-top">
-            <div id="dialog" class="dialog hidden">
+        <div id="dialog" class="pop-on-top dialog hidden hide-scroll">
+            <div>
                 <form id="dlg-form" autocomplete="off" action="">
-                    <div id="dlg-msg"></div>
-                    <div id="dlg-fields" class="hide-radio"></div>
-                    <div id="dlg-submit" class="button-area">
-                        <button id="btn-submit" class="dlg-button">OK</button>
-                    </div>
-                    <div id="dlg-cancel" class="button-area">
-                        <button class="dlg-button" id="btn-cancel">Cancel</button>
+                    <div class="form-container">
+                        <div id="dlg-msg"></div>
+                        <div class="fields-container">
+                            <div id="dlg-fields"></div>
+                        </div>
+                        <div id="dlg-buttons" class="buttons-container">
+                            <div id="dlg-submit" class="button-area">
+                                <button id="btn-submit" class="dlg-button">OK</button>
+                            </div>
+                            <div id="dlg-cancel" class="button-area">
+                                <button class="dlg-button" id="btn-cancel">Cancel</button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>

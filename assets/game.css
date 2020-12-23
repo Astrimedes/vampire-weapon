@@ -40,7 +40,6 @@ html{
   grid-column: 1 / 3;
   color: lightgray;
   overflow: auto;
-
  }
 
 #canvas{
@@ -62,15 +61,19 @@ html{
   z-index: 100;
 }
 
+.form-container {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: 1fr min-content 0.75fr;
+  height: 100%;
+}
+
 .dialog{
    z-index: 100;
-   overflow: auto;
    border-radius: 16px;
    background-color: #35212e;
-   min-width: 50vw;
-   max-width: 75vw;
-   min-height: 25vh;
-   max-height: 80vh;
+   min-width: 50%;
+   min-height: 25%;
 }
 
 .hidden{
@@ -88,25 +91,29 @@ button[disabled]{
     color: white;
 }
 
-#dlg-form{
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-self: center;
-}
-
 #dlg-msg{
     text-align: center;
     color: #8f4072;
     font-weight: bold;
     font-size: 1.8em;
+    flex-grow: 1;
+    width: 100%;
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+  flex-grow: 1;
+  width: 100%;
 }
 
 .button-area {
-    padding-top: 2vh;
-    padding-bottom: 2vh;
-    padding-left: 2vw;
-    padding-right: 2vw;
+    padding-top: 1vmin;
+    padding-bottom: 1vmin;
+    padding-left: 1vmin;
+    padding-right: 1vmin;
 }
 
 #dlg-submit{
@@ -122,14 +129,19 @@ button[disabled]{
     color: white;
 }
 
+.fields-container{
+   max-height: 45vh;
+   min-height: 1vh;
+}
+
 #dlg-fields{
    display: flex;
    flex-direction: column;
-   align-items: stretch;
-   justify-content: center;
    width: 100%;
+   height: 100%;
    text-align: center;
-   min-height: 20%;
+   overflow-y: auto;
+   scrollbar-width: thin;
 }
 
 /* .dlg-label {
@@ -171,12 +183,6 @@ button {
   html {
     font-size: 1.1em;
   }
-  .dialog{
-    min-width: 50vw;
-    max-width: 80vw;
-    min-height: 25vh;
-    max-height: 80vh;
-  }
   #dlg-msg {
     font-size: 1.2em;
   }
@@ -185,10 +191,6 @@ button {
 @media screen and (max-width: 600px) {
   html {
     font-size: 1.0em;
-  }
-  .dialog{
-    min-width: 70vw;
-    max-width: 90vw;
   }
   #dlg-msg {
     font-size: 1.1em;
@@ -201,12 +203,5 @@ button {
   }
   #dlg-msg {
     font-size: 1.1em;
-  }
-}
-
-@media screen and (max-width: 300px) {
-  .dialog{
-   min-width: 85vw;
-   max-width: 95vw;
   }
 }
