@@ -11,7 +11,6 @@ import { levels } from '../config/levels.js';
 import Spider from '../creatures/spider.js';
 import { Rng } from '../tools/randoms.js';
 import SlowGuy from '../creatures/slowguy.js';
-import { Abilities } from '../abilities/abilities.js';
 import HeadsUpDisplay from './hud.js';
 import { InputStates } from '../input/InputStates.js';
 import { InputReader } from './inputReader.js';
@@ -154,22 +153,14 @@ export default class Game {
 
   wait() {
     if (this.inputState == InputStates.Move) {
-      if (this.player.wielder.stunned || this.monsters.length < 1) {
+      if (this?.player?.wielder?.stunned || this.monsters.length < 1) {
         this.tick();
         return;
       }
 
       this.hud.writeMessage('You wait.');
 
-      let cost = this.level;
-      if (this.player.blood >= cost) {
-        this.player.blood -= cost;
-        this.tick();
-        return;
-      }
-
-      this.callMessageDialog('Not enough 💉');
-
+      this.tick();
     }
   }
 
@@ -192,13 +183,11 @@ export default class Game {
 
     let playerConfig = {
       reach: 1,
-      effects: [],
       blood: 5,
       speed: 0
     };
     if (currentPlayer) {
       playerConfig.reach = currentPlayer.reach;
-      playerConfig.effects = currentPlayer.effects;
       playerConfig.blood = currentPlayer.blood;
       playerConfig.speed = currentPlayer.speed;
     }
@@ -375,16 +364,6 @@ export default class Game {
     this.hud.writeMessage(`The charmed ${monster.name} wields you!`);
   }
 
-  addAbility(ability) {
-    this.player.blood -= Abilities.find(a => a.name == ability).getUpgradeCost(this.player);
-    this.player.addEffect(ability);
-    // force hud recalc
-    this.effectsUpdated = true;
-
-    let rank = this.player.effects.find(a => a.type == ability)?.value || (this.player.reach - 1);
-    this.hud.writeMessage(`You learn ${ability} at Rank ${rank}!`);
-  }
-
   beginGameLoop () {
     let draw;
     this.time = 0;
@@ -485,12 +464,9 @@ export default class Game {
     );
   }
 
-  callAbilityDialog(restricted = false) {
+  callAbilityDialog() {
     // determine which abilities to offer
-    let available = Abilities.filter(a => a.getUpgradeCost(this.player) <= this.player.blood);
-    if (restricted && !available.length) {
-      return false;
-    }
+    let available = [];
     let text = available.length ? 'Choose an ability:' : 'Not enough 💉';
 
     // update hud for blood total
@@ -501,17 +477,12 @@ export default class Game {
     let dlgSettings = {
       type: 'abilities',
       message,
-      fields: Abilities,
+      fields: available,
       submit: (data) => {
-        // add chosen ability
-        this.addAbility(data);
+        console.log(data);
         // update ui for new blood total etc
         this.updateHud(true);
-        // try to call again
-        let called = this.callAbilityDialog(true);
-        if (!called) {
-          this.setGameState(this.lastGameState);
-        }
+        this.setGameState(this.lastGameState);
       },
       cancel: () => {
         this.setGameState(this.lastGameState);
@@ -569,8 +540,6 @@ export default class Game {
     // set hud
     this.updateHud(true);
     if (firstLevel) {
-      Abilities.reset();
-
       this.hud.clearMessages();
       this.hud.writeMessage('You awaken from your magical slumber thirsty for blood!');
       this.hud.reveal();
@@ -588,18 +557,8 @@ export default class Game {
     this.hud.setStatusField('💉', this.player.blood);
     this.hud.addEmptyStatus('empty1');
     if (clearAll || this.effectsUpdated) {
-      this.player.effects.filter(e => e.type !== 'Player').forEach(e => {
-        this.hud.setStatusField(e.type, e.value, true);
-      });
-      if (this.player.reach > 1) {
-        this.hud.setStatusField('Size', this.player.reach - 1, 'darkgray');
-      }
-      if (this.player.speed > 0) {
-        this.hud.setStatusField('Charm', this.player.speed, 'pink');
-      }
-
       // add wait button to hud
-      this.hud.addControl('wait', this.level, (e) => {
+      this.hud.addControl('wait', 0, (e) => {
         e.preventDefault();
         this.wait();
       }, 'red');

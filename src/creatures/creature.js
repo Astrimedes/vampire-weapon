@@ -42,10 +42,6 @@ export default class Creature {
 
     this.stunned = 2; // stunned thru one player turn on spawn
 
-    this.fire = 0;
-    this.ice = 0;
-    this.bleed = 0;
-
     this.id = ID++;
 
     this.spawnTurn = this.game.turnCount;
@@ -127,26 +123,8 @@ export default class Creature {
     return false;
   }
 
-  hit(dmg, effects) {
+  hit(dmg) {
     this.hp -= dmg;
-    effects.forEach(e => {
-      switch (e.type) {
-      case 'Fire':
-        this.fire = (this.fire || 0) + e.value + 1;
-        break;
-      case 'Ice':
-        this.ice = (this.ice || 0) + e.value + 1;
-        break;
-      case 'Bleed':
-        this.bleed = (this.bleed || 0) + e.value + 1;
-        break;
-      case 'Player':
-        this.playerHit = true;
-        break;
-      default:
-        throw e.type;
-      }
-    });
     this.dead = this.hp <= 0;
   }
 
@@ -155,9 +133,6 @@ export default class Creature {
     this.dieSilent = this.dieSilent || silent;
     if (!this.deathResolved) {
       this.stunned = 0;
-      this.fire = 0;
-      this.ice = 0;
-      this.bleed = 0;
       this.hp = 0;
       this.deathResolved = true;
       if (this.tile && this.tile.creature == this) this.tile.creature = null;
@@ -296,21 +271,6 @@ export default class Creature {
   tryAct() {
     if (this.dead) return false;
 
-    // apply effects from statuses
-    // stunning
-    if (this.ice) {
-      this.stunned += 1 + Math.floor((this.ice-1) / 2);
-    }
-    // damage
-    if (this.fire > 0) {
-      this.hp -= this.fire;
-    }
-    // bleed
-    // if (this.bleed && (this.bleed % 3 == 0)) {
-    //   this.hp -= 1;
-    //   this.bleed--;
-    // }
-
     // die if necessary
     if (this.hp <= 0) {
       this.dead = true;
@@ -333,9 +293,6 @@ export default class Creature {
       return;
     }
     this.stunned = Math.max(this.stunned - 1, 0);
-    this.fire = Math.max(this.fire - 1, 0);
-    this.ice = Math.max(this.ice - 1, 0);
-    this.bleed = Math.max(this.bleed - 1, 0);
 
     if (this.weapon) {
       this.weapon.tick();

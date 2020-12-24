@@ -1,4 +1,3 @@
-import { Abilities } from '../abilities/abilities.js';
 import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
 export default class Weapon {
@@ -9,10 +8,9 @@ export default class Weapon {
      * @param {number} spriteNumber
      * @param {number} reach
      * @param {boolean} isPlayer
-     * @param {{type: string, value: number}[]} effects
      * @param {string} drawColor
      */
-  constructor(game, map, spriteNumber, reach = 1, isPlayer = false, effects = [], drawColor = 'maroon', drawSprite = false) {
+  constructor(game, map, spriteNumber, reach = 1, isPlayer = false, drawColor = 'maroon', drawSprite = false) {
     this.game = game;
     this.map = map;
     this.spriteNumber = spriteNumber;
@@ -23,10 +21,8 @@ export default class Weapon {
     this.x = 0;
     this.y = 0;
 
-    // weapon effects
-    this.reach = reach; // attack reach
-    this.effects = effects; // array of { type: str, value: number }
-    this.updateDrawColor();
+    // attack reach
+    this.reach = reach;
 
     // set these after move to prevent any initial animation
     this.offsetX = 0;
@@ -44,57 +40,6 @@ export default class Weapon {
     this.isPlayer = isPlayer;
   }
 
-  addEffect(effect) {
-    if (effect == 'Size') {
-      this.reach++;
-      // remove the Size ability after purchase
-      Abilities.splice(Abilities.findIndex(a => a.name == 'Size'), 1);
-      return;
-    }
-    if (effect == 'Charm') {
-      this.speed = (this.speed || 0) + 1;
-      // remove the Charm ability after purchase
-      Abilities.splice(Abilities.findIndex(a => a.name == 'Charm'), 1);
-      return;
-    }
-    let idx = this.effects.findIndex(e => e.type == effect);
-    if (idx == -1) {
-      idx = this.effects.push({ type: effect, value: 0 }) - 1;
-    }
-    this.effects[idx].value++;
-
-    if (this.effects[idx].value > 2) {
-      // remove the ability
-      Abilities.splice(Abilities.findIndex(a => a.name == effect), 1);
-    }
-
-    this.updateDrawColor();
-  }
-
-  updateDrawColor() {
-    if (!this?.effects?.length) {
-      return;
-    }
-    let most = this.effects.sort((a, b) => { return a.value - b.value; })[0].type;
-    switch (most) {
-    case 'Fire':
-      this.drawColor = 'orange';
-      break;
-    case 'Ice':
-      this.drawColor = 'blue';
-      break;
-    case 'Bleed':
-      this.drawColor = 'red';
-      break;
-    default:
-      this.drawColor = 'yellow';
-    }
-  }
-
-  removeEffect(effect) {
-    delete this.effects[effect];
-  }
-
   setWielder(wielder) {
     if (this.wielder && this.wielder != wielder) {
       this.wielder.unWield();
@@ -108,7 +53,7 @@ export default class Weapon {
   }
 
   attack(creature, dx, dy) {
-    creature.hit(1, this.effects);
+    creature.hit(1);
 
     // animate self or creature - weapon.drawSprite flag
     let sprite = this.drawSprite ? this : this.wielder;
