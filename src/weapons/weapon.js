@@ -10,7 +10,7 @@ export default class Weapon {
      * @param {boolean} isPlayer
      * @param {string} drawColor
      */
-  constructor(game, map, spriteNumber, reach = 1, isPlayer = false, drawColor = 'maroon', drawSprite = false) {
+  constructor(game, map, spriteNumber, reach = 1, dmg = 1, isPlayer = false, drawColor = 'maroon', drawSprite = false) {
     this.game = game;
     this.map = map;
     this.spriteNumber = spriteNumber;
@@ -20,6 +20,9 @@ export default class Weapon {
 
     this.x = 0;
     this.y = 0;
+
+    // damage dealt
+    this.dmg = dmg;
 
     // attack reach
     this.reach = reach;
@@ -53,7 +56,7 @@ export default class Weapon {
   }
 
   attack(creature, dx, dy) {
-    creature.hit(1);
+    creature.hit(this.dmg);
 
     // animate self or creature - weapon.drawSprite flag
     let sprite = this.drawSprite ? this : this.wielder;

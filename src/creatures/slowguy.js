@@ -6,7 +6,13 @@ const addStun = creature => {
   creature.stunned += (creature.game.turnCount - creature.startTurn) % 4 == 0 ? 2 : 0;
 };
 
+const DMG = 2;
+
 class SlowWeapon extends Weapon {
+  constructor(game, map) {
+    super(game, map, 0, 1, DMG, false, null, false);
+  }
+
   attack(creature, dx, dy) {
     super.attack(creature, dx, dy);
     addStun(this.wielder);
@@ -21,7 +27,7 @@ export default class SlowGuy extends Creature {
    * @param {Tile} tile
    */
   constructor(game, map, tile, weapon = new SlowWeapon(game, map)) {
-    super(game, map, tile, Sprite.Creature.slowguy, 3, weapon);
+    super(game, map, tile, Sprite.Creature.slowguy, 12, weapon);
   }
 
   move(tile) {

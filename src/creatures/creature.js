@@ -19,6 +19,7 @@ export default class Creature {
     this.move(tile);
     this.spriteNumber = spriteNumber;
     this.hp = hp;
+    this.maxHp = hp;
 
     this.allowedAttack = true;
 

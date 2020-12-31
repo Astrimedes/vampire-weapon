@@ -5,6 +5,8 @@ import Weapon from './weapon.js';
 const HIT_GAIN = 2;
 const JUMP_COST = 10;
 
+const DMG = 2;
+
 export default class Player extends Weapon {
   /**
      *
@@ -13,7 +15,7 @@ export default class Player extends Weapon {
      * @param {{reach: number}} playerConfig
      */
   constructor(game, map, playerConfig = {}) {
-    super(game, map, Sprite.Weapon.sword, playerConfig?.reach || 1, true, 'whitesmoke', true);
+    super(game, map, Sprite.Weapon.sword, playerConfig?.reach || 1, DMG, true, 'whitesmoke', true);
     this.isPlayer = true;
     this.blood = playerConfig.blood || 0;
     this.speed = playerConfig.speed || 0;

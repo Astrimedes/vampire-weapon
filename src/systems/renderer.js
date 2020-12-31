@@ -130,6 +130,10 @@ export default class Renderer {
     return map.getTile(x, y);
   }
 
+  getPixelForTile(x, y) {
+    return { x: (x * this.tileSize * this.scaleX), y: (y * this.tileSize * this.scaleY)};
+  }
+
   drawCreature(creature, animate = true) {
     // update animations each draw frame
     if (animate && !creature.dead) {
@@ -163,12 +167,14 @@ export default class Renderer {
     }
 
     // draw health
-    const size = (5 / 16);
-    const row = 3;
-    const height = 0.75;
-    for (let i = 0; i < creature.hp-1; i++) {
-      this.drawSprite(Sprite.Icon.hp, creature.getDisplayX() + (i % row) * size, creature.getDisplayY() - Math.floor(i / row) * size - height);
-    }
+    let pos = this.getPixelForTile(creature.getDisplayX(), creature.getDisplayY());
+    let height = this.tileSize * this.scaleY * 0.15;
+    let fullWidth = this.tileSize * this.scaleX;
+    let margin = 0.25;
+    this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
+      fullWidth * (1-margin), height,
+      creature.hp || 0, creature.maxHp || 1);
+
 
     // draw status effects
     let x = creature.getDisplayX() + 0.65;
@@ -177,18 +183,18 @@ export default class Renderer {
       this.drawSprite(Sprite.Icon.stun, x, y);
       x -= 0.25;
     }
-    if (creature.ice > 0) {
-      this.drawSprite(Sprite.Icon.ice, x, y);
-      x -= 0.25;
-    }
-    if (creature.fire > 0) {
-      this.drawSprite(Sprite.Icon.fire, x, y);
-      x -= 0.25;
-    }
-    if (creature.bleed > 0) {
-      this.drawSprite(Sprite.Icon.bleed, x, y);
-      x -= 0.25;
-    }
+  }
+
+  drawMeter(x, y, width, height, amount, max, bgColor = '#AE0D7A', foreColor = '#559E54') {
+    this.ctx.save();
+
+    this.ctx.fillStyle = bgColor;
+    this.ctx.fillRect(x, y, width, height);
+
+    this.ctx.fillStyle = foreColor;
+    this.ctx.fillRect(x, y, width * (amount / max), height);
+
+    this.ctx.restore();
   }
 
   resetCounts() {
