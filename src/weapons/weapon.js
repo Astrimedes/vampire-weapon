@@ -1,4 +1,4 @@
-import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
+import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
 export default class Weapon {
   /**
@@ -60,7 +60,7 @@ export default class Weapon {
 
     // animate self or creature - weapon.drawSprite flag
     let sprite = this.drawSprite ? this : this.wielder;
-    sprite.beginAnimation(sprite.x - (dx / 2), sprite.y - (dy / 2), t => spike(t));
+    sprite.beginAnimation(sprite.x - (dx / 2), sprite.y - (dy / 2));
 
     this.attacking = true;
     this.lastTarget = creature;
@@ -114,11 +114,18 @@ export default class Weapon {
     let animTime = this.game.time - this.animStart;
     let fraction = animTime / this.animDuration;
     this.offsetX =  lerp(this.offsetX, 0, this.animInterp(fraction));
-    this.offsetY =  lerp(this.offsetY, 0, this.animInterp(fraction));
+    this.offsetY = lerp(this.offsetY, 0, this.animInterp(fraction));
+
+    if (this.isPlayer) {
+      console.log('offsetX', this.offsetX);
+      console.log('offsetY', this.offsetY);
+      console.log('animTime', animTime);
+      console.log('animFraction', fraction);
+    }
 
     let min = 0.005;
 
-    if (Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) {
+    if ((Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) || animTime > this.animDuration) {
       this.stopAnimation();
     }
     return true;

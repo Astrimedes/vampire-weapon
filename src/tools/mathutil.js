@@ -22,9 +22,5 @@ const easeOut = (time) => {
   return flip(square(flip(time)));
 };
 
-const spike = (time) => {
-  if (time <= 0.5) return easeIn(time / 0.5);
-  return easeIn(flip(time)/0.5);
-};
 
-export { lerp, easeIn, easeOut, flip, spike };
+export { lerp, easeIn, easeOut, flip };

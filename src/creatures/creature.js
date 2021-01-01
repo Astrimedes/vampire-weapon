@@ -1,6 +1,8 @@
-import { spike, lerp, easeOut, easeIn } from '../tools/mathutil.js';
+import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
 let ID = 0;
+
+
 
 export default class Creature {
   /**
@@ -10,7 +12,10 @@ export default class Creature {
      * @param {Tile} tile
      * @param {number} spriteNumber
      * @param {number} hp
-     * @param {object} options - ex: {ignoreWalls: true}
+     * @param {object} options
+     * @param {boolean} options.ignoreWalls
+     * @param {number} options.strength
+     * @param {number} options.resistance
      */
   constructor(game, map, tile, spriteNumber, hp, weapon, options = {}) {
     this.game = game;
@@ -20,6 +25,10 @@ export default class Creature {
     this.spriteNumber = spriteNumber;
     this.hp = hp;
     this.maxHp = hp;
+
+    // copy stats
+    this.strength = options.strength || 1;
+    this.resistance = options.resistance || 1;
 
     this.allowedAttack = true;
 
@@ -57,6 +66,9 @@ export default class Creature {
 
     this.name = this.constructor.name;
 
+    // set player control level - adjusted in wield by player
+    this.control = 0;
+
     this.wield(weapon);
   }
 
@@ -84,7 +96,7 @@ export default class Creature {
     // bump against wall and return
     if ((!this.ignoreWalls && !newTile.passable) && (!newTile.creature || newTile.creature.isPlayer === this.isPlayer)) {
       // animation to bump against wrong direction...
-      this.beginAnimation(this.x - (dx / 4), this.y - (dy / 4), t => spike(t));
+      this.beginAnimation(this.x - (dx / 4), this.y - (dy / 4));
       return false;
     }
 
@@ -195,7 +207,7 @@ export default class Creature {
 
     let min = 0.005;
 
-    if (Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) {
+    if ((Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) || animTime > this.animDuration) {
       this.stopAnimation();
     }
     return true;
@@ -210,6 +222,9 @@ export default class Creature {
     if (this.isPlayer) {
       this.stunned = 0; // reset stun
       this.allowedAttack = true; // player always allowed attack
+
+      // set player control - scale from 0 to 100
+      this.control = 100;
     }
 
     // remove self from monster list, assign to playerBody
@@ -302,6 +317,11 @@ export default class Creature {
     // give player blood while bleeding
     if (this.bleed && !this.isPlayer) {
       this.game.player.blood += this.bleed;
+    }
+
+    // decrement player control
+    if (this.control) {
+      this.control -= this.resistance;
     }
 
     this.playerHit = Math.max(this.playerHit - 1, 0);

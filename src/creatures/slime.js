@@ -12,6 +12,6 @@ export default class Slime extends Creature {
    * @param {Tile} tile
    */
   constructor(game, map, tile, weapon = new Fist(game, map, DMG)) {
-    super(game, map, tile, Sprite.Creature.slime, 7, weapon);
+    super(game, map, tile, Sprite.Creature.slime, 4, weapon);
   }
 }

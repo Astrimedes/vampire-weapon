@@ -248,6 +248,12 @@ export default class Game {
   }
 
   tick() {
+    // add next monsters between ticks
+    if (this?.nextMonsters?.length) {
+      this.monsters = this.monsters.concat(this.nextMonsters);
+      this.nextMonsters = [];
+    }
+
     this.selectedTile = null;
     this.turnCount++;
 
@@ -467,7 +473,7 @@ export default class Game {
   callAbilityDialog() {
     // determine which abilities to offer
     let available = [];
-    let text = available.length ? 'Choose an ability:' : 'Not enough 💉';
+    let text = available.length ? 'Choose an ability:' : 'Not enough 🩸';
 
     // update hud for blood total
     this.updateHud();
@@ -495,11 +501,6 @@ export default class Game {
   }
 
   systemsUpdate() {
-    // add next monsters between ticks
-    if (this.nextMonsters.length) {
-      this.monsters = this.monsters.concat(this.nextMonsters);
-      this.nextMonsters.length = 0;
-    }
     // update hud
     if (this.gameState == GameState.Play) {
       this.updateHud();
@@ -554,7 +555,7 @@ export default class Game {
     }
 
     this.hud.setStatusField('🗺️', this.level);
-    this.hud.setStatusField('💉', this.player.blood);
+    this.hud.setStatusField('🩸', this.player.blood);
     this.hud.addEmptyStatus('empty1');
     if (clearAll || this.effectsUpdated) {
       // add wait button to hud
