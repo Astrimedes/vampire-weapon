@@ -195,7 +195,7 @@ export default class Game {
     // create player
     this.player = new Player(this, this.map, playerConfig);
     // create player body
-    let BodyCreature = currentPlayer ? currentPlayer.wielder.constructor : Slime;
+    let BodyCreature = currentPlayer ? currentPlayer.wielder.constructor : Chump;
     let body = new BodyCreature(this, this.map, tile, this.player); // will attach to playerBody
     if (currentPlayer) {
       // copy over previous values
