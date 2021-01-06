@@ -51,23 +51,6 @@ class Dialog {
     return document.getElementById(ID_DIALOG);
   }
 
-  setPosition() {
-    // const dialog = this.getDialog();
-
-    // set position
-    // let rect = document.getElementById(ID_CANVAS).getBoundingClientRect();
-    // dialog.style.position = 'relative';
-    // dialog.style.top = rect.top + 'px';
-    // dialog.style.left = '16px';
-    // dialog.style.minWidth = '25vw';
-    // dialog.style.maxWidth = '75vw';
-    // dialog.style.minHeight = '25vh';
-    // dialog.style.maxHeight = '75vh';
-    // dialog.style.padding = '10%vmin';
-
-    // dialog.style.zIndex = Z;
-  }
-
   showShade() {
     let shade = document.getElementById(ID_SHADE);
     if (!shade) {
@@ -118,12 +101,11 @@ class Dialog {
 
     // reveal
     const reveal = () => {
+      this.showShade();
+
       // reset form values
       let form = document?.forms?.[0];
       if (form) form.reset();
-
-      // adjust position
-      this.setPosition(dialog);
 
       // show
       dialog.classList.remove(CLASS_HIDDEN);
@@ -135,8 +117,6 @@ class Dialog {
       dialog.scrollTop = 0;
     };
     this.revealTimeout = setTimeout(reveal, 1000 / 59); // delay a frame?
-
-    this.showShade();
   }
 
   setMessage(message) {

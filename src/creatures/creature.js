@@ -2,8 +2,6 @@ import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
 let ID = 0;
 
-
-
 export default class Creature {
   /**
      *

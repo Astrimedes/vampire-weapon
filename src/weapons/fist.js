@@ -2,7 +2,13 @@ import { Sprite } from '../../assets/sprite-index';
 import Weapon from './weapon';
 
 export default class Fist extends Weapon {
-  constructor(game, map, dmg = 1) {
-    super(game, map, Sprite.Weapon.fist, 1, dmg, false, 'brown');
+  constructor(game, map, dmg = 2, parry = 0) {
+    super(game, map, {
+      spriteNumber: Sprite.Weapon.fist,
+      reach: 1,
+      parry: parry,
+      damage: dmg,
+      drawSprite: false
+    }, false);
   }
 }

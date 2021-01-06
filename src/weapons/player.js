@@ -15,7 +15,14 @@ export default class Player extends Weapon {
      * @param {{reach: number}} playerConfig
      */
   constructor(game, map, playerConfig = {}) {
-    super(game, map, Sprite.Weapon.sword, playerConfig?.reach || 1, DMG, true, 'whitesmoke', true);
+    let wpnOptions = {
+      spriteNumber: playerConfig.spriteNumber !== undefined ? playerConfig.spriteNumber : Sprite.Weapon.sword,
+      damage: playerConfig?.damage || DMG,
+      reach: playerConfig?.reach || 1,
+      parry: playerConfig.parry >= 0 ? playerConfig.parry : 0,
+      drawSprite: true
+    };
+    super(game, map, wpnOptions, true);
     this.isPlayer = true;
     this.blood = playerConfig.blood || 0;
     this.speed = playerConfig.speed || 0;

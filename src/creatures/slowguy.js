@@ -10,7 +10,12 @@ const DMG = 2;
 
 class SlowWeapon extends Weapon {
   constructor(game, map) {
-    super(game, map, 0, 1, DMG, false, null, false);
+    super(game, map, {
+      spriteNumber: 0,
+      parry: 1,
+      reach: 1,
+      damage: 3
+    });
   }
 
   attack(creature, dx, dy) {

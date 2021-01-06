@@ -12,7 +12,7 @@ export default class Spider extends Creature {
    */
   constructor(game, map, tile, weapon = new Fist(game, map), options = {}) {
     let opts = Object.assign({}, { ignoreWalls: true }, options);
-    super(game, map, tile, Sprite.Creature.spider, 4, weapon, opts);
+    super(game, map, tile, Sprite.Creature.spider, 6, weapon, opts);
   }
 
   act() {

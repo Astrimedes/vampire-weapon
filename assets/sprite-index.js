@@ -13,7 +13,9 @@ const Sprite = {
     sword: 0,
     swordDead: 1,
     fist: 12,
-    fistDead: 13
+    fistDead: 13,
+    axe: 24,
+    spear: 25
   },
   Map: {
     floor: 2,

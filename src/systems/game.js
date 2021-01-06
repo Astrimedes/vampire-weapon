@@ -14,6 +14,7 @@ import SlowGuy from '../creatures/slowguy.js';
 import HeadsUpDisplay from './hud.js';
 import { InputStates } from '../input/InputStates.js';
 import { InputReader } from './inputReader.js';
+import weaponTypes from '../config/weaponTypes.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -164,6 +165,12 @@ export default class Game {
     }
   }
 
+  setupPlayerFromConfig(weaponConfig) {
+    console.log(JSON.stringify(weaponConfig));
+    // guarantee starting position neighbors have no monsters and >= 3 passable tiles
+    this.player.setFromTemplate(weaponConfig);
+  }
+
   setupPlayer(currentPlayer) {
     // guarantee starting position neighbors have no monsters and >= 3 passable tiles
     const maxtries = 100;
@@ -182,22 +189,20 @@ export default class Game {
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
 
     let playerConfig = {
-      reach: 1,
-      blood: 5,
-      speed: 0
+      damage: currentPlayer?.dmg || 1,
+      blood: currentPlayer?.blood || 5,
+      speed: currentPlayer?.speed || 0,
+      reach: currentPlayer?.reach || 1,
+      parry: currentPlayer?.parry || 1,
+      spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword
     };
-    if (currentPlayer) {
-      playerConfig.reach = currentPlayer.reach;
-      playerConfig.blood = currentPlayer.blood;
-      playerConfig.speed = currentPlayer.speed;
-    }
 
     // create player
     this.player = new Player(this, this.map, playerConfig);
     // create player body
-    let BodyCreature = currentPlayer ? currentPlayer.wielder.constructor : Chump;
+    let BodyCreature = currentPlayer?.wielder?.constructor || Chump;
     let body = new BodyCreature(this, this.map, tile, this.player); // will attach to playerBody
-    if (currentPlayer) {
+    if (currentPlayer?.wielder?.hp) {
       // copy over previous values
       body.hp = currentPlayer.wielder.hp;
     }
@@ -500,6 +505,25 @@ export default class Game {
     return true;
   }
 
+  callWeaponSelectDialog() {
+
+    // setup dialog
+    let message = ['Choose your weapon type'];
+    let dlgSettings = {
+      type: 'prompt',
+      message,
+      fields: [{ label: 'Sword', value: 'sword' },
+        { label: 'Axe', value: 'axe' },
+        { label: 'Spear', value: 'spear' }],
+      submit: (data) => {
+        this.setupPlayerFromConfig(weaponTypes.find(wt => wt.name == data));
+        this.setGameState(GameState.Play);
+      },
+      player: this.player
+    };
+    this.callDialog(dlgSettings);
+  }
+
   systemsUpdate() {
     // update hud
     if (this.gameState == GameState.Play) {
@@ -535,16 +559,19 @@ export default class Game {
     this.setupMonsters();
     this.setupPlayer(player);
 
-    // update state
-    this.setGameState(GameState.Play);
-
     // set hud
     this.updateHud(true);
     if (firstLevel) {
+      // let player selection of weapon type set game state to PLAY
+      this.callWeaponSelectDialog();
+
       this.hud.clearMessages();
       this.hud.writeMessage('You awaken from your magical slumber thirsty for blood!');
       this.hud.reveal();
     } else {
+
+      // update state
+      this.setGameState(GameState.Play);
       this.hud.writeMessage('You enter the portal, in search of more blood...');
     }
   }
@@ -555,7 +582,7 @@ export default class Game {
     }
 
     this.hud.setStatusField('🗺️', this.level);
-    this.hud.setStatusField('🩸', this.player.blood);
+    this.hud.setStatusField('🩸', this?.player?.blood);
     this.hud.addEmptyStatus('empty1');
     if (clearAll || this.effectsUpdated) {
       // add wait button to hud
@@ -567,7 +594,7 @@ export default class Game {
       this.effectsUpdated = false;
     }
 
-    this.hud.updateControls(this.player.blood);
+    this.hud.updateControls(this?.player?.blood);
   }
 
   initDom() {

@@ -1,31 +1,36 @@
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
+const getValue = (value, defaultValue) => {
+  if (value === undefined || value === null) {
+    return defaultValue ;
+  }
+  return value;
+};
+
 export default class Weapon {
   /**
      * Weapons
      * @param {Game} game
      * @param {Dungeon} map
-     * @param {number} spriteNumber
-     * @param {number} reach
      * @param {boolean} isPlayer
-     * @param {string} drawColor
+     * @param {object} options
+     * @param {number} options.spriteNumber
+     * @param {number} options.damage
+     * @param {number} options.reach
+     * @param {number} options.parry
+     * @param {boolean} options.drawSprite
+     *
      */
-  constructor(game, map, spriteNumber, reach = 1, dmg = 1, isPlayer = false, drawColor = 'maroon', drawSprite = false) {
+  constructor(game, map, options = {}, isPlayer = false) {
     this.game = game;
     this.map = map;
-    this.spriteNumber = spriteNumber;
 
-    this.drawColor = drawColor;
-    this.drawSprite = drawSprite;
+    this.drawColor = 'red';
 
     this.x = 0;
     this.y = 0;
 
-    // damage dealt
-    this.dmg = dmg;
-
-    // attack reach
-    this.reach = reach;
+    this.setFromTemplate(options);
 
     // set these after move to prevent any initial animation
     this.offsetX = 0;
@@ -41,6 +46,22 @@ export default class Weapon {
     this.tick();
 
     this.isPlayer = isPlayer;
+  }
+
+  setFromTemplate(weaponType) {
+    // damage dealt
+    this.dmg = getValue(weaponType.damage, 1);
+
+    // attack reach
+    this.reach = getValue(weaponType.reach, 1);
+
+    // parry
+    this.parry = getValue(weaponType.parry, 0);
+
+    // sprite
+    this.spriteNumber = getValue(weaponType.spriteNumber, 0);
+
+    this.drawSprite = getValue(weaponType.drawSprite, false);
   }
 
   setWielder(wielder) {
