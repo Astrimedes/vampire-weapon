@@ -45,10 +45,12 @@ export default class HeadsUpDisplay {
 
   hide() {
     document.getElementById(this.hudId).classList.add('hidden');
+    document.getElementById(this.messagesId).classList.add('hidden');
   }
 
   reveal() {
     document.getElementById(this.hudId).classList.remove('hidden');
+    document.getElementById(this.messagesId).classList.remove('hidden');
   }
 
   clearAll() {

@@ -6,7 +6,7 @@ const addStun = creature => {
   creature.stunned += (creature.game.turnCount - creature.startTurn) % 4 == 0 ? 2 : 0;
 };
 
-const DMG = 2;
+const DMG = 3;
 
 class SlowWeapon extends Weapon {
   constructor(game, map) {
@@ -14,7 +14,7 @@ class SlowWeapon extends Weapon {
       spriteNumber: 0,
       parry: 1,
       reach: 1,
-      damage: 3
+      damage: DMG
     });
   }
 

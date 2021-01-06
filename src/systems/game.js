@@ -406,7 +406,7 @@ export default class Game {
       this.renderer.clearScreen();
 
       // draw dungeon etc
-      if (this.gameState.hasMap) {
+      if (this.gameState.hasMap && this.loadComplete) {
         this.systemsUpdate();
 
         // draw map
@@ -506,6 +506,8 @@ export default class Game {
   }
 
   callWeaponSelectDialog() {
+    this.loadComplete = false;
+    this.hud.hide();
 
     // setup dialog
     let message = ['Choose your weapon type'];
@@ -517,6 +519,8 @@ export default class Game {
         { label: 'Spear', value: 'spear' }],
       submit: (data) => {
         this.setupPlayerFromConfig(weaponTypes.find(wt => wt.name == data));
+        this.loadComplete = true;
+        this.hud.reveal();
         this.setGameState(GameState.Play);
       },
       player: this.player
@@ -526,7 +530,7 @@ export default class Game {
 
   systemsUpdate() {
     // update hud
-    if (this.gameState == GameState.Play) {
+    if (this.gameState == GameState.Play && this.loadComplete) {
       this.updateHud();
     }
   }
@@ -559,16 +563,15 @@ export default class Game {
     this.setupMonsters();
     this.setupPlayer(player);
 
-    // set hud
-    this.updateHud(true);
     if (firstLevel) {
-      // let player selection of weapon type set game state to PLAY
-      this.callWeaponSelectDialog();
-
       this.hud.clearMessages();
       this.hud.writeMessage('You awaken from your magical slumber thirsty for blood!');
-      this.hud.reveal();
+
+      // let player selection of weapon type set game state to PLAY
+      this.callWeaponSelectDialog();
     } else {
+      // set hud
+      this.updateHud(true);
 
       // update state
       this.setGameState(GameState.Play);
