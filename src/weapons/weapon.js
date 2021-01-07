@@ -32,6 +32,8 @@ export default class Weapon {
 
     this.setFromTemplate(options);
 
+    this.lastParryTurn = 0;
+
     // set these after move to prevent any initial animation
     this.offsetX = 0;
     this.offsetY = 0;
@@ -46,6 +48,11 @@ export default class Weapon {
     this.tick();
 
     this.isPlayer = isPlayer;
+
+    /**
+     * @type {import('../creatures/creature.js').default} wielder
+     */
+    this.wielder = null;
   }
 
   setFromTemplate(weaponType) {
@@ -58,12 +65,19 @@ export default class Weapon {
     // parry
     this.parry = getValue(weaponType.parry, 0);
 
+    // frequency of parry
+    this.parryFrequency = getValue(weaponType.parryFrequency, 3);
+
     // sprite
     this.spriteNumber = getValue(weaponType.spriteNumber, 0);
 
     this.drawSprite = getValue(weaponType.drawSprite, false);
   }
 
+  /**
+   * Set wielder creature
+   * @param {import('../creatures/creature').default} wielder
+   */
   setWielder(wielder) {
     if (this.wielder && this.wielder != wielder) {
       this.wielder.unWield();
@@ -76,8 +90,14 @@ export default class Weapon {
     this.wielder = wielder;
   }
 
+  /**
+   *
+   * @param {import('../creatures/creature.js').default} creature
+   * @param {number} dx
+   * @param {number} dy
+   */
   attack(creature, dx, dy) {
-    creature.hit(this.dmg);
+    let parryAmt = creature.hit(this.dmg);
 
     // animate self or creature - weapon.drawSprite flag
     let sprite = this.drawSprite ? this : this.wielder;
@@ -86,23 +106,34 @@ export default class Weapon {
     this.attacking = true;
     this.lastTarget = creature;
 
-    this.game.hud.writeMessage(this.getAttackMessage(creature));
+    this.writeAttackMessage(creature, this.dmg, parryAmt);
   }
 
-  getAttackMessage(targetCreature) {
-    if (this.isPlayer) {
-      return `You attack the ${targetCreature.name}!`;
+  writeAttackMessage(targetCreature, dmg, parry = 0) {
+
+    let attackerName = this.isPlayer ? 'you' : this.wielder.name;
+    let defenderName = targetCreature.isPlayer ? 'you' : targetCreature.name;
+
+    dmg = dmg - parry;
+    if (parry) {
+      this.game.hud.writeMessage(`${defenderName.charAt(0).toUpperCase() + defenderName.slice(1)} parr${targetCreature.isPlayer ? 'y' : 'ies'}, blocking ${parry} damage!`);
     }
-    if (targetCreature.isPlayer) {
-      return `${this.wielder.name} attacks you!`;
+    if (dmg) {
+      this.game.hud.writeMessage(`${attackerName.charAt(0).toUpperCase() + attackerName.slice(1)} attack${this.isPlayer ? '' : 's'} ${defenderName}, dealing ${dmg} damage!`);
     }
-    return `${this.name} attacks ${targetCreature.name}!`;
   }
 
 
   tick() {
     this.attacking = false;
     this.lastTarget = null;
+
+    if (this.wielder && !this.wielder.canParry) {
+      this.wielder.canParry = (this.game.turnCount - this.lastParryTurn) >= this.parryFrequency;
+      if (this.wielder.canParry && this.parry) {
+        this.game.hud.writeMessage(`${this.isPlayer ? 'You are' : this.wielder.name + 'is'} ready to parry attacks!`);
+      }
+    }
   }
 
   beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 150) {
@@ -136,13 +167,6 @@ export default class Weapon {
     let fraction = animTime / this.animDuration;
     this.offsetX =  lerp(this.offsetX, 0, this.animInterp(fraction));
     this.offsetY = lerp(this.offsetY, 0, this.animInterp(fraction));
-
-    if (this.isPlayer) {
-      console.log('offsetX', this.offsetX);
-      console.log('offsetY', this.offsetY);
-      console.log('animTime', animTime);
-      console.log('animFraction', fraction);
-    }
 
     let min = 0.005;
 

@@ -159,14 +159,15 @@ export default class Game {
         return;
       }
 
-      this.hud.writeMessage('You wait.');
+      this.hud.writeMessage('You defend.');
+
+      this.player.wielder.defend();
 
       this.tick();
     }
   }
 
   setupPlayerFromConfig(weaponConfig) {
-    console.log(JSON.stringify(weaponConfig));
     // guarantee starting position neighbors have no monsters and >= 3 passable tiles
     this.player.setFromTemplate(weaponConfig);
   }
@@ -189,11 +190,12 @@ export default class Game {
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
 
     let playerConfig = {
-      damage: currentPlayer?.dmg || 1,
+      damage: (currentPlayer?.dmg || currentPlayer?.damage) || 1,
       blood: currentPlayer?.blood || 5,
       speed: currentPlayer?.speed || 0,
       reach: currentPlayer?.reach || 1,
       parry: currentPlayer?.parry || 1,
+      parryFrequency: currentPlayer?.parryFrequency || 4,
       spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword
     };
 
@@ -206,7 +208,8 @@ export default class Game {
       // copy over previous values
       body.hp = currentPlayer.wielder.hp;
     }
-
+    this.player.lastParryTurn = 0;
+    body.canParry = true;
   }
 
   setupMonsters () {
@@ -269,7 +272,6 @@ export default class Game {
     }
 
     // reduce status effects, etc.
-    this?.player?.wielder?.tick();
     this.monsters.forEach(m => m.tick());
 
     // monsters act
@@ -285,6 +287,9 @@ export default class Game {
         this.monsters.splice(i, 1);
       }
     }
+
+    // reduce status effects, etc.
+    this?.player?.wielder?.tick();
 
     this.player.tryAct();
     let newBody = false;
@@ -324,6 +329,8 @@ export default class Game {
         this.hud.writeMessage('You adjust to your new wielder...');
       }
     }
+
+    this.updateHud();
   }
 
   spawnExit () {
@@ -489,8 +496,7 @@ export default class Game {
       type: 'abilities',
       message,
       fields: available,
-      submit: (data) => {
-        console.log(data);
+      submit: () => {
         // update ui for new blood total etc
         this.updateHud(true);
         this.setGameState(this.lastGameState);
@@ -510,13 +516,13 @@ export default class Game {
     this.hud.hide();
 
     // setup dialog
-    let message = ['Choose your weapon type'];
+    let message = ['What kind of weapon are you?'];
     let dlgSettings = {
       type: 'prompt',
       message,
-      fields: [{ label: 'Sword', value: 'sword' },
-        { label: 'Axe', value: 'axe' },
-        { label: 'Spear', value: 'spear' }],
+      fields: [{ label: 'Sword [Parry+]', value: 'sword' },
+        { label: 'Axe [Damage+]', value: 'axe' },
+        { label: 'Spear [Reach+]', value: 'spear' }],
       submit: (data) => {
         this.setupPlayerFromConfig(weaponTypes.find(wt => wt.name == data));
         this.loadComplete = true;
@@ -585,7 +591,15 @@ export default class Game {
     }
 
     this.hud.setStatusField('🗺️', this.level);
-    this.hud.setStatusField('🩸', this?.player?.blood);
+    this.hud.setStatusField('Health', this?.player?.wielder?.hp);
+    this.hud.setStatusField('Damage', this.player.dmg);
+    if (this?.player?.wielder?.canParry) {
+      this.hud.setStatusField('Parry', 'On');
+    } else if (this.player) {
+      let count = -Math.min(this.player.parryFrequency, this.player.parryFrequency - (this.turnCount - (this.player.lastParryTurn)));
+      this.hud.setStatusField('Parry', count >= 0 ? 'On' : count);
+    }
+
     this.hud.addEmptyStatus('empty1');
     if (clearAll || this.effectsUpdated) {
       // add wait button to hud

@@ -1,11 +1,8 @@
-import { Sprite } from '../../assets/sprite-index.js';
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 import Weapon from './weapon.js';
 
 const HIT_GAIN = 2;
 const JUMP_COST = 10;
-
-const DMG = 2;
 
 export default class Player extends Weapon {
   /**
@@ -16,10 +13,11 @@ export default class Player extends Weapon {
      */
   constructor(game, map, playerConfig = {}) {
     let wpnOptions = {
-      spriteNumber: playerConfig.spriteNumber !== undefined ? playerConfig.spriteNumber : Sprite.Weapon.sword,
-      damage: playerConfig?.damage || DMG,
-      reach: playerConfig?.reach || 1,
-      parry: playerConfig.parry >= 0 ? playerConfig.parry : 0,
+      spriteNumber: playerConfig.spriteNumber,
+      damage: playerConfig.damage,
+      reach: playerConfig.reach,
+      parry: playerConfig.parry,
+      parryFrequency: playerConfig.parryFrequency,
       drawSprite: true
     };
     super(game, map, wpnOptions, true);

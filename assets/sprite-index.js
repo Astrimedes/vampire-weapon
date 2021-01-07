@@ -24,7 +24,7 @@ const Sprite = {
     shop: 23
   },
   Icon: {
-    hp: 6,
+    parry: 6,
     stun: 7,
     fire: 10,
     bleed: 18,

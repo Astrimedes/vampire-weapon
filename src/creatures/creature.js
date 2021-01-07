@@ -5,7 +5,7 @@ let ID = 0;
 export default class Creature {
   /**
      *
-     * @param {Game} game
+     * @param {import('../systems/game').default} game
      * @param {Dungeon} map
      * @param {Tile} tile
      * @param {number} spriteNumber
@@ -62,6 +62,10 @@ export default class Creature {
 
     this.startTurn = this.game.turnCount;
 
+    // parry normally controlled by weapon or defend action
+    this.defending = false;
+    this.canParry = false;
+
     this.name = this.constructor.name;
 
     // set player control level - adjusted in wield by player
@@ -72,6 +76,10 @@ export default class Creature {
 
   isStunned() {
     return this.stunned > 1 || this.isPlayer && this.stunned;
+  }
+
+  defend() {
+    this.defending = true;
   }
 
   tryMove(dx, dy) {
@@ -135,8 +143,18 @@ export default class Creature {
   }
 
   hit(dmg) {
-    this.hp -= dmg;
+    let parry = 0;
+    if ((this?.weapon?.parry && this.canParry) || this.defending) {
+      let weaponParry = Math.max(Math.floor((this.weapon.parry || 0) / 2), 1);
+      parry = Math.min(dmg, this.defending ? Math.max(weaponParry * 2, 4) : weaponParry);
+      this.weapon.lastParryTurn = this.game.turnCount;
+      this.canParry = false;
+    }
+
+    this.hp -= dmg - parry;
     this.dead = this.hp <= 0;
+
+    return parry;
   }
 
   die(silent = false) {
@@ -323,6 +341,8 @@ export default class Creature {
     }
 
     this.playerHit = Math.max(this.playerHit - 1, 0);
+
+    this.defending = false;
   }
 
   act() {

@@ -183,6 +183,10 @@ export default class Renderer {
       this.drawSprite(Sprite.Icon.stun, x, y);
       x -= 0.25;
     }
+    if (creature.canParry && creature?.weapon?.parry) {
+      this.drawSprite(Sprite.Icon.parry, x, y);
+      x -= 0.25;
+    }
   }
 
   drawMeter(x, y, width, height, amount, max, bgColor = '#AE0D7A', foreColor = '#559E54') {
