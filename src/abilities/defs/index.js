@@ -1,7 +1,8 @@
-import { waitAbility } from './wait.js';
 
-const Abilities = {};
+const allAbilities = [];
 
-Abilities.Wait = waitAbility;
+const getStartingAbilities = () => {
+  return Array.from(allAbilities);
+};
 
-export default Abilities;
+export { allAbilities, getStartingAbilities };

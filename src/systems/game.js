@@ -15,6 +15,7 @@ import HeadsUpDisplay from './hud.js';
 import { InputStates } from '../input/InputStates.js';
 import { InputReader } from './inputReader.js';
 import weaponTypes from '../config/weaponTypes.js';
+import { getStartingAbilities } from '../abilities/defs/index.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -27,6 +28,13 @@ export default class Game {
     this.gameState = null;
     this.inputState = InputStates.None;
     this.turnCount = 0;
+    this.allAbilities = [];
+
+    // avoid re-creating function
+    this.waitFunction = (e) => {
+      e.preventDefault();
+      this.wait();
+    };
   }
 
   setGameState (state) {
@@ -168,8 +176,18 @@ export default class Game {
   }
 
   setupPlayerFromConfig(weaponConfig) {
-    // guarantee starting position neighbors have no monsters and >= 3 passable tiles
+    // unwield now so that maxHp adjustments work as expected
+    let wielder = this?.player?.wielder;
+    if (wielder) {
+      wielder.unWield();
+    }
+
     this.player.setFromTemplate(weaponConfig);
+
+    // re-wield to apply changes
+    if (wielder) {
+      wielder.wield(this.player);
+    }
   }
 
   setupPlayer(currentPlayer) {
@@ -196,7 +214,8 @@ export default class Game {
       reach: currentPlayer?.reach || 1,
       parry: currentPlayer?.parry || 1,
       parryFrequency: currentPlayer?.parryFrequency || 4,
-      spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword
+      spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
+      maxHp: currentPlayer?.maxHp || 0
     };
 
     // create player
@@ -520,7 +539,7 @@ export default class Game {
     let dlgSettings = {
       type: 'prompt',
       message,
-      fields: [{ label: 'Sword [Parry+]', value: 'sword' },
+      fields: [{ label: 'Sword [+]', value: 'sword' },
         { label: 'Axe [Damage+]', value: 'axe' },
         { label: 'Spear [Reach+]', value: 'spear' }],
       submit: (data) => {
@@ -528,6 +547,7 @@ export default class Game {
         this.loadComplete = true;
         this.hud.reveal();
         this.setGameState(GameState.Play);
+        this.updateHud(true);
       },
       player: this.player
     };
@@ -570,6 +590,8 @@ export default class Game {
     this.setupPlayer(player);
 
     if (firstLevel) {
+      this.allAbilities = getStartingAbilities();
+
       this.hud.clearMessages();
       this.hud.writeMessage('You awaken from your magical slumber thirsty for blood!');
 
@@ -590,23 +612,43 @@ export default class Game {
       this.hud.clearAllStatus();
     }
 
-    this.hud.setStatusField('🗺️', this.level);
-    this.hud.setStatusField('Health', this?.player?.wielder?.hp);
-    this.hud.setStatusField('Damage', this.player.dmg);
-    if (this?.player?.wielder?.canParry) {
-      this.hud.setStatusField('Parry', 'On');
-    } else if (this.player) {
-      let count = -Math.min(this.player.parryFrequency, this.player.parryFrequency - (this.turnCount - (this.player.lastParryTurn)));
-      this.hud.setStatusField('Parry', count >= 0 ? 'On' : count);
-    }
+    let infoColor = 'gray';
+    this.hud.setStatusField('Level', this.level, infoColor);
+    this.hud.addEmptyStatus('levelSpace');
 
-    this.hud.addEmptyStatus('empty1');
+    let dangerColor = 'yellow';
+
+    // health
+    let firstColor = 'darkgreen';
+    let hp = this?.player?.wielder?.hp || 0;
+    let maxHp = this?.player?.wielder?.maxHp || 0;
+    let fraction = maxHp > 0 ? hp / maxHp : 0;
+    this.hud.setStatusField('Health', ` ${hp}/${maxHp}`, fraction > 0.5 ? firstColor : dangerColor);
+    this.hud.addEmptyStatus('basicSpace');
+
+    // attack damage
+    this.hud.setStatusField('Attack', (this?.player?.dmg || 0) + (this?.player?.wielder?.strength || 0), firstColor);
+
+    // parry
+    let parryCount = this?.player?.wielder?.canParry ? 0 : -Math.min(this.player.parryFrequency, this.player.parryFrequency - (this.turnCount - (this.player.lastParryTurn)));
+    let parryText = (parryCount >= 0 ? ('['+((this?.player?.parry || 0) + (this?.player?.wielder.agility || 0)))+']' : parryCount).toString();
+    let parryColor = parryCount >= 0 ? firstColor : dangerColor;
+    this.hud.setStatusField('Parry ', parryText, parryColor);
+    this.hud.addEmptyStatus('parrySpace');
+
+    let secondColor = 'darkcyan';
+    this.hud.setStatusField({ id: 'creature', label: '' }, this?.player?.wielder?.name || '', secondColor);
+    let atk = (this?.player?.wielder?.strength || 0);
+    let par = (this?.player?.wielder?.agility || 0);
+    let sign = num => num >= 0 ? '+' : '';
+    this.hud.setStatusField('> Atk', sign(atk) + atk, secondColor);
+    this.hud.setStatusField('> Par', sign(par) + par, secondColor);
+
+    this.hud.addEmptyStatus('creatureSpace');
+    // add wait button to hud
     if (clearAll || this.effectsUpdated) {
       // add wait button to hud
-      this.hud.addControl('wait', 0, (e) => {
-        e.preventDefault();
-        this.wait();
-      }, 'red');
+      this.hud.addControl('Defend', 0, this.waitFunction, '#71b238');
 
       this.effectsUpdated = false;
     }

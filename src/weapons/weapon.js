@@ -18,6 +18,8 @@ export default class Weapon {
      * @param {number} options.damage
      * @param {number} options.reach
      * @param {number} options.parry
+     * @param {number} options.parryFrequency
+     * @param {number} options.maxHp
      * @param {boolean} options.drawSprite
      *
      */
@@ -68,6 +70,9 @@ export default class Weapon {
     // frequency of parry
     this.parryFrequency = getValue(weaponType.parryFrequency, 3);
 
+    // add'l max hp granted to wielder creatures
+    this.maxHp = getValue(weaponType.maxHp, 0);
+
     // sprite
     this.spriteNumber = getValue(weaponType.spriteNumber, 0);
 
@@ -97,7 +102,8 @@ export default class Weapon {
    * @param {number} dy
    */
   attack(creature, dx, dy) {
-    let parryAmt = creature.hit(this.dmg);
+    let dmg = Math.max(1, this.dmg + (this?.wielder?.strength || 0));
+    let parryAmt = creature.hit(dmg);
 
     // animate self or creature - weapon.drawSprite flag
     let sprite = this.drawSprite ? this : this.wielder;
@@ -106,7 +112,7 @@ export default class Weapon {
     this.attacking = true;
     this.lastTarget = creature;
 
-    this.writeAttackMessage(creature, this.dmg, parryAmt);
+    this.writeAttackMessage(creature, dmg, parryAmt);
   }
 
   writeAttackMessage(targetCreature, dmg, parry = 0) {
@@ -114,12 +120,14 @@ export default class Weapon {
     let attackerName = this.isPlayer ? 'you' : this.wielder.name;
     let defenderName = targetCreature.isPlayer ? 'you' : targetCreature.name;
 
+    let toCap = text => text.charAt(0).toUpperCase() + text.slice(1);
+
     dmg = dmg - parry;
-    if (parry) {
-      this.game.hud.writeMessage(`${defenderName.charAt(0).toUpperCase() + defenderName.slice(1)} parr${targetCreature.isPlayer ? 'y' : 'ies'}, blocking ${parry} damage!`);
-    }
     if (dmg) {
-      this.game.hud.writeMessage(`${attackerName.charAt(0).toUpperCase() + attackerName.slice(1)} attack${this.isPlayer ? '' : 's'} ${defenderName}, dealing ${dmg} damage!`);
+      this.game.hud.writeMessage(`${toCap(attackerName)} attack${this.isPlayer ? '' : 's'} ${defenderName}, dealing ${dmg} damage!`);
+    }
+    if (parry) {
+      this.game.hud.writeMessage(`${toCap(defenderName)} parr${targetCreature.isPlayer ? 'y' : 'ies'}, blocking ${!dmg ? 'ALL ' : ''}${parry} damage!`);
     }
   }
 
@@ -128,10 +136,10 @@ export default class Weapon {
     this.attacking = false;
     this.lastTarget = null;
 
-    if (this.wielder && !this.wielder.canParry) {
+    if (this?.wielder?.hp && !this.wielder.canParry) {
       this.wielder.canParry = (this.game.turnCount - this.lastParryTurn) >= this.parryFrequency;
-      if (this.wielder.canParry && this.parry) {
-        this.game.hud.writeMessage(`${this.isPlayer ? 'You are' : this.wielder.name + 'is'} ready to parry attacks!`);
+      if (this.isPlayer && this.wielder.canParry && this.parry) {
+        this.game.hud.writeMessage('You are ready to parry attacks!');
       }
     }
   }

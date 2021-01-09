@@ -8,7 +8,8 @@ const weaponTypes = [
     parry: 4,
     parryFrequency: 2,
     spriteNumber: Sprite.Weapon.sword,
-    drawSprite: true
+    drawSprite: true,
+    maxHp: 1
   },
   {
     name: 'axe',
@@ -17,7 +18,8 @@ const weaponTypes = [
     parry: 2,
     parryFrequency: 3,
     spriteNumber: Sprite.Weapon.axe,
-    drawSprite: true
+    drawSprite: true,
+    maxHp: 1
   },
   {
     name: 'spear',
@@ -26,7 +28,8 @@ const weaponTypes = [
     parry: 1,
     parryFrequency: 4,
     spriteNumber: Sprite.Weapon.spear,
-    drawSprite: true
+    drawSprite: true,
+    maxHp: 1
   }
 ];
 

@@ -13,17 +13,16 @@ export default class Player extends Weapon {
      */
   constructor(game, map, playerConfig = {}) {
     let wpnOptions = {
-      spriteNumber: playerConfig.spriteNumber,
-      damage: playerConfig.damage,
-      reach: playerConfig.reach,
-      parry: playerConfig.parry,
-      parryFrequency: playerConfig.parryFrequency,
-      drawSprite: true
+      drawSprite: true,
+      ...playerConfig
     };
     super(game, map, wpnOptions, true);
     this.isPlayer = true;
     this.blood = playerConfig.blood || 0;
     this.speed = playerConfig.speed || 0;
+
+    // array of names of abilities player has chosen
+    this.abilities = [];
   }
 
   tryAct() {

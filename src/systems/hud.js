@@ -2,19 +2,6 @@ const getFieldName = name => `hud-status-${name?.toString()}`;
 const getControlName = name => `hud-ctrl-${name?.toString()}`;
 const getEmptyName = name => `hud-empty-${name?.toString()}`;
 
-const stringToColour = str => {
-  switch (str) {
-  case 'Fire':
-    return 'orange';
-  case 'Bleed':
-    return 'red';
-  case 'Ice':
-    return 'cornflowerblue';
-  case 'Size':
-    return 'gold';
-  }
-};
-
 const createField = (id, label, value, color) => {
   return `<pre id="${id}" style="color:${color};margin:0px">${label}${(value || 0).toString().padStart(3)}</pre>`;
 };
@@ -84,12 +71,20 @@ export default class HeadsUpDisplay {
     });
   }
 
+  /**
+   *
+   * @param {string|{id: string, label: string}} name
+   * @param {string} value
+   * @param {string} color
+   */
   setStatusField(name, value, color) {
+    // check for label 'id' vs explicit label type
+    let labelText = name.id ? name.label : name;
+    name = name.id || name.toString();
+
     // get parent text color if not specified
     if (!color) {
       color = document.getElementById(this.hudId).style.color;
-    } else {
-      color = stringToColour(name);
     }
     const id = getFieldName(name);
     // exit early if value is same
@@ -101,7 +96,7 @@ export default class HeadsUpDisplay {
       let parent = document.getElementById(this.statusId);
       parent.appendChild(ele);
     }
-    ele.outerHTML = createField(id, name, value, color);
+    ele.outerHTML = createField(id, labelText, value, color);
 
     // set value for reference
     this.fields[id] = value;

@@ -10,23 +10,25 @@ export default class Creature {
      * @param {Tile} tile
      * @param {number} spriteNumber
      * @param {number} hp
+     * @param {import('../weapons/weapon').default} weapon
      * @param {object} options
      * @param {boolean} options.ignoreWalls
      * @param {number} options.strength
+     * @param {number} options.agility
      * @param {number} options.resistance
      */
   constructor(game, map, tile, spriteNumber, hp, weapon, options = {}) {
     this.game = game;
     this.map = map;
-    this.weapon = weapon;
     this.move(tile);
     this.spriteNumber = spriteNumber;
     this.hp = hp;
     this.maxHp = hp;
 
     // copy stats
-    this.strength = options.strength || 1;
-    this.resistance = options.resistance || 1;
+    this.strength = options.strength || 0;
+    this.agility = options.agility || 0;
+    this.resistance = options.resistance || 0;
 
     this.allowedAttack = true;
 
@@ -86,13 +88,13 @@ export default class Creature {
     // first check movement - 1 square
     let newTile = this.map.getNeighbor(this.tile, dx, dy);
     let moveTile = (this.ignoreWalls || newTile.passable) && this.map.inBounds(newTile.x, newTile.y) && !newTile.creature ? newTile : null;
-    if (moveTile && this.weapon.reach == 1) {
+    if (moveTile && this?.weapon?.reach == 1) {
       this.move(moveTile);
       return true;
     }
 
     // attack adjacent
-    if (newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
+    if (this.weapon && newTile.creature && newTile.creature.isPlayer !== this.isPlayer) {
       this.weapon.attack(newTile.creature, dx, dy);
       this.lastMoveX = dx;
       this.lastMoveY = dy;
@@ -106,7 +108,7 @@ export default class Creature {
       return false;
     }
 
-    if (this.weapon.reach < 2) {
+    if (this?.weapon?.reach < 2) {
       return false;
     }
     let proceed = newTile.passable;
@@ -129,7 +131,7 @@ export default class Creature {
       }
     }
 
-    if (newTile.creature && (newTile.creature.isPlayer !== this.isPlayer)) {
+    if (this.weapon && newTile.creature && (newTile.creature.isPlayer !== this.isPlayer)) {
       this.weapon.attack(newTile.creature, newTile.x - this.x, newTile.y - this.y);
       return true;
     }
@@ -229,32 +231,45 @@ export default class Creature {
     return true;
   }
 
+  /**
+   *
+   * @param {import('../weapons/weapon').default} weapon
+   */
   wield(weapon) {
+    if (this.weapon) {
+      this.unWield(weapon);
+    }
     this.weapon = weapon;
 
     weapon.setWielder(this);
+
+    this.maxHp += weapon.maxHp;
+    this.hp += weapon.maxHp;
 
     this.isPlayer = !!weapon.isPlayer;
     if (this.isPlayer) {
       this.stunned = 0; // reset stun
       this.allowedAttack = true; // player always allowed attack
 
-      // set player control - scale from 0 to 100
+      // set player control - scale from 0 to 100686
       this.control = 100;
-    }
 
-    // remove self from monster list, assign to playerBody
-    let idx = this.game.monsters.findIndex(m => m == this);
-    if (idx !== -1) {
-      this.game.monsters.splice(idx, 1);
+      // remove self from monster list, assign to playerBody
+      let idx = this.game.monsters.findIndex(m => m == this);
+      if (idx !== -1) {
+        this.game.monsters.splice(idx, 1);
+      }
     }
 
     return true;
   }
 
   unWield() {
-    this.weapon = null;
     this.isPlayer = false;
+    if (!this.weapon) return;
+    this.maxHp = Math.max(1, this.maxHp - (this.weapon.maxHp || 0));
+    this.hp = Math.max(1, this.hp - (this.weapon.maxHp || 0));
+    this.weapon = null;
   }
 
   move(tile) {
@@ -289,7 +304,9 @@ export default class Creature {
     this.x = tile.x;
     this.y = tile.y;
 
-    this.weapon.tile = tile;
+    if (this.weapon) {
+      this.weapon.tile = tile;
+    }
   }
 
   getDisplayX() {
@@ -369,7 +386,8 @@ export default class Creature {
   }
 
   createPlayerBody(player) {
-    let playerBody = new this.constructor(this.game, this.map, this.tile, player);
+    let playerBody = new this.constructor(this.game, this.map, this.tile);
+    playerBody.wield(player);
     // set facing to match original body
     playerBody.lastMoveX = this.lastMoveX;
     playerBody.lastMoveY = this.lastMoveY;
