@@ -15,7 +15,7 @@ const square = x => x * x;
 const flip = x => 1 - x;
 
 const easeIn = (time) => {
-  return time * time;
+  return square(time);
 };
 
 const easeOut = (time) => {

@@ -620,8 +620,9 @@ export default class Game {
 
     // health
     let firstColor = 'darkgreen';
-    let hp = this?.player?.wielder?.hp || 0;
-    let maxHp = this?.player?.wielder?.maxHp || 0;
+    let wielder = this?.player?.wielder;
+    let hp = this.gameState == GameState.GameOver ? 0 : wielder?.hp || 0;
+    let maxHp = hp ? wielder?.maxHp || 0 : 0;
     let fraction = maxHp > 0 ? hp / maxHp : 0;
     this.hud.setStatusField('Health', ` ${hp}/${maxHp}`, fraction > 0.5 ? firstColor : dangerColor);
     this.hud.addEmptyStatus('basicSpace');

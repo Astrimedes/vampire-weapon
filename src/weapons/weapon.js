@@ -104,6 +104,10 @@ export default class Weapon {
   attack(creature, dx, dy) {
     let dmg = Math.max(1, this.dmg + (this?.wielder?.strength || 0));
     let parryAmt = creature.hit(dmg);
+    if (parryAmt) {
+      // parry animation
+      creature.beginAnimation(creature.x - (dx * 0.334), creature.y - (dy * 0.334), t => easeOut(t), 250);
+    }
 
     // animate self or creature - weapon.drawSprite flag
     let sprite = this.drawSprite ? this : this.wielder;
@@ -144,7 +148,7 @@ export default class Weapon {
     }
   }
 
-  beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 150) {
+  beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 200) {
     this.animating = true;
     this.offsetX = this.x - xTarget;
     this.offsetY = this.y - yTarget;

@@ -148,7 +148,7 @@ export default class Creature {
     let parry = 0;
     if ((this?.weapon?.parry && this.canParry) || this.defending) {
       let weaponParry = Math.max(Math.floor((this.weapon.parry || 0) / 2), 1);
-      parry = Math.min(dmg, this.defending ? Math.max(weaponParry * 2, 4) : weaponParry);
+      parry = Math.min(dmg, this.defending ? weaponParry + Math.max(2, weaponParry / 2) : weaponParry);
       this.weapon.lastParryTurn = this.game.turnCount;
       this.canParry = false;
     }
@@ -181,7 +181,7 @@ export default class Creature {
     }
   }
 
-  beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 150) {
+  beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 200) {
     this.animating = true;
     this.offsetX = this.x - xTarget;
     this.offsetY = this.y - yTarget;
