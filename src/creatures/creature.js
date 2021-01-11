@@ -144,7 +144,7 @@ export default class Creature {
     return false;
   }
 
-  hit(dmg) {
+  hit(dmg, attacker) {
     let parry = 0;
     if ((this?.weapon?.parry && this.canParry) || this.defending) {
       let weaponParry = Math.max(Math.floor((this.weapon.parry || 0) / 2), 1);
@@ -155,6 +155,8 @@ export default class Creature {
 
     this.hp -= dmg - parry;
     this.dead = this.hp <= 0;
+
+    this.playerKilled = attacker?.isPlayer || false;
 
     return parry;
   }
@@ -296,8 +298,6 @@ export default class Creature {
       this.beginAnimation(tile.x, tile.y);
     }
 
-    tile.stepOn(this);
-
     this.tile = tile;
     tile.creature = this;
     // set x & y from tile
@@ -326,14 +326,20 @@ export default class Creature {
       return false;
     }
 
+    let acted = false;
+
     // trigger act
     if (this.stunned <= 0) {
       this.act();
-      return true;
+      acted = true;
+    }
+
+    if (this.tile) {
+      this.tile.stepOn(this);
     }
 
     // otherwise finish without acting
-    return false;
+    return acted;
   }
 
   tick() {
@@ -347,11 +353,6 @@ export default class Creature {
       this.weapon.tick();
     }
 
-    // give player blood while bleeding
-    if (this.bleed && !this.isPlayer) {
-      this.game.player.blood += this.bleed;
-    }
-
     // decrement player control
     if (this.control) {
       this.control -= this.resistance;
@@ -363,25 +364,22 @@ export default class Creature {
   }
 
   act() {
-    if (this.stunned) return true;
-
-    // player controls behavior
-    if (this.isPlayer) return false;
-
     // seek player by default
-    let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => t?.creature?.isPlayer || t.passable || this.ignoreWalls);
-    if (seekTiles.length) {
-      let seekSign = this.allowedAttack ? 1 : -1;
-      seekTiles.sort((a,b) => {
-        return seekSign * (this.map.dist(a, this.game.player.tile) - this.map.dist(b, this.game.player.tile));
-      });
-      let moved = false;
-      let idx = 0;
-      while (!moved && idx < seekTiles.length) {
-        moved = this.tryMove(seekTiles[idx].x - this.tile.x, seekTiles[idx].y - this.tile.y);
-        idx++;
+    if (!this.stunned && !this.isPlayer) {
+      let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => t?.creature?.isPlayer || t.passable || this.ignoreWalls);
+      if (seekTiles.length) {
+        let seekSign = this.allowedAttack ? 1 : -1;
+        seekTiles.sort((a,b) => {
+          return seekSign * (this.map.dist(a, this.game.player.tile) - this.map.dist(b, this.game.player.tile));
+        });
+        let moved = false;
+        let idx = 0;
+        while (!moved && idx < seekTiles.length) {
+          moved = this.tryMove(seekTiles[idx].x - this.tile.x, seekTiles[idx].y - this.tile.y);
+          idx++;
+        }
+        return moved;
       }
-      return moved;
     }
   }
 

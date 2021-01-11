@@ -200,7 +200,7 @@ export default class Game {
       tile = this.map.randomPassableTile();
 
       let neighbors = this.map.getAdjacentNeighbors(tile);
-      let opencount = neighbors.filter(t => t.passable && !t.creature).length;
+      let opencount = neighbors.filter(t => t.passable && !t.creature && !t.trapped).length;
       let monsterCount = neighbors.filter(t => t.creature).length;
       success = opencount >= 3 && monsterCount < 1;
       tries++;
@@ -313,8 +313,9 @@ export default class Game {
     this.player.tryAct();
     let newBody = false;
     // take first monster and make new player body?
-    if (dead.length) {
-      this.charmMonster(dead[0]);
+    let charmedDead = dead.find(c => c.playerKilled);
+    if (charmedDead) {
+      this.charmMonster(charmedDead);
 
       // apply 1 turn stun
       if (!this.player.speed) {
@@ -382,7 +383,6 @@ export default class Game {
     // create new playerBody
     let newBody = monster.createPlayerBody(this.player);
     // carefully swap tile references...
-    tile.stepOn(newBody);
     tile.creature = newBody;
     newBody.tile = tile;
 
@@ -397,6 +397,8 @@ export default class Game {
     if (idx > -1) {
       this.dead.splice(idx, 1);
     }
+
+    tile.stepOn(newBody);
 
     this.hud.writeMessage(`The charmed ${monster.name} wields you!`);
   }
@@ -436,7 +438,7 @@ export default class Game {
         this.systemsUpdate();
 
         // draw map
-        this.renderer.drawMap(this.map);
+        this.renderer.drawMap(this.map, this);
 
         // draw corpses
         this.corpses.forEach(corpse => {

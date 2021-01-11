@@ -25,10 +25,6 @@ export default class Player extends Weapon {
     this.abilities = [];
   }
 
-  tryAct() {
-    // do nothing
-  }
-
   tryMove(dx, dy) {
     if (this?.wielder?.stunned) return true;
     return this.wielder.tryMove(dx, dy);

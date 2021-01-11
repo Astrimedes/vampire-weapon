@@ -46,6 +46,7 @@ export default class Dungeon {
     const tiles = this.tiles = [];
 
     const wallChance = 0.33;
+    const trapChance = 0.025;
     let passable = 0;
 
     for (let i = 0; i < numTiles; i++) {
@@ -54,7 +55,9 @@ export default class Dungeon {
         if (Math.random() < wallChance || this.boundaryWall(i,j)) {
           tiles[i][j] = new Wall(i, j);
         } else {
-          tiles[i][j] = new Floor(i, j);
+          let trapped = Math.random() < trapChance;
+          let options = { trapped: trapped, trapType: trapped ? 'spike' : '' };
+          tiles[i][j] = new Floor(i, j, options);
           passable++;
         }
       }

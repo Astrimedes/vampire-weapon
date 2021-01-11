@@ -1,10 +1,7 @@
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
 const getValue = (value, defaultValue) => {
-  if (value === undefined || value === null) {
-    return defaultValue ;
-  }
-  return value;
+  return value === undefined || value === null ? defaultValue : value;
 };
 
 export default class Weapon {
@@ -103,10 +100,11 @@ export default class Weapon {
    */
   attack(creature, dx, dy) {
     let dmg = Math.max(1, this.dmg + (this?.wielder?.strength || 0));
-    let parryAmt = creature.hit(dmg);
+    let parryAmt = creature.hit(dmg, this);
     if (parryAmt) {
       // parry animation
-      creature.beginAnimation(creature.x - (dx * 0.334), creature.y - (dy * 0.334), t => easeOut(t), 250);
+      let animTarget = creature?.weapon?.drawSprite ? creature.weapon : creature;
+      animTarget.beginAnimation(animTarget.x - (dx/2), animTarget.y - (dy/2), t => easeOut(easeIn(t)), 225);
     }
 
     // animate self or creature - weapon.drawSprite flag
@@ -117,6 +115,11 @@ export default class Weapon {
     this.lastTarget = creature;
 
     this.writeAttackMessage(creature, dmg, parryAmt);
+
+    // trigger any traps that are being stood upon
+    if (this?.wielder?.tile?.trapped) {
+      this.wielder.tile.stepOn(this.wielder);
+    }
   }
 
   writeAttackMessage(targetCreature, dmg, parry = 0) {
@@ -133,6 +136,11 @@ export default class Weapon {
     if (parry) {
       this.game.hud.writeMessage(`${toCap(defenderName)} parr${targetCreature.isPlayer ? 'y' : 'ies'}, blocking ${!dmg ? 'ALL ' : ''}${parry} damage!`);
     }
+  }
+
+  tryAct() {
+    if (!this.wielder) return false;
+    return this.wielder.tryAct();
   }
 
 

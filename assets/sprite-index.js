@@ -21,7 +21,9 @@ const Sprite = {
     floor: 2,
     wall: 3,
     exit: 11,
-    shop: 23
+    shop: 23,
+    trapArmed: 27,
+    trapUnarmed: 26
   },
   Icon: {
     parry: 6,

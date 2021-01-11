@@ -1,4 +1,5 @@
 import { Sprite } from '../../assets/sprite-index';
+import { calcTrapTurns, getTrapByName } from '../config/traps';
 
 export default class Renderer {
   constructor (assets, tileSize, numTiles) {
@@ -92,9 +93,6 @@ export default class Renderer {
       let measured = this.ctx.measureText(text);
       x = x === null ? (this.canvas.width - measured.width)/2 : x;
       y = y === null ? (this.canvas.height - (size/4))/2 : y;
-    } else {
-      x *= this.scaleX;
-      y *= this.scaleY;
     }
     this.ctx.fillText(text, x, y);
 
@@ -205,14 +203,35 @@ export default class Renderer {
     this.animationsRunning = false;
   }
 
-  drawTile(tile) {
+  /**
+   *
+   * @param {import('../map/tile').Tile} tile
+   */
+  drawTile(tile, game) {
+    // draw base tile
     this.drawSprite(tile.spriteNumber, tile.x, tile.y);
+    // draw any traps
+    if (!tile.trapped) return;
+    let trap = getTrapByName(tile.trapType);
+    if (!trap || !trap.visible) return;
+    let turnUntilActive = calcTrapTurns(trap, tile, game);
+    let active = turnUntilActive == 0;
+    let trapSprite = active ? trap.spriteArmed : trap.spriteUnarmed;
+    // draw
+    this.drawSprite(trapSprite, tile.x, tile.y);
+
+    // draw count
+    if (!active && turnUntilActive < Infinity) {
+      let pos = this.getPixelForTile(tile.x + 0.2, tile.y + 0.6);
+      let text = turnUntilActive == 1 ? ' ! ' : `(${turnUntilActive})`;
+      this.drawText(text, 'red', 5, pos.x, pos.y);
+    }
   }
 
-  drawMap(dungeon) {
+  drawMap(dungeon, game) {
     for(let i=0;i<dungeon.numTiles;i++){
       for(let j=0; j<dungeon.numTiles; j++){
-        this.drawTile(dungeon.getTile(i,j));
+        this.drawTile(dungeon.getTile(i,j), game);
       }
     }
   }
