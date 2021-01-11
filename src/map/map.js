@@ -79,7 +79,7 @@ export default class Dungeon {
       y = Rng.inRange(0, maxTile);
 
       tile = this.getTile(x, y);
-      found = tile.passable && !tile.creature && tile.type === 'floor';
+      found = tile.passable && !tile.trapped && !tile.creature && tile.type === 'floor';
       maxTries++;
     }
 

@@ -135,8 +135,7 @@ export default class Game {
     this.exitReached = false;
     this.level = level;
     this.map = new Dungeon();
-    let shop = this.level % 2 == 0;
-    this.map.generateLevel(this.currentLevel.size, shop);
+    this.map.generateLevel(this.currentLevel.size);
     this.renderer.setSizes(TILE_SIZE, this.currentLevel.size);
     this.renderer.resize();
   }
