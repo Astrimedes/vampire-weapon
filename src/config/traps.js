@@ -29,8 +29,7 @@ function getTrapByName(name) {
 
 function isTrapActive(trap, tile, game) {
   if (!(game?.monsters?.length > 0)) return false;
-  let interval = trap.interval + (tile.trapTurnOffset || 0);
-  return calcTurnsUntilActive(game.turnCount, interval) == 0;
+  return calcTurnsUntilActive(game.turnCount + (tile.trapTurnOffset || 0), trap.interval) == 0;
 }
 
 function calcTrapTurns(trap, tile, game) {

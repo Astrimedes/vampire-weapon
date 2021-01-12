@@ -115,11 +115,6 @@ export default class Weapon {
     this.lastTarget = creature;
 
     this.writeAttackMessage(creature, dmg, parryAmt);
-
-    // trigger any traps that are being stood upon
-    if (this?.wielder?.tile?.trapped) {
-      this.wielder.tile.stepOn(this.wielder);
-    }
   }
 
   writeAttackMessage(targetCreature, dmg, parry = 0) {
