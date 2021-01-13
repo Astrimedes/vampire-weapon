@@ -140,11 +140,17 @@ export default class Game {
     this.renderer.resize();
   }
 
-  isInputAllowed () {
-    // restart on button press after death
-    if (!this.inputState || this.inputState == InputStates.None || this?.renderer?.animationsRunning) return false;
+  isInputAllowed() {
+    const MAX_BLOCKING_TIME = 500;
+    // check for override of input blocking
+    if (this?.renderer?.animationsRunning && (this.time - this.lastInputAllowedTime) > MAX_BLOCKING_TIME) {
+      this.renderer.resetCounts();
+    }
 
-    return true;
+    let blocked = !this.inputState || this.inputState == InputStates.None || this?.renderer?.animationsRunning;
+    if (!blocked) this.lastInputAllowedTime = this.time;
+
+    return !blocked;
   }
 
   setupInput() {
@@ -156,6 +162,7 @@ export default class Game {
         usePointer: true
       });
     }
+    this.lastInputAllowedTime = 0;
     this.input.setupInput();
   }
 
@@ -540,7 +547,7 @@ export default class Game {
     let dlgSettings = {
       type: 'prompt',
       message,
-      fields: [{ label: 'Sword [+]', value: 'sword' },
+      fields: [{ label: 'Sword [Parry+]', value: 'sword' },
         { label: 'Axe [Damage+]', value: 'axe' },
         { label: 'Spear [Reach+]', value: 'spear' }],
       submit: (data) => {
