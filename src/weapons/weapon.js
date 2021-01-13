@@ -104,7 +104,7 @@ export default class Weapon {
     if (parryAmt) {
       // parry animation
       let animTarget = creature?.weapon?.drawSprite ? creature.weapon : creature;
-      animTarget.beginAnimation(animTarget.x - (dx/2), animTarget.y - (dy/2), t => easeOut(easeIn(t)), 225);
+      animTarget.beginAnimation(animTarget.x - (dx/2), animTarget.y - (dy/2), t => easeOut(easeIn(t)));
     }
 
     // animate self or creature - weapon.drawSprite flag
@@ -151,7 +151,7 @@ export default class Weapon {
     }
   }
 
-  beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 200) {
+  beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 170) {
     this.animating = true;
     this.offsetX = this.x - xTarget;
     this.offsetY = this.y - yTarget;
@@ -179,13 +179,13 @@ export default class Weapon {
 
     // elapsed animation time
     let animTime = this.game.time - this.animStart;
-    let fraction = animTime / this.animDuration;
+    let fraction = Math.min(1,Math.max(0, animTime / this.animDuration));
     this.offsetX =  lerp(this.offsetX, 0, this.animInterp(fraction));
     this.offsetY = lerp(this.offsetY, 0, this.animInterp(fraction));
 
     let min = 0.005;
 
-    if ((Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) || animTime > this.animDuration) {
+    if ((Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) || fraction == 1) {
       this.stopAnimation();
     }
     return true;

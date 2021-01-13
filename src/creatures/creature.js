@@ -183,7 +183,7 @@ export default class Creature {
     }
   }
 
-  beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 200) {
+  beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 170) {
     this.animating = true;
     this.offsetX = this.x - xTarget;
     this.offsetY = this.y - yTarget;
@@ -218,7 +218,7 @@ export default class Creature {
 
     // elapsed animation time
     let animTime = this.game.time - this.animStart;
-    let fraction = Math.max(0, Math.min(animTime / this.animDuration, 1));
+    let fraction = Math.min(1,Math.max(0, animTime / this.animDuration));
     this.offsetX =  lerp(this.offsetX, 0, this.animInterp(fraction));
     this.offsetY = lerp(this.offsetY, 0, this.animInterp(fraction));
 
@@ -227,7 +227,7 @@ export default class Creature {
 
     let min = 0.005;
 
-    if ((Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) || animTime > this.animDuration) {
+    if ((Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) || fraction == 1) {
       this.stopAnimation();
     }
     return true;

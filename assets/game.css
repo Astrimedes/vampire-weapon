@@ -89,6 +89,7 @@ html{
    background-color: #35212e;
    min-width: 50%;
    min-height: 25%;
+   color: lightgray;
 }
 
 .hidden{
