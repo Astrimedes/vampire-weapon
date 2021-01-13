@@ -220,11 +220,11 @@ export default class Renderer {
     // draw
     this.drawSprite(trapSprite, tile.x, tile.y);
 
-    // draw count
+    // draw trap count
     if (!active && turnUntilActive < Infinity) {
-      let pos = this.getPixelForTile(tile.x + 0.2, tile.y + 0.6);
+      let pos = this.getPixelForTile(tile.x, tile.y + 0.6);
       let text = turnUntilActive == 1 ? ' ! ' : `(${turnUntilActive})`;
-      this.drawText(text, 'red', 5, pos.x, pos.y);
+      this.drawText(text, 'red', 8, pos.x, pos.y);
     }
   }
 
