@@ -14,8 +14,9 @@ class Trap {
     creature.canParry = false;
     creature.lastParryTurn = creature.game.turnCount;
     creature.hit(this.damage, this);
-    let name = creature.isPlayer ? 'You ' : creature.name;
-    creature.game.hud.writeMessage(name + ' step on a trap and take ' + this.damage + ' damage!');
+    let name = creature.isPlayer ? 'You' : 'The ' + creature.name;
+    let verbAdd = creature?.isPlayer ? '' : 's';
+    creature.game.hud.writeMessage(`${name} trigger${verbAdd} a ${this.name} trap, taking ${this.damage} damage!`);
   }
 }
 
