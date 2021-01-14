@@ -1,14 +1,4 @@
-const lerp = (start, end, fraction, maxMove = 0, minDiff = 0.0001) => {
-  let diff = end - start;
-  if (maxMove > 0) {
-    diff = Math.min(diff, maxMove);
-    diff = Math.max(diff, -maxMove);
-  }
-  if (Math.abs(diff) < minDiff) {
-    return end;
-  }
-  return start + (diff * Math.min(1, Math.max(0, fraction)));
-};
+const lerp = (v0, v1, t) => v0 * (1 - t) + v1 * t;
 
 const square = x => x * x;
 
