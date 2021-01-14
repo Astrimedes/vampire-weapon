@@ -110,13 +110,13 @@ class Dialog {
       // show
       dialog.classList.remove(CLASS_HIDDEN);
       // highlight first option if present, or ok button
-      let selected = document?.getElementById(ID_FIELDS)?.querySelector('input') || document.getElementById(ID_SUBMIT);
+      let selected = document.getElementById(ID_SUBMIT);
       selected.focus();
 
       // scroll to top
       dialog.scrollTop = 0;
     };
-    this.revealTimeout = setTimeout(reveal, 1000 / 59); // delay a frame?
+    this.revealTimeout = setTimeout(reveal, 20); // slight delay
   }
 
   setMessage(message) {

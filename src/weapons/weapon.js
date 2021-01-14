@@ -145,9 +145,7 @@ export default class Weapon {
 
     if (this?.wielder?.hp && !this.wielder.canParry) {
       this.wielder.canParry = (this.game.turnCount - this.lastParryTurn) >= this.parryFrequency;
-      if (this.isPlayer && this.wielder.canParry && this.parry) {
-        this.game.hud.writeMessage('You are ready to parry attacks!');
-      }
+      this.isPlayer && this.wielder.canParry && this.parry && this.game.hud.writeMessage('You are ready to parry attacks!');
     }
   }
 

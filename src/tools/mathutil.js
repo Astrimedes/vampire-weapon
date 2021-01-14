@@ -7,7 +7,7 @@ const lerp = (start, end, fraction, maxMove = 0, minDiff = 0.0001) => {
   if (Math.abs(diff) < minDiff) {
     return end;
   }
-  return start + diff * fraction;
+  return start + (diff * Math.min(1, Math.max(0, fraction)));
 };
 
 const square = x => x * x;

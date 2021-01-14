@@ -551,6 +551,7 @@ export default class Game {
         { label: 'Axe [Damage+]', value: 'axe' },
         { label: 'Spear [Reach+]', value: 'spear' }],
       submit: (data) => {
+        if (!data) return;
         this.setupPlayerFromConfig(weaponTypes.find(wt => wt.name == data));
         this.loadComplete = true;
         this.hud.reveal();
