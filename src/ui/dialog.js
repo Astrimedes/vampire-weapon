@@ -138,12 +138,12 @@ class Dialog {
 
     // create radio items
     let content = available.map((a, i) => {
-      let disabled = a.getUpgradeCost(player) > player.blood ? 'disabled' : '';
+      let disabled = a.cost > player.blood ? 'disabled' : '';
       let style = disabled ? 'color: darkgray;' : '';
       return `
       <label style="${style}" for="field-${i}">
         <input type="radio" id="field-${i}" name="${DATA_FIELD}" value="${a.name}" required ${disabled} class="${disabled ? CLASS_HIDDEN : ''}">
-        <label class="dlg-label" for="field-${i}">${a.name}: ${a.description} [-${a.getUpgradeCost(player)} 💉]</label>
+        <label class="dlg-label" for="field-${i}">${a.name}: ${a.description} [-${a.cost} 💉]</label>
         <br></br>
       </label>
       `;

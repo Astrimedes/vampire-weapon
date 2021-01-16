@@ -70,6 +70,9 @@ export default class Creature {
 
     this.name = this.constructor.name;
 
+    // 'special moves' from abilities etc
+    this.specials = [];
+
     // set player control level - adjusted in wield by player
     this.control = 0;
 

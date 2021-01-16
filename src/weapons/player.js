@@ -1,9 +1,6 @@
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 import Weapon from './weapon.js';
 
-const HIT_GAIN = 2;
-const JUMP_COST = 10;
-
 export default class Player extends Weapon {
   /**
      *
@@ -32,13 +29,10 @@ export default class Player extends Weapon {
 
   attack(creature, dx, dy) {
     super.attack(creature, dx, dy);
-    this.blood += HIT_GAIN;
     creature.playerHit = 2;
   }
 
   jump(creature) {
-    if (this.blood < JUMP_COST) return;
-    this.blood -= JUMP_COST;
     if (creature.wield(this)) {
       this.setWielder(creature);
     }

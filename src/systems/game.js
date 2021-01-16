@@ -15,7 +15,7 @@ import HeadsUpDisplay from './hud.js';
 import { InputStates } from '../input/InputStates.js';
 import { InputReader } from './inputReader.js';
 import weaponTypes from '../config/weaponTypes.js';
-import { getStartingAbilities } from '../abilities/defs/index.js';
+import { getStartingAbilities } from '../creatures/abilities/defs/index.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -135,7 +135,7 @@ export default class Game {
     this.exitReached = false;
     this.level = level;
     this.map = new Dungeon();
-    this.map.generateLevel(this.currentLevel.size);
+    this.map.generateLevel(this.currentLevel.size, true);
     this.renderer.setSizes(TILE_SIZE, this.currentLevel.size);
     this.renderer.resize();
   }
@@ -511,7 +511,7 @@ export default class Game {
 
   callAbilityDialog() {
     // determine which abilities to offer
-    let available = [];
+    let available = getStartingAbilities();
     let text = available.length ? 'Choose an ability:' : 'Not enough 🩸';
 
     // update hud for blood total
@@ -523,10 +523,16 @@ export default class Game {
       type: 'abilities',
       message,
       fields: available,
-      submit: () => {
-        // update ui for new blood total etc
-        this.updateHud(true);
-        this.setGameState(this.lastGameState);
+      submit: (data) => {
+        let abililty = available.find(a => a.name == data);
+        if (abililty) {
+          abililty.applyAbility(this, this.player);
+
+          // update ui for new blood total etc
+          this.updateHud(true);
+          this.setGameState(this.lastGameState);
+        }
+
       },
       cancel: () => {
         this.setGameState(this.lastGameState);
