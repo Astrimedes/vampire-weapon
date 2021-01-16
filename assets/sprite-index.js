@@ -32,7 +32,7 @@ const Sprite = {
     bleed: 18,
     ice: 19
   },
-  Feature: {
+  Item: {
     blood: 20
   }
 };

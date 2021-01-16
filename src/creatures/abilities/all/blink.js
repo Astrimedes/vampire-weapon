@@ -1,4 +1,4 @@
-import { blinkSpecial } from '../../specials/defs/blink';
+import { blinkSpecial } from '../../specials/all/blink';
 import { Ability } from '../ability';
 
 const TIMES = 3;

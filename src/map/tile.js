@@ -1,5 +1,6 @@
 import { Sprite } from '../../assets/sprite-index';
 import { getTrapByName, isTrapActive } from '../config/traps';
+import Item from '../items/item';
 import { Rng } from '../tools/randoms';
 
 class Tile {
@@ -31,6 +32,31 @@ class Tile {
     }
 
     this.creature = null;
+
+    /**
+     * @type {Array<Item>} items
+     */
+    this.items = [];
+  }
+
+  /**
+   *
+   * @param {import('../items/item').default} item
+   */
+  addItem(item) {
+    if (!this.items.includes(item)) {
+      this.items.push(item);
+    }
+  }
+
+  /**
+   *
+   * @param {import('../items/item').default} item
+   */
+  removeItem(item) {
+    let idx = this.items.indexOf(item);
+    if (idx == -1) return;
+    this.items.splice(idx, 1);
   }
 
   getTrap() {
@@ -39,10 +65,17 @@ class Tile {
   }
 
   stepOn(creature) {
-    if (!this.trapped) return;
-    let trap = getTrapByName(this.trapType);
-    if (trap && isTrapActive(trap, this, creature.game, creature.isPlayer)) {
-      trap.effect(creature);
+    if (this.trapped) {
+      let trap = getTrapByName(this.trapType);
+      if (trap && isTrapActive(trap, this, creature.game, creature.isPlayer)) {
+        trap.effect(creature);
+      }
+    }
+    if (this.items.length) {
+      // duplicate array to modify original while iterating
+      Array.from(this.items).forEach((itm) => {
+        itm.effect(creature) && this.removeItem(itm);
+      });
     }
   }
 }

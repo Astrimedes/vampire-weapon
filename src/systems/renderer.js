@@ -208,23 +208,34 @@ export default class Renderer {
    * @param {import('../map/tile').Tile} tile
    */
   drawTile(tile, game) {
+    // warning text we'll draw on top if present
+    let warningText = '';
+
     // draw base tile
     this.drawSprite(tile.spriteNumber, tile.x, tile.y);
-    // draw any traps
-    if (!tile.trapped) return;
-    let trap = getTrapByName(tile.trapType);
-    if (!trap || !trap.visible) return;
-    let turnUntilActive = calcTrapTurns(trap, tile, game);
-    let active = turnUntilActive == 0;
-    let trapSprite = active ? trap.spriteArmed : trap.spriteUnarmed;
-    // draw
-    this.drawSprite(trapSprite, tile.x, tile.y);
 
-    // draw trap count
-    if (!active && turnUntilActive < Infinity) {
+    // draw any traps
+    let trap = tile.trapped ? getTrapByName(tile.trapType) : null;
+    if (trap && trap.visible) {
+      let turnUntilActive = calcTrapTurns(trap, tile, game);
+      let active = turnUntilActive == 0;
+      // draw
+      this.drawSprite(active ? trap.spriteArmed : trap.spriteUnarmed, tile.x, tile.y);
+      // draw trap count
+      if (!active && turnUntilActive < Infinity) {
+        warningText = turnUntilActive == 1 ? ' ! ' : `(${turnUntilActive})`;
+      }
+    }
+
+    // draw items
+    tile.items.forEach(itm => {
+      this.drawSprite(itm.spriteNumber, tile.x, tile.y);
+    });
+
+
+    if (warningText) {
       let pos = this.getPixelForTile(tile.x, tile.y + 0.6);
-      let text = turnUntilActive == 1 ? ' ! ' : `(${turnUntilActive})`;
-      this.drawText(text, 'red', 8, pos.x, pos.y);
+      this.drawText(warningText, 'red', 8, pos.x, pos.y);
     }
   }
 

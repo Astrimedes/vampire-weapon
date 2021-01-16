@@ -15,7 +15,7 @@ class DamageAbility extends Ability {
     super({
       name: 'Damage',
       description: `Deal +${AMT} damage`,
-      cost: 6,
+      cost: 16,
       effectFn
     });
   }

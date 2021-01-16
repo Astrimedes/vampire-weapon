@@ -15,7 +15,7 @@ import HeadsUpDisplay from './hud.js';
 import { InputStates } from '../input/InputStates.js';
 import { InputReader } from './inputReader.js';
 import weaponTypes from '../config/weaponTypes.js';
-import { getStartingAbilities } from '../creatures/abilities/defs/index.js';
+import { getStartingAbilities } from '../creatures/abilities/all/index.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -375,6 +375,10 @@ export default class Game {
     this.dlg.reveal();
   }
 
+  /**
+   *
+   * @param {import('../creatures/creature').default} monster
+   */
   charmMonster(monster) {
     // check valid target
     let pbody = this?.player?.wielder;
@@ -392,7 +396,8 @@ export default class Game {
     tile.creature = newBody;
     newBody.tile = tile;
 
-    // silently kill target, remove corpse
+    // silently kill target, make blood item, remove corpse
+    monster.makeBlood(this.map.getAdjacentPassableNeighbors(this.player.tile)[0]);
     monster.die(true);
     // remove from list
     let idx = this.monsters.findIndex(m => m == monster);

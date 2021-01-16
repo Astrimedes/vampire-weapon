@@ -1,3 +1,4 @@
+import BloodItem from '../items/all/blood.js';
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 
 let ID = 0;
@@ -16,10 +17,15 @@ export default class Creature {
      * @param {number} options.strength
      * @param {number} options.agility
      * @param {number} options.resistance
+     * @param {number} options.bloodAmt
      */
   constructor(game, map, tile, spriteNumber, hp, weapon, options = {}) {
     this.game = game;
     this.map = map;
+    /**
+     * @type {Tile} tile
+     */
+    this.tile = null;
     this.move(tile);
     this.spriteNumber = spriteNumber;
     this.hp = hp;
@@ -29,6 +35,7 @@ export default class Creature {
     this.strength = options.strength || 0;
     this.agility = options.agility || 0;
     this.resistance = options.resistance || 0;
+    this.bloodAmt = options.bloodAmt || 3;
 
     this.allowedAttack = true;
 
@@ -168,6 +175,12 @@ export default class Creature {
     this.stopAnimation();
     this.dieSilent = this.dieSilent || silent;
     if (!this.deathResolved) {
+      if (!this.dieSilent) {
+        // write message
+        let msg = this.isPlayer ? 'You die!' : `${this.name} is destroyed!`;
+        this.game.hud.writeMessage(msg);
+      }
+
       this.stunned = 0;
       this.hp = 0;
       this.deathResolved = true;
@@ -175,14 +188,21 @@ export default class Creature {
       this.tile = null;
       this.spriteNumber++; // corpse tile should be next tile...
 
-      if (!(silent || this.dieSilent)) {
-        let msg = this.isPlayer ? 'You die!' : `${this.name} is destroyed!`;
-        this.game.hud.writeMessage(msg);
-      }
-
       // destroy weapon
       this?.weapon?.die();
       this.unWield();
+    }
+  }
+
+  /**
+   *
+   * @param {import('../map/tile').Tile} tile
+   */
+  makeBlood(tile) {
+    // leave blood
+    if (this.bloodAmt && tile) {
+      let blood = new BloodItem(this.bloodAmt);
+      tile.addItem(blood);
     }
   }
 
@@ -238,12 +258,15 @@ export default class Creature {
 
   /**
    *
-   * @param {import('../weapons/weapon').default} weapon
+   * @param {import('../weapons/weapon').default | import('../weapons/player')} weapon
    */
   wield(weapon) {
     if (this.weapon) {
       this.unWield(weapon);
     }
+    /**
+     * @type {import('../weapons/weapon').default | import('../weapons/player').default} weapon
+     */
     this.weapon = weapon;
 
     weapon.setWielder(this);
@@ -277,6 +300,10 @@ export default class Creature {
     this.weapon = null;
   }
 
+  /**
+   *
+   * @param {Tile} tile
+   */
   move(tile) {
     if (tile?.creature?.alive) {
       let dx = tile.x - this.tile.x;
