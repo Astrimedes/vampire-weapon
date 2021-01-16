@@ -1,6 +1,6 @@
+import { blinkSpecial } from '../../specials/defs/blink';
 import { Ability } from '../ability';
 
-const HP = 2;
 const TIMES = 3;
 
 /**
@@ -8,9 +8,12 @@ const TIMES = 3;
  * @param {import('../../../weapons/player').default} player
  */
 const effectFn = player => {
-  player.maxHp = (player.maxHp || 0) + HP;
-  player.wielder.maxHp += HP;
-  player.wielder.hp += HP;
+  if (!player.specials.includes(blinkSpecial)) {
+    player.specials.push(blinkSpecial);
+    if (player.wielder && !player.wielder.specials.includes(blinkSpecial)) {
+      player.wielder.specials.push(blinkSpecial);
+    }
+  }
 };
 
 const nextAbilityFn = () => {
@@ -18,7 +21,7 @@ const nextAbilityFn = () => {
   return this;
 };
 
-class HealthAbility extends Ability {
+class BlinkAbility extends Ability {
   constructor() {
     super({
       name: 'Blink',
@@ -31,4 +34,4 @@ class HealthAbility extends Ability {
 
 }
 
-export const health = new HealthAbility();
+export const blink = new BlinkAbility();

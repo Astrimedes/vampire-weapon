@@ -528,6 +528,8 @@ export default class Game {
         if (abililty) {
           abililty.applyAbility(this, this.player);
 
+          this.player.blood -= abililty.cost;
+
           // update ui for new blood total etc
           this.updateHud(true);
           this.setGameState(this.lastGameState);
@@ -629,6 +631,7 @@ export default class Game {
 
     let infoColor = 'gray';
     this.hud.setStatusField('Level', this.level, infoColor);
+    this.hud.setStatusField('Blood:', this?.player?.blood || 0, infoColor);
     this.hud.addEmptyStatus('levelSpace');
 
     let dangerColor = 'yellow';

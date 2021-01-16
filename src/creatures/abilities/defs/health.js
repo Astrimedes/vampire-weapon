@@ -22,7 +22,7 @@ class HealthAbility extends Ability {
     super({
       name: 'Health',
       description: `Grant wielders +${AMT} health`,
-      cost: 2,
+      cost: 5,
       effectFn,
       nextAbilityFn
     });

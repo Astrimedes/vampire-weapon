@@ -48,6 +48,8 @@ export default class Weapon {
 
     this.isPlayer = isPlayer;
 
+    this.specials = [];
+
     /**
      * @type {import('../creatures/creature.js').default} wielder
      */
