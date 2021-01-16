@@ -100,6 +100,7 @@ class Exit extends Tile {
   }
 
   stepOn(creature) {
+    super.stepOn(creature);
     if (creature.isPlayer) {
       let game = creature.game;
       game.callDialog({
@@ -124,6 +125,7 @@ class Shop extends Tile {
   }
 
   stepOn(creature) {
+    super.stepOn(creature);
     if (creature.isPlayer) {
       creature.game.callAbilityDialog();
     }
