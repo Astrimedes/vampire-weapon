@@ -1,13 +1,12 @@
-import { health } from './health';
-import { damage } from './damage';
+import HealthAbility from './health';
+import DamageAbility from './damage';
 
-const allAbilities = [
-  health,
-  damage
-];
+let allAbilities = [];
+
 
 const getStartingAbilities = () => {
-  return Array.from(allAbilities);
+  allAbilities = [new HealthAbility(), new DamageAbility()];
+  return allAbilities;
 };
 
 export { allAbilities, getStartingAbilities };

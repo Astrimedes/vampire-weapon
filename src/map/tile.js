@@ -1,6 +1,5 @@
 import { Sprite } from '../../assets/sprite-index';
 import { getTrapByName, isTrapActive } from '../config/traps';
-import Item from '../items/item';
 import { Rng } from '../tools/randoms';
 
 class Tile {

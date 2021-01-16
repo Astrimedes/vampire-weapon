@@ -10,7 +10,7 @@ const effectFn = player => {
   player.dmg += AMT;
 };
 
-class DamageAbility extends Ability {
+export default class DamageAbility extends Ability {
   constructor() {
     super({
       name: 'Damage',
@@ -19,7 +19,4 @@ class DamageAbility extends Ability {
       effectFn
     });
   }
-
 }
-
-export const damage = new DamageAbility();

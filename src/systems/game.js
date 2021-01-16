@@ -15,7 +15,7 @@ import HeadsUpDisplay from './hud.js';
 import { InputStates } from '../input/InputStates.js';
 import { InputReader } from './inputReader.js';
 import weaponTypes from '../config/weaponTypes.js';
-import { getStartingAbilities } from '../creatures/abilities/all/index.js';
+import { allAbilities, getStartingAbilities } from '../creatures/abilities/all/index.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -28,7 +28,6 @@ export default class Game {
     this.gameState = null;
     this.inputState = InputStates.None;
     this.turnCount = 0;
-    this.allAbilities = [];
 
     // avoid re-creating function
     this.waitFunction = (e) => {
@@ -516,7 +515,7 @@ export default class Game {
 
   callAbilityDialog() {
     // determine which abilities to offer
-    let available = getStartingAbilities();
+    let available = allAbilities;
     let text = available.length ? 'Choose an ability:' : 'Not enough 🩸';
 
     // update hud for blood total
@@ -531,9 +530,10 @@ export default class Game {
       submit: (data) => {
         let abililty = available.find(a => a.name == data);
         if (abililty) {
-          abililty.applyAbility(this, this.player);
-
           this.player.blood -= abililty.cost;
+
+          abililty.applyAbility(this, this.player);
+          abililty.cost *= 2; // double cost
 
           // update ui for new blood total etc
           this.updateHud(true);
@@ -612,7 +612,7 @@ export default class Game {
     this.setupPlayer(player);
 
     if (firstLevel) {
-      this.allAbilities = getStartingAbilities();
+      getStartingAbilities();
 
       this.hud.clearMessages();
       this.hud.writeMessage('You awaken from your magical slumber thirsty for blood!');

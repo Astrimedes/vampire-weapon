@@ -17,7 +17,7 @@ const nextAbilityFn = () => {
   return this;
 };
 
-class HealthAbility extends Ability {
+export default class HealthAbility extends Ability {
   constructor() {
     super({
       name: 'Health',
@@ -27,7 +27,4 @@ class HealthAbility extends Ability {
       nextAbilityFn
     });
   }
-
 }
-
-export const health = new HealthAbility();

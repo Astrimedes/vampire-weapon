@@ -21,7 +21,7 @@ const nextAbilityFn = () => {
   return this;
 };
 
-class BlinkAbility extends Ability {
+export default class BlinkAbility extends Ability {
   constructor() {
     super({
       name: 'Blink',
@@ -33,5 +33,3 @@ class BlinkAbility extends Ability {
   }
 
 }
-
-export const blink = new BlinkAbility();
