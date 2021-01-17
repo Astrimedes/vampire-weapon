@@ -1,6 +1,5 @@
 
 import { InputStates } from '../../systems/gamestate';
-import { GameState } from '../../systems/gamestate';
 import { TargetType } from './targetType';
 
 export default class Special {
@@ -12,9 +11,10 @@ export default class Special {
    * @param {selfEffect | creatureEffect | tileEffect} options.effectFn
    * @param {boolean} options.usesAction whether it uses a turn
    * @param {number} options.useCost blood cost to use
+   * @param {number} options.range range in tiles if applicable
    */
   constructor(options) {
-    const { name, targetType, effectFn, usesAction, useCost } = { ...options };
+    const { name, targetType, effectFn, usesAction, useCost, range } = { ...options };
     if (!Object.values(TargetType).includes(targetType)) {
       throw 'Invalid targetType!';
     }
@@ -22,6 +22,7 @@ export default class Special {
     this.targetType = targetType;
     this.effectFn = effectFn;
     this.useCost = useCost || 0;
+    this.range = range || 0;
 
     this.usesAction = usesAction !== undefined ? !!usesAction : true;
 
@@ -33,7 +34,6 @@ export default class Special {
        * @param {import('../../map/tile').Tile} tile
        */
       this.tileInputAction = (game, tile) => {
-        if (game.gameState !== GameState.Play) return;
         let success = effectFn(game?.player?.wielder, tile);
         if (success) {
           game.setInputState(InputStates.Move);

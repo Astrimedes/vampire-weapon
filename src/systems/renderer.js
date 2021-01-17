@@ -71,11 +71,27 @@ export default class Renderer {
     this.ctx.restore();
   }
 
-  tintOverlay(r = 50, g = 50, b = 200, a = 0.45) {
+  tintOverlay(rgba, rect) {
+    rgba = rgba || {
+      r: 50, g: 50, b: 200, a: 0.45
+    };
     this.ctx.save();
-    this.ctx.fillStyle = `rgba(${r},${g},${b},${a.toString()})`;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillStyle = `rgba(${rgba.r},${rgba.g},${rgba.b},${rgba.a})`;
+    rect = rect || {
+      x: 0, y: 0, w: this.canvas.width, h: this.canvas.height
+    };
+    this.ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
     this.ctx.restore();
+  }
+
+  getDrawRect(xCenterTile, yCenterTile, halfWidth, halfHeight) {
+    let tilesWide = 1 + (halfWidth * 2);
+    let tilesHigh = 1 + (halfHeight * 2);
+    let x = (xCenterTile - (tilesWide / 2) + 0.5) * this.tileSize * this.scaleX;
+    let y = (yCenterTile - (tilesHigh / 2) + 0.5) * this.tileSize * this.scaleY;
+    let w = tilesWide * this.tileSize * this.scaleX;
+    let h = tilesHigh * this.tileSize * this.scaleY;
+    return { x, y, w, h };
   }
 
   drawTileRect(x, y, color = 'red', alpha = 0.5) {

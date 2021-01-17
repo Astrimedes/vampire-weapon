@@ -86,6 +86,7 @@ export default class Game {
   resetInputActions() {
     this.setTileAction(this.inputState.tileAction);
     this.setCommandAction(this.inputState.commandAction);
+    this.inputState.targetRange = 0;
   }
 
   /**
@@ -455,7 +456,7 @@ export default class Game {
       this.lastRenderTime = this.time;
       this.time = elapsedTimeMs;
 
-      let stopAnimation = this.frameSpeed >= 1;
+      let stopAnimation = this.frameSpeed >= 0.9;
 
       // reset animationsRunning flag
       this.renderer.resetCounts();
@@ -480,7 +481,7 @@ export default class Game {
         this.renderer.drawTileRect(this.player.tile.x, this.player.tile.y, 'steelblue', 0.4); // outline
         if (this.player.wielder) {
           this.renderer.drawCreature(this.player.wielder, !stopAnimation);
-          stopAnimation && (this.player.stopAnimation() | this.player.wielder.stopAnimation());
+          stopAnimation && (this.player.stopAnimation() & this.player.wielder.stopAnimation());
         }
 
         // monsters
@@ -504,8 +505,8 @@ export default class Game {
         this.renderer.dimOverlay();
       }
 
-      if (this.inputState === InputStates.Target) {
-        this.renderer.tintOverlay();
+      if (this.inputState === InputStates.Target && this.inputState.targetRange) {
+        this.renderer.tintOverlay(null, this.renderer.getDrawRect(this.player.tile.x, this.player.tile.y, this.inputState.targetRange, this.inputState.targetRange));
       }
 
       // draw title
@@ -713,12 +714,15 @@ export default class Game {
             this.sendUserAction(Actions.ok);
             return;
           }
+          // exit if we're not waiting for player moves during gameplay
+          if (this.inputState !== InputStates.Move) return;
           // show dialog
           this.callDialog({
             message: 'Select a tile to Blink to',
             submit: () => {
               this.setGameState(this.lastGameState);
               this.setInputState(InputStates.Target);
+              this.inputState.targetRange = blinkSpecial.range;
               this.setTileAction(blinkSpecial.tileInputAction);
 
               // add stunning
