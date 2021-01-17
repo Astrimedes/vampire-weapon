@@ -23,7 +23,7 @@ const GameState = {
     id: 3,
     dimmed: true,
     hasMap: true,
-    input: InputStates.Restart
+    input: InputStates.ToTitle
   },
   Dialog: {
     id: 4,

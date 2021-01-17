@@ -1,4 +1,4 @@
-import { blinkSpecial } from '../../specials/all/blink';
+import { blinkSpecial } from '../../creatures/specials/all/blink';
 import { Ability } from '../ability';
 
 /**

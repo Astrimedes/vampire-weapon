@@ -162,8 +162,8 @@ export default class Renderer {
 
     if (creature.dead) return;
 
-    // draw weapon reach for non-stunned
-    if (!creature.isStunned()) {
+    // draw weapon reach for living player
+    if (creature.isPlayer && creature.hp) {
       for (let i = 1; i <= (creature?.weapon?.reach || 1); i++) {
         let tile = creature.map.getTile(creature.tile.x + (creature.lastMoveX * i), creature.tile.y + (creature.lastMoveY * i));
         if (!tile.passable && !tile.creature) break;

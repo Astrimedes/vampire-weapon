@@ -15,7 +15,7 @@ import HeadsUpDisplay from './hud.js';
 import { InputStates } from '../input/InputStates.js';
 import { Actions, InputReader } from './inputReader.js';
 import weaponTypes from '../config/weaponTypes.js';
-import { allAbilities, getStartingAbilities } from '../creatures/abilities/all/index.js';
+import { allAbilities, getStartingAbilities } from '../abilities/all/index.js';
 import { blinkSpecial } from '../creatures/specials/all/blink.js';
 
 const TILE_SIZE = 16;
@@ -450,9 +450,13 @@ export default class Game {
         this.loadLevel(this.level, this.player);
       }
 
-      this.frameSpeed = Math.min(Math.max((elapsedTimeMs - this.time) / 1000.0, 0.001), 1);
+      let msDiff = Math.min(1000, Math.max(elapsedTimeMs - this.time, 1));
+
+      this.frameSpeed = Math.min(Math.max(msDiff / 1000.0, 0), 1);
       this.lastRenderTime = this.time;
       this.time = elapsedTimeMs;
+
+      let stopAnimation = this.frameSpeed >= 1;
 
       // reset animationsRunning flag
       this.renderer.resetCounts();
@@ -476,17 +480,19 @@ export default class Game {
         // draw player
         this.renderer.drawTileRect(this.player.tile.x, this.player.tile.y, 'steelblue', 0.4); // outline
         if (this.player.wielder) {
-          this.renderer.drawCreature(this.player.wielder, true);
+          this.renderer.drawCreature(this.player.wielder, !stopAnimation);
+          stopAnimation && (this.player.stopAnimation() | this.player.wielder.stopAnimation());
         }
 
         // monsters
         this.monsters.forEach(mon => {
-          this.renderer.drawCreature(mon, !this.player.animating); // monsters animate after player?
+          this.renderer.drawCreature(mon, !this.player.animating && !stopAnimation); // monsters animate after player?
+          stopAnimation && mon.stopAnimation();
         });
 
         // draw highlighted tile
         if (this.selectedTile && this.gameState == GameState.Play) {
-          this.renderer.drawTileRect(this.selectedTile.x, this.selectedTile.y, 'blue', 0.11);
+          this.renderer.drawTileRect(this.selectedTile.x, this.selectedTile.y, this.inputState.selectColor || 'green', 0.11);
         }
 
         // draw pause icon while input is blocked
