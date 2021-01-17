@@ -13,9 +13,10 @@ import { Rng } from '../tools/randoms.js';
 import SlowGuy from '../creatures/slowguy.js';
 import HeadsUpDisplay from './hud.js';
 import { InputStates } from '../input/InputStates.js';
-import { InputReader } from './inputReader.js';
+import { Actions, InputReader } from './inputReader.js';
 import weaponTypes from '../config/weaponTypes.js';
 import { allAbilities, getStartingAbilities } from '../creatures/abilities/all/index.js';
+import { blinkSpecial } from '../creatures/specials/all/blink.js';
 
 const TILE_SIZE = 16;
 // const TILE_COUNT = 16;
@@ -32,6 +33,11 @@ export default class Game {
     // avoid re-creating function
     this.waitFunction = (e) => {
       e.preventDefault();
+      if (this.gameState !== GameState.Play) {
+        // count as 'button press'
+        this.sendUserAction(Actions.ok);
+        return;
+      }
       this.wait();
     };
   }
@@ -57,9 +63,16 @@ export default class Game {
     return false;
   }
 
+  /**
+   *
+   * @param {function(Game, (import('../map/tile').Tile)):void} callback
+   */
   setTileAction(callback) {
     if (this.inputTile !== callback) {
       this.lastTileAction = this.inputTile;
+      /**
+       * @type {function(Game, Tile):boolean} inputTile callback
+       */
       this.inputTile = callback;
     }
   }
@@ -220,7 +233,8 @@ export default class Game {
       parry: currentPlayer?.parry || 1,
       parryFrequency: currentPlayer?.parryFrequency || 4,
       spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
-      maxHp: currentPlayer?.maxHp || 0
+      maxHp: currentPlayer?.maxHp || 0,
+      abilities: currentPlayer?.abilities || []
     };
 
     // create player
@@ -234,6 +248,9 @@ export default class Game {
     }
     this.player.lastParryTurn = 0;
     body.canParry = true;
+
+    // log
+    console.log('player abilities on level load', this.player.abilities);
   }
 
   setupMonsters () {
@@ -482,6 +499,10 @@ export default class Game {
         this.renderer.dimOverlay();
       }
 
+      if (this.inputState === InputStates.Target) {
+        this.renderer.tintOverlay();
+      }
+
       // draw title
       if (this.gameState == GameState.Title) {
         this.renderer.drawText('Vampire Weapon', 'red');
@@ -528,12 +549,15 @@ export default class Game {
       message,
       fields: available,
       submit: (data) => {
-        let abililty = available.find(a => a.name == data);
-        if (abililty) {
-          this.player.blood -= abililty.cost;
+        let ability = available.find(a => a.name == data);
+        if (ability) {
+          this.player.blood -= ability.cost || 0;
 
-          abililty.applyAbility(this, this.player);
-          abililty.cost *= 2; // double cost
+          this.player.addAbility(ability);
+          if (ability.oneTime) {
+            let idx = allAbilities.findIndex(a => a == ability);
+            idx !== -1 && allAbilities.splice(idx, 1);
+          }
 
           // update ui for new blood total etc
           this.updateHud(true);
@@ -671,8 +695,33 @@ export default class Game {
     this.hud.addEmptyStatus('creatureSpace');
     // add wait button to hud
     if (clearAll || this.effectsUpdated) {
+      this.hud.clearAllControl();
+
       // add wait button to hud
       this.hud.addControl('Defend', 0, this.waitFunction, '#71b238');
+
+      // Blink special move
+      if (this.player.abilities.includes('Blink')) {
+        this.hud.addControl('Blink', blinkSpecial.useCost, () => {
+          if (this.gameState !== GameState.Play) {
+            // count as 'button press'
+            this.sendUserAction(Actions.ok);
+            return;
+          }
+          // show dialog
+          this.callDialog({
+            message: 'Select a tile to Blink to',
+            submit: () => {
+              this.setGameState(this.lastGameState);
+              this.setInputState(InputStates.Target);
+              this.setTileAction(blinkSpecial.tileInputAction);
+
+              // add stunning
+              this.player.blood = Math.max(0, this.player.blood - blinkSpecial.useCost);
+            }
+          });
+        });
+      }
 
       this.effectsUpdated = false;
     }

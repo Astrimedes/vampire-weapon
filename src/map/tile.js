@@ -63,11 +63,19 @@ class Tile {
     return getTrapByName(this.trapType);
   }
 
+  /**
+ *
+ * @param {import('../creatures/creature').default} creature
+ */
   stepOn(creature) {
     if (this.trapped) {
       let trap = getTrapByName(this.trapType);
       if (trap && isTrapActive(trap, this, creature.game, creature.isPlayer)) {
         trap.effect(creature);
+        if (!creature.hp) {
+          // make blood
+          creature.makeBlood(this.tile);
+        }
       }
     }
     if (this.items.length) {
@@ -101,7 +109,7 @@ class Exit extends Tile {
 
   stepOn(creature) {
     super.stepOn(creature);
-    if (creature.isPlayer) {
+    if (creature.isPlayer && !creature.stunned) {
       let game = creature.game;
       game.callDialog({
         message: 'Enter the portal?',
@@ -126,7 +134,7 @@ class Shop extends Tile {
 
   stepOn(creature) {
     super.stepOn(creature);
-    if (creature.isPlayer) {
+    if (creature.isPlayer && !creature.stunned) {
       creature.game.callAbilityDialog();
     }
   }

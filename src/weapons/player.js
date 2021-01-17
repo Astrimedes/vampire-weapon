@@ -19,7 +19,18 @@ export default class Player extends Weapon {
     this.speed = playerConfig.speed || 0;
 
     // array of names of abilities player has chosen
-    this.abilities = [];
+    this.abilities = Array.from(playerConfig?.abilities?.length ? playerConfig.abilities : []);
+  }
+
+  /**
+   *
+   * @param {import('../creatures/abilities/ability').Ability} ability
+   */
+  addAbility(ability) {
+    if (!this.abilities.includes(ability.name)) {
+      this.abilities.push(ability.name);
+      ability.applyAbility(this.game, this);
+    }
   }
 
   tryMove(dx, dy) {

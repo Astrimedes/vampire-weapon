@@ -45,6 +45,10 @@ const defaultKeys = [
  * @property {boolean} usePointer - accepts mouse/touch input
  */
 
+/**
+  * Creates and attaches keyboard and mouse/touch events
+  * Uses InputStates
+  */
 class InputReader {
   /**
    * Reads input from html page, sends 'Actions' to Game

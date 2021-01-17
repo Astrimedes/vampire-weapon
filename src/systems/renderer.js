@@ -71,6 +71,13 @@ export default class Renderer {
     this.ctx.restore();
   }
 
+  tintOverlay(r = 50, g = 50, b = 200, a = 0.45) {
+    this.ctx.save();
+    this.ctx.fillStyle = `rgba(${r},${g},${b},${a.toString()})`;
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.restore();
+  }
+
   drawTileRect(x, y, color = 'red', alpha = 0.5) {
     this.ctx.save();
     let xDraw = x * this.tileSize * this.scaleX;
