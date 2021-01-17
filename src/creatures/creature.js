@@ -337,6 +337,8 @@ export default class Creature {
     if (this.weapon) {
       this.weapon.tile = tile;
     }
+
+    tile.stepOn(this);
   }
 
   getDisplayX() {
@@ -365,7 +367,7 @@ export default class Creature {
     }
 
     if (this.tile) {
-      this.tile.stepOn(this);
+      this.tile.stayOn(this);
     }
 
     // otherwise finish without acting

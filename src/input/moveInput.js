@@ -81,4 +81,4 @@ const moveCommandCallback = (game, command) => {
   return moveTileCallback(game, targetTile);
 };
 
-export const MoveInput = new InputType('move', moveTileCallback, moveCommandCallback);
+export const moveInput = new InputType('move', moveTileCallback, moveCommandCallback);

@@ -68,6 +68,15 @@ class Tile {
  * @param {import('../creatures/creature').default} creature
  */
   stepOn(creature) {
+    if (this.items.length) {
+      // duplicate array to modify original while iterating
+      Array.from(this.items).forEach((itm) => {
+        itm.effect(creature) && this.removeItem(itm);
+      });
+    }
+  }
+
+  stayOn(creature) {
     if (this.trapped) {
       let trap = getTrapByName(this.trapType);
       if (trap && isTrapActive(trap, this, creature.game, creature.isPlayer)) {
@@ -77,12 +86,6 @@ class Tile {
           creature.makeBlood(this.tile);
         }
       }
-    }
-    if (this.items.length) {
-      // duplicate array to modify original while iterating
-      Array.from(this.items).forEach((itm) => {
-        itm.effect(creature) && this.removeItem(itm);
-      });
     }
   }
 }

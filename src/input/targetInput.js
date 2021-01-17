@@ -48,4 +48,4 @@ const commandCallback = (game, command) => {
   return tileCallback(game, targetTile);
 };
 
-export const TargetInput = new InputType('target', tileCallback, commandCallback);
+export const targetInput = new InputType('target', tileCallback, commandCallback);

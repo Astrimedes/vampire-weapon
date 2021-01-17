@@ -1,5 +1,5 @@
 
-import { InputStates } from '../../input/InputStates';
+import { InputStates } from '../../systems/gamestate';
 import { GameState } from '../../systems/gamestate';
 import { TargetType } from './targetType';
 

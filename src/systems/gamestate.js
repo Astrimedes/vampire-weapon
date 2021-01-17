@@ -1,4 +1,29 @@
-import { InputStates } from '../input/InputStates';
+import { InputType } from '../input/inputstate';
+import { moveInput } from '../input/moveInput';
+import { targetInput } from '../input/targetInput';
+
+const restartLevelAction = (game) => {
+  game.loadLevel(1);
+};
+const restartGame = new InputType('restart', restartLevelAction, restartLevelAction);
+
+const totTitleAction = (game) => {
+  if (game.hud) {
+    game.hud.hide();
+  }
+  game.setGameState(GameState.Title);
+};
+const toTitle = new InputType('toTitle', totTitleAction, totTitleAction);
+
+const none = new InputType('none');
+
+const InputStates = {
+  Move: moveInput,
+  Target: targetInput,
+  Restart: restartGame,
+  ToTitle: toTitle,
+  None: none
+};
 
 const GameState = {
   Loading: {
@@ -33,4 +58,4 @@ const GameState = {
   },
 };
 
-export { GameState };
+export { GameState, InputStates };
