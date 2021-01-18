@@ -11,7 +11,7 @@ export default class Spider extends Creature {
    * @param {Tile} tile
    */
   constructor(game, map, tile, weapon = new Fist(game, map), options = {}) {
-    super(game, map, tile, Sprite.Creature.spider, 6, weapon, {
+    super(game, map, tile, Sprite.Creature.spider, 14, weapon, {
       ignoreWalls: true,
       noticeRange: 8,
       ...options
@@ -19,7 +19,7 @@ export default class Spider extends Creature {
   }
 
   act() {
-    if (this.isPlayer) return;
+    if (this.isPlayer) return false;
 
     // ignore walls!
     let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => (!t.creature || t.creature.isPlayer) && this.map.inBounds(t.x, t.y));
@@ -36,6 +36,7 @@ export default class Spider extends Creature {
         return dist;
       });
     }
+
     // if near player choose nearest tile, otherwise move randomly
     let idx = lowDist <= 10 ? 0 : Rng.inRange(0,seekTiles.length-1);
     this.tryMove(seekTiles[idx].x - this.x, seekTiles[idx].y - this.y);

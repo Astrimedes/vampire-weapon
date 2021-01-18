@@ -27,10 +27,8 @@ export default class Player extends Weapon {
    * @param {import('../creatures/abilities/ability').Ability} ability
    */
   addAbility(ability) {
-    if (!this.abilities.includes(ability.name)) {
-      this.abilities.push(ability.name);
-      ability.applyAbility(this.game, this);
-    }
+    this.abilities.push(ability.name);
+    ability.applyAbility(this.game, this);
   }
 
   tryMove(dx, dy) {

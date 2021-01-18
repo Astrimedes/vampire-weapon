@@ -258,6 +258,9 @@ export default class Game {
   setupMonsters () {
     this.dead = [];
     this.corpses = [];
+    /**
+     * @type {Array<import('../creatures/creature.js').default>} all enemies
+     */
     this.monsters = [];
     this.nextMonsters = [];
 
@@ -402,6 +405,7 @@ export default class Game {
     let pbody = this?.player?.wielder;
     let tile = monster.tile;
     if (!pbody || !monster || monster?.isPlayer || !tile) return false;
+    let lastHp = pbody.hp;
 
     pbody.unWield();
     // mark current body dead...
@@ -410,12 +414,13 @@ export default class Game {
 
     // create new playerBody
     let newBody = monster.createPlayerBody(this.player);
+    // transfer health, new max
+    newBody.hp = Math.min(newBody.maxHp, lastHp);
     // carefully swap tile references...
     tile.creature = newBody;
     newBody.tile = tile;
 
     // silently kill target, make blood item, remove corpse
-    monster.makeBlood(this.map.getAdjacentPassableNeighbors(this.player.tile)[0]);
     monster.die(true);
     // remove from list
     let idx = this.monsters.findIndex(m => m == monster);

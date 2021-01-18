@@ -17,7 +17,7 @@ export default class Creature {
      * @param {number} options.strength
      * @param {number} options.agility
      * @param {number} options.resistance
-     * @param {number} options.bloodAmt blood reward - default = hp
+     * @param {number} options.bloodAmt blood reward - default = hp/2
      * @param {boolean} options.beginAwake creatures normally begin sleeping (default = false)
      * @param {number} options.noticeRange tile range where sleeping creatures will wake (default = 3)
      */
@@ -41,7 +41,7 @@ export default class Creature {
     this.strength = options.strength || 0;
     this.agility = options.agility || 0;
     this.resistance = options.resistance || 0;
-    this.bloodAmt = options.bloodAmt || hp;
+    this.bloodAmt = options.bloodAmt || Math.floor(hp/2);
 
     this.allowedAttack = true;
 
@@ -173,6 +173,10 @@ export default class Creature {
     this.dead = this.hp <= 0;
 
     this.playerKilled = attacker?.isPlayer || false;
+
+    if (this.dead && !this.deathResolved) {
+      this.makeBlood(this.game.map.getAdjacentPassableNeighbors(this.tile)[0]);
+    }
 
     return parry;
   }
@@ -359,12 +363,14 @@ export default class Creature {
   // check for waking...
   tryWake() {
     if (this.asleep && this?.game?.player?.wielder?.hp) {
-      let dist = this.game.map.diagDist(this.tile, this.game.player.tile);
-      if (dist > this.noticeRange) return false;
-
-      // wake up, stunned for 1 turn
-      this.wake();
-      return true;
+      // check for any non-sleeping, non-stunned monster in range - add player
+      let wakers = Array.from(this.game.monsters);
+      wakers.push(this.game?.player?.wielder);
+      let waker = wakers.find(m => m && m.hp && !m.asleep && (m.isPlayer || m.stunned <= 0) && this.game.map.diagDist(this.tile, m.tile) <= this.noticeRange);
+      if (waker) {
+        this.wake();
+        return true;
+      }
     }
     return false;
   }
@@ -427,23 +433,23 @@ export default class Creature {
   }
 
   act() {
+    let moved = false;
     // seek player by default
-    if (!this.stunned && !this.isPlayer) {
+    if (!this.asleep && !this.stunned && !this.isPlayer) {
       let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => t?.creature?.isPlayer || t.passable || this.ignoreWalls);
       if (seekTiles.length) {
         let seekSign = this.allowedAttack ? 1 : -1;
         seekTiles.sort((a,b) => {
           return seekSign * (this.map.dist(a, this.game.player.tile) - this.map.dist(b, this.game.player.tile));
         });
-        let moved = false;
         let idx = 0;
         while (!moved && idx < seekTiles.length) {
           moved = this.tryMove(seekTiles[idx].x - this.tile.x, seekTiles[idx].y - this.tile.y);
           idx++;
         }
-        return moved;
       }
     }
+    return moved;
   }
 
   createPlayerBody(player) {

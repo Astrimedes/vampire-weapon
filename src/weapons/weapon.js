@@ -136,7 +136,7 @@ export default class Weapon {
   }
 
   tryAct() {
-    if (!this.wielder) return false;
+    if (!this.wielder || this.wielder.dead || this.wielder.hp <= 0) return false;
     return this.wielder.tryAct();
   }
 
