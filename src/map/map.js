@@ -124,6 +124,17 @@ export default class Dungeon {
     return Math.abs(tileA.x-tileB.x)+Math.abs(tileA.y-tileB.y);
   }
 
+  /**
+   * Counts diagonal tiles as 1 tile for range
+   * @param {import('./tile').Tile} tileA
+   * @param {import('./tile').Tile} tileB
+   */
+  diagDist(tileA, tileB) {
+    let xDist = Math.abs(tileA.x - tileB.x);
+    let yDist = Math.abs(tileA.y - tileB.y);
+    return Math.max(xDist, yDist);
+  }
+
   getAdjacentPassableNeighbors(tile){
     return this.getAdjacentNeighbors(tile).filter(t => t.passable);
   }

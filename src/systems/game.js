@@ -227,7 +227,7 @@ export default class Game {
 
     let playerConfig = {
       damage: (currentPlayer?.dmg || currentPlayer?.damage) || 1,
-      blood: currentPlayer?.blood || 5,
+      blood: currentPlayer ? (currentPlayer?.blood || 0) : 5,
       speed: currentPlayer?.speed || 0,
       reach: currentPlayer?.reach || 1,
       parry: currentPlayer?.parry || 1,
@@ -241,7 +241,9 @@ export default class Game {
     this.player = new Player(this, this.map, playerConfig);
     // create player body
     let BodyCreature = currentPlayer?.wielder?.constructor || Chump;
-    let body = new BodyCreature(this, this.map, tile, this.player); // will attach to playerBody
+    let body = new BodyCreature(this, this.map, tile, this.player, {
+      beginAwake: true
+    }); // will attach to playerBody
     if (currentPlayer?.wielder?.hp) {
       // copy over previous values
       body.hp = currentPlayer.wielder.hp;
@@ -522,7 +524,15 @@ export default class Game {
       }
 
       // call next frame
-      window.requestAnimationFrame(draw);
+      if (this.frameSpeed < 0.9) return window.requestAnimationFrame(draw);
+
+      // if we're delayed, delay calling next frame
+      if (this.frameSpeed > 0.9) {
+        setTimeout(() => {
+          window.requestAnimationFrame(draw);
+        }, 333);
+        return;
+      }
     };
 
     // start calling animations
@@ -657,6 +667,11 @@ export default class Game {
       this.setGameState(GameState.Play);
       this.hud.writeMessage('You enter the portal, in search of more blood...');
     }
+
+    // allow monsters to wake that start near the player
+    this.monsters.forEach(m => {
+      m.tryWake();
+    });
   }
 
   updateHud(clearAll) {

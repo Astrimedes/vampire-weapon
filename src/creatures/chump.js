@@ -9,9 +9,10 @@ export default class Chump extends Creature {
    * @param {Dungeon} map
    * @param {Tile} tile
    */
-  constructor(game, map, tile, weapon = new Fist(game, map)) {
+  constructor(game, map, tile, weapon = new Fist(game, map), options = {}) {
     super(game, map, tile, Sprite.Creature.chump, 3, weapon, {
-      agility: 1
+      agility: 1,
+      ...options
     });
     this.allowedAttack = false;
   }

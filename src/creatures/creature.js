@@ -17,7 +17,9 @@ export default class Creature {
      * @param {number} options.strength
      * @param {number} options.agility
      * @param {number} options.resistance
-     * @param {number} options.bloodAmt
+     * @param {number} options.bloodAmt blood reward - default = hp
+     * @param {boolean} options.beginAwake creatures normally begin sleeping (default = false)
+     * @param {number} options.noticeRange tile range where sleeping creatures will wake (default = 3)
      */
   constructor(game, map, tile, spriteNumber, hp, weapon, options = {}) {
     this.game = game;
@@ -31,11 +33,15 @@ export default class Creature {
     this.hp = hp;
     this.maxHp = hp;
 
+    // start 'sleeping' by default
+    this.asleep = !weapon?.isPlayer || !options.beginAwake;
+    this.noticeRange = options.noticeRange || 2;
+
     // copy stats
     this.strength = options.strength || 0;
     this.agility = options.agility || 0;
     this.resistance = options.resistance || 0;
-    this.bloodAmt = options.bloodAmt || 3;
+    this.bloodAmt = options.bloodAmt || hp;
 
     this.allowedAttack = true;
 
@@ -57,7 +63,7 @@ export default class Creature {
 
     this.attacking = false;
 
-    this.stunned = 2; // stunned thru one player turn on spawn
+    this.stunned = 0;
 
     this.id = ID++;
 
@@ -277,9 +283,10 @@ export default class Creature {
     this.isPlayer = !!weapon.isPlayer;
     if (this.isPlayer) {
       this.stunned = 0; // reset stun
+      this.asleep = false; // remove asleep
       this.allowedAttack = true; // player always allowed attack
 
-      // set player control - scale from 0 to 100686
+      // set player control - scale from 0 to 100
       this.control = 100;
 
       // remove self from monster list, assign to playerBody
@@ -349,6 +356,19 @@ export default class Creature {
     return this.y + this.offsetY;
   }
 
+  // check for waking...
+  tryWake() {
+    if (this.asleep && this?.game?.player?.wielder?.hp) {
+      let dist = this.game.map.diagDist(this.tile, this.game.player.tile);
+      if (dist > this.noticeRange) return false;
+
+      // wake up, stunned for 1 turn
+      this.wake();
+      return true;
+    }
+    return false;
+  }
+
   tryAct() {
     if (this.dead) return false;
 
@@ -357,6 +377,9 @@ export default class Creature {
       this.dead = true;
       return false;
     }
+
+    this.tryWake();
+    if (this.asleep) return false;
 
     let acted = false;
 
@@ -374,6 +397,14 @@ export default class Creature {
     return acted;
   }
 
+  wake(stunTurns = 1) {
+    let name = this.isPlayer ? 'You' : 'The ' + this.name;
+    let verb = this.isPlayer ? 'are' : 'is';
+    this.game.hud.writeMessage(`${name} ${verb} awake!`);
+    this.asleep = false;
+    this.stunned = this.stunned || this.stunned + (this.startTurn % 2 == 0 ? stunTurns + 1 : stunTurns);
+  }
+
   tick() {
     // reduce status durations after first turn passes
     if (this.game.turnCount <= this.spawnTurn) {
@@ -387,7 +418,7 @@ export default class Creature {
 
     // decrement player control
     if (this.control) {
-      this.control -= this.resistance;
+      this.control = Math.max(0, this.control - this.resistance);
     }
 
     this.playerHit = Math.max(this.playerHit - 1, 0);
@@ -416,12 +447,16 @@ export default class Creature {
   }
 
   createPlayerBody(player) {
+    /**
+     * @type {Creature} playerBody
+     */
     let playerBody = new this.constructor(this.game, this.map, this.tile);
     playerBody.wield(player);
     // set facing to match original body
     playerBody.lastMoveX = this.lastMoveX;
     playerBody.lastMoveY = this.lastMoveY;
     playerBody.isPlayer = true;
+    playerBody.asleep = false;
     return playerBody;
   }
 }

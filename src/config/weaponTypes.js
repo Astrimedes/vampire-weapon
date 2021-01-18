@@ -5,8 +5,8 @@ const weaponTypes = [
     name: 'sword',
     reach: 1,
     damage: 2,
-    parry: 4,
-    parryFrequency: 2,
+    parry: 3,
+    parryFrequency: 3,
     spriteNumber: Sprite.Weapon.sword,
     drawSprite: true,
     maxHp: 1
@@ -26,7 +26,7 @@ const weaponTypes = [
     reach: 2,
     damage: 2,
     parry: 1,
-    parryFrequency: 4,
+    parryFrequency: 3,
     spriteNumber: Sprite.Weapon.spear,
     drawSprite: true,
     maxHp: 1

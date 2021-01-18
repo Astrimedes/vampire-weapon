@@ -155,6 +155,11 @@ export default class Renderer {
     return { x: (x * this.tileSize * this.scaleX), y: (y * this.tileSize * this.scaleY)};
   }
 
+  /**
+   * Draw a creature and associated icons etc
+   * @param {import('../creatures/creature').default} creature
+   * @param {boolean} animate
+   */
   drawCreature(creature, animate = true) {
     // update animations each draw frame
     if (animate && !creature.dead) {
@@ -188,14 +193,15 @@ export default class Renderer {
     }
 
     // draw health
-    let pos = this.getPixelForTile(creature.getDisplayX(), creature.getDisplayY());
-    let height = this.tileSize * this.scaleY * 0.15;
-    let fullWidth = this.tileSize * this.scaleX;
-    let margin = 0.25;
-    this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
-      fullWidth * (1-margin), height,
-      creature.hp || 0, creature.maxHp || 1);
-
+    if (!creature.asleep) {
+      let pos = this.getPixelForTile(creature.getDisplayX(), creature.getDisplayY());
+      let height = this.tileSize * this.scaleY * 0.15;
+      let fullWidth = this.tileSize * this.scaleX;
+      let margin = 0.25;
+      this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
+        fullWidth * (1-margin), height,
+        creature.hp || 0, creature.maxHp || 1);
+    }
 
     // draw status effects
     let x = creature.getDisplayX() + 0.65;
@@ -207,6 +213,13 @@ export default class Renderer {
     if (creature.canParry && creature?.weapon?.parry) {
       this.drawSprite(Sprite.Icon.parry, x, y);
       x -= 0.25;
+    }
+
+    // sleeping
+    if (creature.asleep) {
+      this.drawSprite(Sprite.Icon.sleep, creature.getDisplayX(), creature.getDisplayY() - 0.2);
+      // draw wake range?
+      this.tintOverlay({ r: 83, g: 78, b: 37, a: 0.15 }, this.getDrawRect(creature.x, creature.y, creature.noticeRange, creature.noticeRange));
     }
   }
 

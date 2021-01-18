@@ -28,6 +28,7 @@ const Sprite = {
   Icon: {
     parry: 6,
     stun: 7,
+    sleep: 28,
     fire: 10,
     bleed: 18,
     ice: 19
