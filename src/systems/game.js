@@ -580,6 +580,9 @@ export default class Game {
             idx !== -1 && allAbilities.splice(idx, 1);
           }
 
+          // disable shop tile after purchase
+          this?.player?.wielder?.tile?.deactivate();
+
           // update ui for new blood total etc
           this.updateHud(true);
           this.setGameState(this.lastGameState);
@@ -697,7 +700,7 @@ export default class Game {
     let hp = this.gameState == GameState.GameOver ? 0 : wielder?.hp || 0;
     let maxHp = hp ? wielder?.maxHp || 0 : 0;
     let fraction = maxHp > 0 ? hp / maxHp : 0;
-    this.hud.setStatusField('Health', ` ${hp}/${maxHp}`, fraction > 0.5 ? firstColor : dangerColor);
+    this.hud.setStatusField('HP', ` ${hp}/${maxHp}`, fraction > 0.5 ? firstColor : dangerColor);
     this.hud.addEmptyStatus('basicSpace');
 
     // attack damage
@@ -712,10 +715,12 @@ export default class Game {
 
     let secondColor = 'darkcyan';
     this.hud.setStatusField({ id: 'creature', label: '' }, this?.player?.wielder?.name || '', secondColor);
-    let atk = (this?.player?.wielder?.strength || 0);
-    let par = (this?.player?.wielder?.agility || 0);
     let sign = num => num >= 0 ? '+' : '';
+    let health = (this?.player?.wielder?.maxHp || 0) - (this?.player?.maxHp || 0);
+    this.hud.setStatusField('> HP ', sign(health) + health, secondColor);
+    let atk = (this?.player?.wielder?.strength || 0);
     this.hud.setStatusField('> Atk', sign(atk) + atk, secondColor);
+    let par = (this?.player?.wielder?.agility || 0);
     this.hud.setStatusField('> Par', sign(par) + par, secondColor);
 
     this.hud.addEmptyStatus('creatureSpace');

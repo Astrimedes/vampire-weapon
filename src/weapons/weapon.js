@@ -167,6 +167,12 @@ export default class Weapon {
     this.offsetY = 0;
     this.animStart = null;
     this.animDuration = 0;
+    this.x = this?.tile?.x || 0;
+    this.y = this?.tile?.x || 0;
+    if (this.wielder) {
+      this.x = this.wielder.getDisplayX();
+      this.y = this.wielder.getDisplayY();
+    }
   }
 
   animate() {

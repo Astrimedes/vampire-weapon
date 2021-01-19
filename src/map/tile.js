@@ -133,11 +133,17 @@ class Shop extends Tile {
   constructor(x, y, options) {
     super(x, y, Sprite.Map.shop, true, options);
     this.type = 'shop';
+    this.active = true;
+  }
+
+  deactivate() {
+    this.active = false;
+    this.spriteNumber = Sprite.Map.floor;
   }
 
   stepOn(creature) {
     super.stepOn(creature);
-    if (creature.isPlayer && !creature.stunned) {
+    if (this.active && creature.isPlayer && !creature.stunned) {
       creature.game.callAbilityDialog();
     }
   }
