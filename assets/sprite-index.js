@@ -11,7 +11,6 @@ const Sprite = {
   },
   Weapon: {
     sword: 0,
-    swordDead: 1,
     fist: 12,
     fistDead: 13,
     axe: 24,
@@ -27,6 +26,7 @@ const Sprite = {
   },
   Icon: {
     parry: 6,
+    parryBroken: 1,
     stun: 7,
     sleep: 28,
     fire: 10,

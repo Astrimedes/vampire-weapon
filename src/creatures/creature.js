@@ -79,7 +79,7 @@ export default class Creature {
 
     // parry normally controlled by weapon or defend action
     this.defending = false;
-    this.canParry = false;
+    this.canParry = true;
 
     this.name = this.constructor.name;
 
@@ -268,12 +268,9 @@ export default class Creature {
 
   /**
    *
-   * @param {import('../weapons/weapon').default | import('../weapons/player')} weapon
+   * @param {import('../weapons/weapon').default | import('../weapons/player').default} weapon
    */
   wield(weapon) {
-    if (this.weapon) {
-      this.unWield(weapon);
-    }
     /**
      * @type {import('../weapons/weapon').default | import('../weapons/player').default} weapon
      */

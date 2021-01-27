@@ -64,7 +64,7 @@ export default class Weapon {
     this.reach = getValue(weaponType.reach, 1);
 
     // parry
-    this.parry = getValue(weaponType.parry, 0);
+    this.parry = getValue(weaponType.parry, 2);
 
     // frequency of parry
     this.parryFrequency = getValue(weaponType.parryFrequency, 3);

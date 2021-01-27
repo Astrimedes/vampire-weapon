@@ -192,7 +192,7 @@ export default class Renderer {
       }
     }
 
-    // draw health
+    // draw health & status effects if awake
     if (!creature.asleep) {
       let pos = this.getPixelForTile(creature.getDisplayX(), creature.getDisplayY());
       let height = this.tileSize * this.scaleY * 0.15;
@@ -201,22 +201,24 @@ export default class Renderer {
       this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
         fullWidth * (1-margin), height,
         creature.hp || 0, creature.maxHp || 1);
-    }
 
-    // draw status effects
-    let x = creature.getDisplayX() + 0.65;
-    let y = creature.getDisplayY() + 0.2;
-    if (creature.isStunned()) {
-      this.drawSprite(Sprite.Icon.stun, x, y);
-      x -= 0.25;
-    }
-    if (creature.canParry && creature?.weapon?.parry) {
-      this.drawSprite(Sprite.Icon.parry, x, y);
-      x -= 0.25;
-    }
-
-    // sleeping
-    if (creature.asleep) {
+      // draw status effects
+      let xAmt = 0.3;
+      let x = creature.getDisplayX() + 0.5;
+      let y = creature.getDisplayY() + 0.2;
+      if (creature.canParry && creature?.weapon?.parry) {
+        this.drawSprite(Sprite.Icon.parry, x, y);
+        x -= xAmt;
+      } else {
+        this.drawSprite(Sprite.Icon.parryBroken, x, y);
+        x -= xAmt;
+      }
+      if (creature.isStunned()) {
+        this.drawSprite(Sprite.Icon.stun, x, y);
+        x -= xAmt;
+      }
+    } else {
+      // sleeping
       this.drawSprite(Sprite.Icon.sleep, creature.getDisplayX(), creature.getDisplayY() - 0.2);
       // draw wake range?
       this.tintOverlay({ r: 83, g: 78, b: 37, a: 0.15 }, this.getDrawRect(creature.x, creature.y, creature.noticeRange, creature.noticeRange));
