@@ -17,8 +17,7 @@ import weaponTypes from '../config/weaponTypes.js';
 import { allAbilities, getStartingAbilities } from '../abilities/all/index.js';
 import { blinkSpecial } from '../creatures/specials/all/blink.js';
 
-const TILE_SIZE = 16;
-// const TILE_COUNT = 16;
+const TILE_SIZE = 64;
 
 const assets = {};
 
