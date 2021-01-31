@@ -7,7 +7,7 @@ const getValue = (value, defaultValue) => {
 export default class Weapon {
   /**
      * Weapons
-     * @param {Game} game
+     * @param {import('../systems/game').default} game
      * @param {Dungeon} map
      * @param {boolean} isPlayer
      * @param {object} options
@@ -83,9 +83,6 @@ export default class Weapon {
    * @param {import('../creatures/creature').default} wielder
    */
   setWielder(wielder) {
-    if (this.wielder && this.wielder != wielder) {
-      this.wielder.unWield();
-    }
 
     this.x = wielder.getDisplayX();
     this.y = wielder.getDisplayY();

@@ -97,6 +97,12 @@ export default class Dungeon {
     return x == 0 || x == limit || y == 0 || y == limit;
   }
 
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @returns {import('../map/tile').Tile} tile
+   */
   getTile(x, y) {
     if (this.inBounds(x, y)) {
       return this.tiles[x][y];
@@ -105,10 +111,21 @@ export default class Dungeon {
     }
   }
 
+  /**
+   *
+   * @param {import('../map/tile').Tile} tile
+   * @param {number} dx
+   * @param {number} dy
+   */
   getNeighbor(tile, dx, dy){
     return this.getTile(tile.x + dx, tile.y + dy);
   }
 
+  /**
+   *
+   * @param {import('../map/tile').Tile} tile
+   * @returns {Array<import('../map/tile').Tile>} nearby tiles
+   */
   getAdjacentNeighbors(tile){
     let matches = Rng.shuffle([
       this.getNeighbor(tile, 0, -1),

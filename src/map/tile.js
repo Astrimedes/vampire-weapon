@@ -30,6 +30,9 @@ class Tile {
       this.trapTurnOffset = options.trapTurnOffset >= 0 ? options.trapTurnOffset : Rng.any([0, 3]);
     }
 
+    /**
+     * @type{import('../creatures/creature').default} creature
+     */
     this.creature = null;
 
     /**

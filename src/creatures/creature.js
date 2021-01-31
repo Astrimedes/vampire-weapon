@@ -13,6 +13,7 @@ export default class Creature {
      * @param {number} hp
      * @param {import('../weapons/weapon').default} weapon
      * @param {object} options
+     * @param {string} options.name
      * @param {boolean} options.ignoreWalls
      * @param {number} options.strength
      * @param {number} options.agility
@@ -81,13 +82,20 @@ export default class Creature {
     this.defending = false;
     this.canParry = true;
 
-    this.name = this.constructor.name;
+    this.name = options.name || this.constructor.name;
 
     // 'special moves' from abilities etc
     this.specials = [];
 
-    // set player control level - adjusted in wield by player
+    /**
+     * @type {number} 0-1 scale of player control when player charms
+     */
     this.control = 0;
+
+    /**
+     * @type {number} 0-1 scale of resistance against charm
+     */
+    this.controlResist = 0.2;
 
     this.wield(weapon);
   }
@@ -160,11 +168,25 @@ export default class Creature {
     return false;
   }
 
+  /**
+   *
+   * @param {import('../weapons/player').default} player
+   */
+  charm(player) {
+    // apply charm
+    this.control += (player.charmPower || 0.5) * (1.0 - this.controlResist);
+    if (this.control >= 1) {
+      return true;
+    }
+
+    return false;
+  }
+
   hit(dmg, attacker) {
     let parry = 0;
     if ((this?.weapon?.parry && this.canParry) || this.defending) {
       let weaponParry = Math.max(Math.floor((this.weapon.parry || 0) / 2), 1);
-      parry = Math.min(dmg, this.defending ? weaponParry + Math.max(2, weaponParry / 2) : weaponParry);
+      parry = Math.floor(Math.min(dmg, this.defending ? weaponParry + Math.max(1, weaponParry / 2) : weaponParry));
       this.weapon.lastParryTurn = this.game.turnCount;
       this.canParry = false;
     }
@@ -174,9 +196,8 @@ export default class Creature {
 
     this.playerKilled = attacker?.isPlayer || false;
 
-    if (this.dead && !this.deathResolved) {
-      this.makeBlood(this.game.map.getAdjacentPassableNeighbors(this.tile)[0]);
-    }
+    // hit will reset control
+    this.control = 0;
 
     return parry;
   }
@@ -189,6 +210,8 @@ export default class Creature {
         // write message
         let msg = this.isPlayer ? 'You die!' : `${this.name} is destroyed!`;
         this.game.hud.writeMessage(msg);
+
+        this.makeBlood(this.game.map.getAdjacentPassableNeighbors(this.tile).find(t => !t.creature));
       }
 
       this.stunned = 0;
@@ -199,7 +222,9 @@ export default class Creature {
       this.spriteNumber++; // corpse tile should be next tile...
 
       // destroy weapon
-      this?.weapon?.die();
+      if (this.isPlayer && this.weapon) {
+        this.weapon.die();
+      }
       this.unWield();
     }
   }
@@ -220,8 +245,10 @@ export default class Creature {
     this.animating = true;
     this.offsetX = this.x - xTarget;
     this.offsetY = this.y - yTarget;
-    this.weapon.x = this.getDisplayX();
-    this.weapon.y = this.getDisplayY();
+    if (this.weapon) {
+      this.weapon.x = this.getDisplayX();
+      this.weapon.y = this.getDisplayY();
+    }
     // set this for proper first frame logic
     this.animStart = null;
     this.animDuration = duration;
@@ -271,6 +298,11 @@ export default class Creature {
    * @param {import('../weapons/weapon').default | import('../weapons/player').default} weapon
    */
   wield(weapon) {
+    // hold original weapons
+    // if (this.weapon && this.weapon !== weapon && !this.weapon.isPlayer) {
+    //   this.lastWeapon = this.weapon;
+    //   this.unWield();
+    // }
     /**
      * @type {import('../weapons/weapon').default | import('../weapons/player').default} weapon
      */
@@ -287,8 +319,9 @@ export default class Creature {
       this.asleep = false; // remove asleep
       this.allowedAttack = true; // player always allowed attack
 
-      // set player control - scale from 0 to 100
-      this.control = 100;
+      // set player control
+      this.control = 1;
+
 
       // remove self from monster list, assign to playerBody
       let idx = this.game.monsters.findIndex(m => m == this);
@@ -303,9 +336,15 @@ export default class Creature {
   unWield() {
     this.isPlayer = false;
     if (!this.weapon) return;
+
+    // reset hp
     this.maxHp = Math.max(1, this.maxHp - (this.weapon.maxHp || 0));
-    this.hp = Math.max(1, this.hp - (this.weapon.maxHp || 0));
+    this.hp = Math.max(0, this.hp - (this.weapon.maxHp || 0));
+
+    // wield last (original?) weapon
     this.weapon = null;
+    this.control = 0;
+    // this.hp && this.lastWeapon && this.wield(this.lastWeapon);
   }
 
   /**
@@ -409,6 +448,9 @@ export default class Creature {
   }
 
   tick() {
+    if (this.hp <= 0) {
+      this.die();
+    }
     // reduce status durations after first turn passes
     if (this.game.turnCount <= this.spawnTurn) {
       return;
@@ -417,11 +459,6 @@ export default class Creature {
 
     if (this.weapon) {
       this.weapon.tick();
-    }
-
-    // decrement player control
-    if (this.control) {
-      this.control = Math.max(0, this.control - this.resistance);
     }
 
     this.playerHit = Math.max(this.playerHit - 1, 0);

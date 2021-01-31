@@ -1,3 +1,5 @@
+import { GameState } from '../systems/gamestate.js';
+import { Actions } from '../systems/inputReader.js';
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 import Weapon from './weapon.js';
 
@@ -32,6 +34,13 @@ export default class Player extends Weapon {
   }
 
   tryMove(dx, dy) {
+    if (this?.wielder?.dead || this.dead) {
+      if (this.game.gameState !== GameState.GameOver) {
+        this.game.endGame();
+        return;
+      }
+      return this.game.sendUserAction(Actions.ok);
+    }
     if (this?.wielder?.stunned) return true;
     return this.wielder.tryMove(dx, dy);
   }
@@ -41,15 +50,22 @@ export default class Player extends Weapon {
     creature.playerHit = 2;
   }
 
-  jump(creature) {
-    if (creature.wield(this)) {
-      this.setWielder(creature);
-    }
+  /**
+   *
+   * @param {import('../creatures/creature').default} creature
+   */
+  charm(creature) {
+    let charmed = creature.charm(this);
+    if (!charmed) return false;
+
+    charmed = this.setWielder(creature);
+    return charmed;
   }
 
   die() {
     this.stopAnimation();
     this.game.endGame();
+    console.log('player died and called game.endGame()');
   }
 
   beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 150) {

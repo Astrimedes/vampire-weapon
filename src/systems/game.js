@@ -38,26 +38,79 @@ export default class Game {
       }
       this.wait();
     };
+
+    this.charmFunction = e => {
+      e.preventDefault();
+
+      if (this.gameState !== GameState.Play) {
+        return this.sendUserAction(Actions.ok);
+      }
+
+      // charm fn
+      const charmFn = (monster) => {
+        // do charm
+        let charmed = monster.charm(this.player);
+        if (charmed) {
+          this.charmMonster(monster);
+        }
+
+        // tick
+        this.tick();
+      };
+
+      // find nearby creatures, auto-select if only 1
+      let creatures = this.map.getAdjacentNeighbors(this.player.tile).map((t) => {
+        return t?.creature?.hp && !t.creature.isPlayer ? t.creature : null;
+      }).filter(t => t);
+      if (creatures?.length == 1) {
+        charmFn(creatures[0]);
+        return;
+      }
+
+      // complain about restrictions
+      this.callMessageDialog('You can only Charm adjacent, solitary enemies');
+
+      // show dialog
+      // this.callDialog({
+      //   message: 'Select a monster to charm',
+      //   submit: () => {
+      //     this.setGameState(this.lastGameState);
+
+      //     // allow selection of tiles if > 1
+      //     this.setInputState(InputStates.Target);
+      //     this.inputState.targetRange = 1;
+      //     this.setTileAction((game, tile) => {
+      //       if (!tile.creature || tile.creature.isPlayer) {
+      //         this.setInputState(InputStates.Move);
+      //         return false;
+      //       }
+      //       let monster = tile.creature;
+      //       if (monster) charmFn(monster);
+      //     });
+      //     return;
+      //   }
+      // });
+    };
   }
 
   setGameState (state) {
     if (state !== this.gameState) {
       this.lastGameState = this.gameState;
       this.gameState = state;
-      // set default input state
-      this.setInputState(state.input);
-      return true;
     }
+    // set default input state
+    this.setInputState(state.input);
+    this.resetInputActions();
     return false;
   }
 
   setInputState(state) {
     if (this.inputState !== state) {
       this.inputState = state;
-      this.setTileAction(state.tileAction);
-      this.setCommandAction(state.commandAction);
+      this.resetInputActions();
       return true;
     }
+    this.resetInputActions();
     return false;
   }
 
@@ -83,8 +136,7 @@ export default class Game {
   }
 
   resetInputActions() {
-    this.setTileAction(this.inputState.tileAction);
-    this.setCommandAction(this.inputState.commandAction);
+    this.inputState.reset();
     this.inputState.targetRange = 0;
   }
 
@@ -98,15 +150,14 @@ export default class Game {
 
   callInputCommand(action) {
     if (this.inputState !== InputStates.None) {
-      // call input callback
-      this.inputCommand(this, action);
+      this.inputState.commandAction(this, action);
     }
   }
 
   sendUserTileSelect(tile) {
     if (this.inputState !== InputStates.None) {
       // call input callback
-      this.inputTile(this, tile);
+      this.inputState.tileAction(this, tile);
     }
   }
 
@@ -337,23 +388,10 @@ export default class Game {
     this?.player?.wielder?.tick();
 
     this.player.tryAct();
-    let newBody = false;
-    // take first monster and make new player body?
-    let charmedDead = dead.find(c => c.playerKilled);
-    if (charmedDead) {
-      this.charmMonster(charmedDead);
-
-      // apply 1 turn stun
-      if (!this.player.speed) {
-        this.hud.writeMessage('You adjust to your new wielder...');
-        this.player.wielder.stunned += 1;
-      }
-    }
 
     let pbody = this?.player?.wielder;
     if (pbody && pbody.dead) {
       dead.push(pbody);
-      pbody.dieSilent = newBody; // last body dies without msg if we're jumping to another
     }
 
     // dead are resolved
@@ -361,20 +399,6 @@ export default class Game {
       this.corpses.push(mon);
       mon.die();
     });
-
-    // check for all monsters dead - spawn exit
-    // if (!this.monsters.length && !this.nextMonsters.length && !this.exitSpawned) {
-    //   this.spawnExit();
-    // }
-
-    if (newBody) {
-      // write to hud
-      this.hud.writeMessage(`${this.player.wielder.name} is your new wielder!`);
-      // message to indicate stun
-      if (!this.player.speed) {
-        this.hud.writeMessage('You adjust to your new wielder...');
-      }
-    }
 
     this.updateHud();
   }
@@ -407,31 +431,10 @@ export default class Game {
     let lastHp = pbody.hp;
 
     pbody.unWield();
-    // mark current body dead...
-    pbody.die(true);
-    // this.dead.push(pbody);
+    pbody.die();
 
-    // create new playerBody
-    let newBody = monster.createPlayerBody(this.player);
-    // transfer health, new max
-    newBody.hp = Math.min(newBody.maxHp, lastHp);
-    // carefully swap tile references...
-    tile.creature = newBody;
-    newBody.tile = tile;
-
-    // silently kill target, make blood item, remove corpse
-    monster.die(true);
-    // remove from list
-    let idx = this.monsters.findIndex(m => m == monster);
-    if (idx > -1) {
-      this.monsters.splice(idx, 1);
-    }
-    idx = this.dead.findIndex(d => d == monster);
-    if (idx > -1) {
-      this.dead.splice(idx, 1);
-    }
-
-    tile.stepOn(newBody);
+    monster.wield(this.player);
+    monster.hp = Math.min(monster.maxHp, lastHp);
 
     this.hud.writeMessage(`The charmed ${monster.name} wields you!`);
   }
@@ -729,6 +732,9 @@ export default class Game {
 
       // add wait button to hud
       this.hud.addControl('Defend', 0, this.waitFunction, '#71b238');
+
+      // charm button
+      this.hud.addControl('Charm', 0, this.charmFunction, 'blue');
 
       // Blink special move
       if (this.player.abilities.includes('Blink')) {

@@ -87,7 +87,7 @@ html{
    z-index: 100;
    border-radius: 16px;
    background-color: #35212e;
-   min-width: 50%;
+   min-width: 75%;
    min-height: 25%;
    color: lightgray;
 }

@@ -23,10 +23,9 @@ export default class Renderer {
   }
 
   autoScale() {
-    let fullSize = this.tileSize * this.numTiles;
-
-    let windowSize = 0.75 * Math.min(window.innerWidth, window.innerHeight);
-    let scale = Math.max(windowSize / fullSize, 1);
+    let fullSize = (this.tileSize * this.numTiles);
+    let minSize = 0.75 * Math.min(window.innerWidth, window.innerHeight);
+    let scale = Math.max(0.1, Math.min(minSize / fullSize, 1)) * (window.devicePixelRatio || 1);
 
 
 
@@ -106,7 +105,7 @@ export default class Renderer {
     this.ctx.restore();
   }
 
-  drawText(text, color = 'yellow', size = 8, x = null, y = null) {
+  drawText(text, color = 'yellow', size = 24, x = null, y = null) {
     this.ctx.save();
 
     this.ctx.fillStyle = color;
@@ -194,13 +193,25 @@ export default class Renderer {
 
     // draw health & status effects if awake
     if (!creature.asleep) {
+
+      // health
       let pos = this.getPixelForTile(creature.getDisplayX(), creature.getDisplayY());
       let height = this.tileSize * this.scaleY * 0.15;
       let fullWidth = this.tileSize * this.scaleX;
       let margin = 0.25;
-      this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
-        fullWidth * (1-margin), height,
-        creature.hp || 0, creature.maxHp || 1);
+
+
+      // charm meter
+      if (!creature.isPlayer && creature.control > 0) {
+        this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
+          fullWidth * (1-margin), height,
+          creature.control, 1, 'black', 'blue');
+      } else {
+        // hp meter
+        this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
+          fullWidth * (1-margin), height,
+          creature.hp || 0, creature.maxHp || 1);
+      }
 
       // draw status effects
       let xAmt = 0.3;
@@ -260,8 +271,8 @@ export default class Renderer {
       // draw
       this.drawSprite(active ? trap.spriteArmed : trap.spriteUnarmed, tile.x, tile.y);
       // draw trap count
-      if (!active && turnUntilActive < Infinity) {
-        warningText = turnUntilActive == 1 ? ' ! ' : `(${turnUntilActive})`;
+      if (!active && turnUntilActive < Infinity) {0;
+        warningText = turnUntilActive == 1 ? ' !!! ' : `(${turnUntilActive})`;
       }
     }
 
@@ -273,7 +284,7 @@ export default class Renderer {
 
     if (warningText) {
       let pos = this.getPixelForTile(tile.x, tile.y + 0.6);
-      this.drawText(warningText, 'red', 8, pos.x, pos.y);
+      this.drawText(warningText, 'red', undefined, pos.x, pos.y);
     }
   }
 
