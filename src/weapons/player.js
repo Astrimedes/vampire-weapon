@@ -17,11 +17,19 @@ export default class Player extends Weapon {
     };
     super(game, map, wpnOptions, true);
     this.isPlayer = true;
+
     this.blood = playerConfig.blood || 0;
     this.speed = playerConfig.speed || 0;
+    this.charmConfig = { ...wpnOptions.charmConfig };
 
     // array of names of abilities player has chosen
     this.abilities = Array.from(playerConfig?.abilities?.length ? playerConfig.abilities : []);
+  }
+
+  setFromTemplate(weaponType) {
+    super.setFromTemplate(weaponType);
+
+    this.charmConfig = { ...weaponType.charmConfig };
   }
 
   /**
@@ -55,10 +63,11 @@ export default class Player extends Weapon {
    * @param {import('../creatures/creature').default} creature
    */
   charm(creature) {
-    let charmed = creature.charm(this);
-    if (!charmed) return false;
+    const charmHit = { power: this.charmConfig.power, stuns: this.charmConfig.stuns || false };
+    let charmed = creature.charm(charmHit);
 
-    charmed = this.setWielder(creature);
+    this.game.hud.writeMessage(`You try to CHARM the ${creature.name}...`);
+
     return charmed;
   }
 

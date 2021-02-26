@@ -30,3 +30,7 @@
 1. 'Blink' - teleport somewhere else in x+2 range
 2. 'Shield' - grant player wielder +x armor
 3. 'Push' - push enemy back 1+x tiles
+
+# Visual Ideas
+1. Create a spark (particle) animation for parry
+2.

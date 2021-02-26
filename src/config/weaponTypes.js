@@ -1,35 +1,56 @@
-import {Sprite} from '../../assets/sprite-index';
+import { Sprite } from '../../assets/sprite-index';
+
+let baseDamage = 4;
+
+let baseParry = baseDamage;
+let baseParryFreq = 1;
+
+let baseReach = 1;
+
+let baseHp = 4;
+
+
+let baseCharm = {
+  power: 0.667,
+  stuns: false
+};
 
 const weaponTypes = [
   {
     name: 'sword',
-    reach: 1,
-    damage: 4,
-    parry: 6,
-    parryFrequency: 3,
+    reach: baseReach,
+    damage: baseDamage,
+    parry: baseParry,
+
+    parryFrequency: baseParryFreq,
     spriteNumber: Sprite.Weapon.sword,
     drawSprite: true,
-    maxHp: 4
+    maxHp: baseHp,
+    charmConfig: { ...baseCharm }
   },
   {
     name: 'axe',
-    reach: 1,
-    damage: 6,
-    parry: 4,
-    parryFrequency: 3,
+    reach: baseReach,
+    damage: baseDamage * 1.5,
+    parry: baseParry,
+
+    parryFrequency: baseParryFreq,
     spriteNumber: Sprite.Weapon.axe,
     drawSprite: true,
-    maxHp: 4
+    maxHp: baseHp,
+    charmConfig: { ...baseCharm }
   },
   {
     name: 'spear',
-    reach: 2,
-    damage: 4,
-    parry: 2,
-    parryFrequency: 3,
+    reach: baseReach * 2,
+    damage: baseDamage,
+    parry: baseParry * 0.5,
+
+    parryFrequency: baseParryFreq,
     spriteNumber: Sprite.Weapon.spear,
     drawSprite: true,
-    maxHp: 4
+    maxHp: baseHp,
+    charmConfig: { ...baseCharm }
   }
 ];
 

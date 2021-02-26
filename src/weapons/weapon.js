@@ -141,11 +141,6 @@ export default class Weapon {
   tick() {
     this.attacking = false;
     this.lastTarget = null;
-
-    if (this?.wielder?.hp && !this.wielder.canParry) {
-      this.wielder.canParry = (this.game.turnCount - this.lastParryTurn) >= this.parryFrequency;
-      this.isPlayer && this.wielder.canParry && this.parry && this.game.hud.writeMessage('You are ready to parry attacks!');
-    }
   }
 
   beginAnimation(xTarget, yTarget, interp = (t) => easeOut(easeIn(t)), duration = 170) {

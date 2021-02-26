@@ -1,5 +1,6 @@
 import BloodItem from '../items/all/blood.js';
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
+import Fist from '../weapons/fist.js';
 
 let ID = 0;
 
@@ -26,7 +27,7 @@ export default class Creature {
     this.game = game;
     this.map = map;
     /**
-     * @type {Tile} tile
+     * @type {import('../map/tile').Tile} tile
      */
     this.tile = null;
     this.move(tile);
@@ -98,6 +99,11 @@ export default class Creature {
     this.controlResist = 0.2;
 
     this.wield(weapon);
+
+    // save enemy weapon to restore if player leaves
+    if (!weapon.isPlayer) {
+      this.baseWeapon = weapon;
+    }
   }
 
   isStunned() {
@@ -170,16 +176,14 @@ export default class Creature {
 
   /**
    *
-   * @param {import('../weapons/player').default} player
+   * @param {object} charmObject
+   * @param {number} charmObject.power
+   * @param {boolean} charmObject.stuns
    */
-  charm(player) {
+  charm(charmObject) {
     // apply charm
-    this.control += (player.charmPower || 0.5) * (1.0 - this.controlResist);
-    if (this.control >= 1) {
-      return true;
-    }
-
-    return false;
+    this.control += (charmObject.power || 0) * (1.0 - this.controlResist);
+    return this.control >= 1;
   }
 
   hit(dmg, attacker) {
@@ -187,9 +191,11 @@ export default class Creature {
     if ((this?.weapon?.parry && this.canParry) || this.defending) {
       let weaponParry = Math.max(Math.floor((this.weapon.parry || 0) / 2), 1);
       parry = Math.floor(Math.min(dmg, this.defending ? weaponParry + Math.max(1, weaponParry / 2) : weaponParry));
-      this.weapon.lastParryTurn = this.game.turnCount;
-      this.canParry = false;
     }
+
+    // reset parry turn
+    this.weapon.lastParryTurn = this.game.turnCount + (this.isPlayer ? 0 : 1);
+    this.canParry = false;
 
     this.hp -= dmg - parry;
     this.dead = this.hp <= 0;
@@ -339,10 +345,11 @@ export default class Creature {
 
     // reset hp
     this.maxHp = Math.max(1, this.maxHp - (this.weapon.maxHp || 0));
-    this.hp = Math.max(0, this.hp - (this.weapon.maxHp || 0));
+    this.hp = Math.max(1, this.hp - (this.weapon.maxHp || 0));
 
     // wield last (original?) weapon
-    this.weapon = null;
+    this.wield(new Fist(this.game, this.game.map));
+
     this.control = 0;
     // this.hp && this.lastWeapon && this.wield(this.lastWeapon);
   }
@@ -370,7 +377,7 @@ export default class Creature {
     this.lastMoveX = tile.x - this.x;
     this.lastMoveY = tile.y - this.y;
 
-    if (this.tile) {
+    if (this.tile && !this.tile.isSameTile(tile)) {
       this.tile.creature = null;
       this.beginAnimation(tile.x, tile.y);
     }
@@ -464,6 +471,12 @@ export default class Creature {
     this.playerHit = Math.max(this.playerHit - 1, 0);
 
     this.defending = false;
+
+    // resolve parry ability
+    if (this.hp && !this.canParry) {
+      this.canParry = (this.game.turnCount - this.weapon.lastParryTurn) >= this.weapon.parryFrequency;
+      this.isPlayer && this.canParry && this.parry && this.game.hud.writeMessage('You are ready to parry attacks!');
+    }
   }
 
   act() {
@@ -484,19 +497,5 @@ export default class Creature {
       }
     }
     return moved;
-  }
-
-  createPlayerBody(player) {
-    /**
-     * @type {Creature} playerBody
-     */
-    let playerBody = new this.constructor(this.game, this.map, this.tile);
-    playerBody.wield(player);
-    // set facing to match original body
-    playerBody.lastMoveX = this.lastMoveX;
-    playerBody.lastMoveY = this.lastMoveY;
-    playerBody.isPlayer = true;
-    playerBody.asleep = false;
-    return playerBody;
   }
 }

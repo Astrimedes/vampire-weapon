@@ -91,6 +91,10 @@ class Tile {
       }
     }
   }
+
+  isSameTile(otherTile) {
+    return otherTile.x == this.x && otherTile.y == this.y;
+  }
 }
 
 class Floor extends Tile {

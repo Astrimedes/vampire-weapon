@@ -49,7 +49,7 @@ export default class Game {
       // charm fn
       const charmFn = (monster) => {
         // do charm
-        let charmed = monster.charm(this.player);
+        let charmed = this.player.charm(monster);
         if (charmed) {
           this.charmMonster(monster);
         }
@@ -284,7 +284,8 @@ export default class Game {
       parryFrequency: currentPlayer?.parryFrequency || 4,
       spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
       maxHp: currentPlayer?.maxHp || 0,
-      abilities: currentPlayer?.abilities || []
+      abilities: currentPlayer?.abilities || [],
+      charmConfig: { ...(currentPlayer?.charmConfig || {}) }
     };
 
     // create player
@@ -425,18 +426,32 @@ export default class Game {
    */
   charmMonster(monster) {
     // check valid target
-    let pbody = this?.player?.wielder;
-    let tile = monster.tile;
-    if (!pbody || !monster || monster?.isPlayer || !tile) return false;
-    let lastHp = pbody.hp;
+    let oldPBody = this?.player?.wielder;
 
-    pbody.unWield();
-    pbody.die();
-
+    this.player.setWielder(monster);
     monster.wield(this.player);
-    monster.hp = Math.min(monster.maxHp, lastHp);
+
+    monster.hp = Math.max(0, Math.min(monster.maxHp, oldPBody.hp));
+    monster.control = 1;
+
+    // add old body back to monsters
+    if (oldPBody) {
+      oldPBody.unWield();
+      oldPBody.control = 0;
+
+      if (oldPBody.hp) {
+        // make asleep after control
+        oldPBody.asleep = true;
+        // add to ai processing
+        this.addMonster(oldPBody);
+      } else {
+        oldPBody.die();
+        this.corpses.push(oldPBody);
+      }
+    }
 
     this.hud.writeMessage(`The charmed ${monster.name} wields you!`);
+    console.log('old player body:', );
   }
 
   beginGameLoop () {
@@ -487,7 +502,7 @@ export default class Game {
         });
 
         // draw player
-        this.renderer.drawTileRect(this.player.tile.x, this.player.tile.y, 'steelblue', 0.4); // outline
+        this.renderer.drawTileRect(this.player.tile.x, this.player.tile.y, 'orange', 0.4); // outline
         if (this.player.wielder) {
           this.renderer.drawCreature(this.player.wielder, !stopAnimation);
           stopAnimation && (this.player.stopAnimation() & this.player.wielder.stopAnimation());
