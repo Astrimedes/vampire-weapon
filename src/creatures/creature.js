@@ -178,11 +178,20 @@ export default class Creature {
    *
    * @param {object} charmObject
    * @param {number} charmObject.power
-   * @param {boolean} charmObject.stuns
+   * @param {{name: string, effect: function}} charmObject.curse
    */
   charm(charmObject) {
     // apply charm
-    this.control += (charmObject.power || 0) * (1.0 - this.controlResist);
+    this.control += (charmObject.power) * (1.0 - this.controlResist);
+
+    // apply curse to self
+    charmObject.curse.effect(this);
+    this.game.hud.writeMessage(`${this.isPlayer ? 'You' : 'The ' + this.name} is cursed with ${charmObject.curse.name}!`);
+    // add to list of curse applied
+    this.curses = this.curses || [];
+    this.curses.push({ ...charmObject.curse });
+
+    // return indicator of complete control
     return this.control >= 1;
   }
 

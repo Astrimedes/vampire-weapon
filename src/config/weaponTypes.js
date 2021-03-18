@@ -9,10 +9,12 @@ let baseReach = 1;
 
 let baseHp = 4;
 
-
 let baseCharm = {
   power: 0.667,
-  stuns: false
+  curses: [
+    { name: 'weakness', effect: target => target.strength = (target.strength || 0) - 1 },
+    { name: 'sluggishness', effect: target => target.agility = (target.agility || 0) - 1 }
+  ]
 };
 
 const weaponTypes = [

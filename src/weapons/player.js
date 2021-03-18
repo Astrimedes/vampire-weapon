@@ -1,6 +1,7 @@
 import { GameState } from '../systems/gamestate.js';
 import { Actions } from '../systems/inputReader.js';
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
+import { Rng } from '../tools/randoms.js';
 import Weapon from './weapon.js';
 
 export default class Player extends Weapon {
@@ -63,10 +64,12 @@ export default class Player extends Weapon {
    * @param {import('../creatures/creature').default} creature
    */
   charm(creature) {
-    const charmHit = { power: this.charmConfig.power, stuns: this.charmConfig.stuns || false };
+    // pick a curse
+    let curse = Rng.any(this.charmConfig.curses);
+    const charmHit = { curse, power: this.charmConfig.power };
     let charmed = creature.charm(charmHit);
 
-    this.game.hud.writeMessage(`You try to CHARM the ${creature.name}...`);
+    this.game.hud.writeMessage(`You CURSE the ${creature.name}...`);
 
     return charmed;
   }

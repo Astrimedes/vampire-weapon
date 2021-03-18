@@ -46,6 +46,12 @@ export default class Game {
         return this.sendUserAction(Actions.ok);
       }
 
+      const COST = 1;
+      if ((this?.player?.blood || 0) < COST) {
+        return this.callMessageDialog(`Curse costs ${COST} blood`);
+      }
+      this.player.blood -= 1;
+
       // charm fn
       const charmFn = (monster) => {
         // do charm
@@ -68,7 +74,7 @@ export default class Game {
       }
 
       // complain about restrictions
-      this.callMessageDialog('You can only Charm adjacent, solitary enemies');
+      this.callMessageDialog('You can only Curse adjacent, solitary enemies');
 
       // show dialog
       // this.callDialog({
@@ -285,7 +291,7 @@ export default class Game {
       spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
       maxHp: currentPlayer?.maxHp || 0,
       abilities: currentPlayer?.abilities || [],
-      charmConfig: { ...(currentPlayer?.charmConfig || {}) }
+      charmConfig: undefined
     };
 
     // create player
@@ -295,9 +301,17 @@ export default class Game {
     let body = new BodyCreature(this, this.map, tile, this.player, {
       beginAwake: true
     }); // will attach to playerBody
+
     if (currentPlayer?.wielder?.hp) {
       // copy over previous values
       body.hp = currentPlayer.wielder.hp;
+      // re-apply curses
+      if (currentPlayer.wielder.curses) {
+        // apply fn
+        currentPlayer.wielder.curses.forEach(c => c.effect(body));
+        // update new body's curses
+        body.curses = Array.from(currentPlayer.wielder.curses);
+      }
     }
     this.player.lastParryTurn = 0;
     body.canParry = true;
@@ -450,8 +464,7 @@ export default class Game {
       }
     }
 
-    this.hud.writeMessage(`The charmed ${monster.name} wields you!`);
-    console.log('old player body:', );
+    this.hud.writeMessage(`The cursed ${monster.name} wields you!`);
   }
 
   beginGameLoop () {
@@ -749,7 +762,7 @@ export default class Game {
       this.hud.addControl('Defend', 0, this.waitFunction, '#71b238');
 
       // charm button
-      this.hud.addControl('Charm', 0, this.charmFunction, 'blue');
+      this.hud.addControl('Curse', 1, this.charmFunction, 'blue');
 
       // Blink special move
       if (this.player.abilities.includes('Blink')) {
