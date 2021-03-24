@@ -43,7 +43,9 @@ export default class Creature {
     this.strength = options.strength || 0;
     this.agility = options.agility || 0;
     this.resistance = options.resistance || 0;
-    this.bloodAmt = options.bloodAmt || Math.floor(hp/2);
+    this.bloodAmt = options.bloodAmt || Math.floor(hp / 2);
+
+    this.curses = [];
 
     this.allowedAttack = true;
 

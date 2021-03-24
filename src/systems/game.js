@@ -16,6 +16,7 @@ import { Actions, InputReader } from './inputReader.js';
 import weaponTypes from '../config/weaponTypes.js';
 import { allAbilities, getStartingAbilities } from '../abilities/all/index.js';
 import { blinkSpecial } from '../creatures/specials/all/blink.js';
+import { ArrayUtil } from '../tools/arrayutil.js';
 
 const TILE_SIZE = 64;
 
@@ -42,7 +43,7 @@ export default class Game {
     this.charmFunction = e => {
       e.preventDefault();
 
-      if (this.gameState !== GameState.Play) {
+      if (!this?.player?.wielder?.hp) {
         return this.sendUserAction(Actions.ok);
       }
 
@@ -291,7 +292,7 @@ export default class Game {
       spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
       maxHp: currentPlayer?.maxHp || 0,
       abilities: currentPlayer?.abilities || [],
-      charmConfig: undefined
+      charmConfig: currentPlayer?.charmConfig || []
     };
 
     // create player
@@ -306,12 +307,10 @@ export default class Game {
       // copy over previous values
       body.hp = currentPlayer.wielder.hp;
       // re-apply curses
-      if (currentPlayer.wielder.curses) {
-        // apply fn
-        currentPlayer.wielder.curses.forEach(c => c.effect(body));
-        // update new body's curses
-        body.curses = Array.from(currentPlayer.wielder.curses);
-      }
+      currentPlayer?.wielder?.curses?.forEach(c => {
+        c.effect(body);
+        body.curses.push(c);
+      });
     }
     this.player.lastParryTurn = 0;
     body.canParry = true;
@@ -712,6 +711,10 @@ export default class Game {
     });
   }
 
+  parseCurses(curses) {
+
+  }
+
   updateHud(clearAll) {
     if (clearAll) {
       this.hud.clearAllStatus();
@@ -743,6 +746,7 @@ export default class Game {
     this.hud.setStatusField('Parry ', parryText, parryColor);
     this.hud.addEmptyStatus('parrySpace');
 
+    // wielder stats
     let secondColor = 'darkcyan';
     this.hud.setStatusField({ id: 'creature', label: '' }, this?.player?.wielder?.name || '', secondColor);
     let sign = num => num >= 0 ? '+' : '';
@@ -752,6 +756,12 @@ export default class Game {
     this.hud.setStatusField('> Atk', sign(atk) + atk, secondColor);
     let par = (this?.player?.wielder?.agility || 0);
     this.hud.setStatusField('> Par', sign(par) + par, secondColor);
+    // curses - map unique values only
+    let curseString = '\n' + ArrayUtil.unique(this?.player?.wielder?.curses?.map((curse, index, array) => {
+      return curse.name + ': ' + array.filter(c => c.name == curse.name).length;
+    }))?.join('\n');
+
+    this.hud.setStatusField('Curses', curseString, secondColor);
 
     this.hud.addEmptyStatus('creatureSpace');
     // add wait button to hud
