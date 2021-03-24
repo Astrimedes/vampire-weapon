@@ -105,6 +105,19 @@ export default class Renderer {
     this.ctx.restore();
   }
 
+  drawTileOutline(x, y, color = 'darkgreen', alpha = 0.85, lineWidth = 4) {
+    this.ctx.save();
+    let xDraw = (x * this.tileSize * this.scaleX);
+    let yDraw = (y * this.tileSize * this.scaleY);
+    let sideX = (this.tileSize * this.scaleX);
+    let sideY = (this.tileSize * this.scaleY);
+    this.ctx.strokeStyle = color;
+    this.ctx.globalAlpha = alpha;
+    this.ctx.lineWidth = lineWidth;
+    this.ctx.strokeRect(xDraw, yDraw, sideX, sideY);
+    this.ctx.restore();
+  }
+
   drawText(text, color = 'yellow', size = 24, x = null, y = null) {
     this.ctx.save();
 
@@ -239,11 +252,17 @@ export default class Renderer {
   drawMeter(x, y, width, height, amount, max, bgColor = '#AE0D7A', foreColor = '#559E54') {
     this.ctx.save();
 
+    // meter
     this.ctx.fillStyle = bgColor;
     this.ctx.fillRect(x, y, width, height);
-
     this.ctx.fillStyle = foreColor;
     this.ctx.fillRect(x, y, width * (amount / max), height);
+
+    // outline
+    this.ctx.strokeStyle = 'black';
+    let lineWidth = Math.max(2, Math.min(width, height) / 12);
+    this.ctx.lineWidth = lineWidth;
+    this.ctx.strokeRect(x, y, width, height);
 
     this.ctx.restore();
   }

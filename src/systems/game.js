@@ -43,7 +43,7 @@ export default class Game {
     this.charmFunction = e => {
       e.preventDefault();
 
-      if (!this?.player?.wielder?.hp) {
+      if (!this?.player?.wielder?.hp || this.gameState !== GameState.Play) {
         return this.sendUserAction(Actions.ok);
       }
 
@@ -67,9 +67,9 @@ export default class Game {
 
       // find nearby creatures, auto-select if only 1
       let creatures = this.map.getAdjacentNeighbors(this.player.tile).map((t) => {
-        return t?.creature?.hp && !t.creature.isPlayer ? t.creature : null;
-      }).filter(t => t);
-      if (creatures?.length == 1) {
+        return t?.creature?.hp && !t.creature.isPlayer && t.creature.tile == t ? t.creature : null;
+      }).filter(c => c !== null);
+      if (creatures.length == 1) {
         charmFn(creatures[0]);
         return;
       }
@@ -514,7 +514,7 @@ export default class Game {
         });
 
         // draw player
-        this.renderer.drawTileRect(this.player.tile.x, this.player.tile.y, 'orange', 0.4); // outline
+        this.renderer.drawTileOutline(this.player.tile.x, this.player.tile.y, 'orange'); // outline
         if (this.player.wielder) {
           this.renderer.drawCreature(this.player.wielder, !stopAnimation);
           stopAnimation && (this.player.stopAnimation() & this.player.wielder.stopAnimation());
