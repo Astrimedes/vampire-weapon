@@ -416,11 +416,11 @@ export default class Creature {
 
   // check for waking...
   tryWake() {
-    if (this.asleep && this?.game?.player?.wielder?.hp) {
+    if (this.asleep && !this?.game?.player?.wielder?.dead) {
       // check for any non-sleeping, non-stunned monster in range - add player
       let wakers = Array.from(this.game.monsters);
       wakers.push(this.game?.player?.wielder);
-      let waker = wakers.find(m => m && m.hp && !m.asleep && (m.isPlayer || m.stunned <= 0) && this.game.map.diagDist(this.tile, m.tile) <= this.noticeRange);
+      let waker = wakers.find(m => m && !m.dead && !m.asleep && (m.isPlayer || m.stunned <= 0) && this.game.map.diagDist(this.tile, m.tile) <= this.noticeRange);
       if (waker) {
         this.wake();
         return true;
@@ -484,7 +484,7 @@ export default class Creature {
     this.defending = false;
 
     // resolve parry ability
-    if (this.hp && !this.canParry) {
+    if (!this.dead && !this.canParry) {
       this.canParry = (this.game.turnCount - this.weapon.lastParryTurn) >= this.weapon.parryFrequency;
       this.isPlayer && this.canParry && this.parry && this.game.hud.writeMessage('You are ready to parry attacks!');
     }

@@ -43,7 +43,7 @@ export default class Game {
     this.charmFunction = e => {
       e.preventDefault();
 
-      if (!this?.player?.wielder?.hp || this.gameState !== GameState.Play) {
+      if (!this.player || this.player?.wielder?.dead || this.gameState !== GameState.Play) {
         return this.sendUserAction(Actions.ok);
       }
 
@@ -67,7 +67,7 @@ export default class Game {
 
       // find nearby creatures, auto-select if only 1
       let creatures = this.map.getAdjacentNeighbors(this.player.tile).map((t) => {
-        return t?.creature?.hp && !t.creature.isPlayer && t.creature.tile == t ? t.creature : null;
+        return t.creature && !t.creature.dead && !t.creature.isPlayer && t.creature.tile == t ? t.creature : null;
       }).filter(c => c !== null);
       if (creatures.length == 1) {
         charmFn(creatures[0]);
@@ -303,7 +303,7 @@ export default class Game {
       beginAwake: true
     }); // will attach to playerBody
 
-    if (currentPlayer?.wielder?.hp) {
+    if (currentPlayer && !currentPlayer?.wielder?.dead) {
       // copy over previous values
       body.hp = currentPlayer.wielder.hp;
       // re-apply curses
