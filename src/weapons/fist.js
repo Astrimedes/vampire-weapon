@@ -2,8 +2,9 @@ import { Sprite } from '../../assets/sprite-index';
 import Weapon from './weapon';
 import weaponTypes from '../config/weaponTypes';
 
-const baseDamage = weaponTypes[0].damage;
-const baseParry = weaponTypes[0].parry;
+const factor = 0.75;
+const baseDamage = Math.floor(weaponTypes[0].damage * factor );
+const baseParry = Math.floor(weaponTypes[0].parry * factor);
 const baseParryFreq = weaponTypes[0].parryFrequency;
 
 export default class Fist extends Weapon {

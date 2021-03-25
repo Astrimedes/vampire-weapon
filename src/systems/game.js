@@ -17,6 +17,7 @@ import weaponTypes from '../config/weaponTypes.js';
 import { allAbilities, getStartingAbilities } from '../abilities/all/index.js';
 import { blinkSpecial } from '../creatures/specials/all/blink.js';
 import { ArrayUtil } from '../tools/arrayutil.js';
+import Fist from '../weapons/fist.js';
 
 const TILE_SIZE = 64;
 
@@ -47,11 +48,11 @@ export default class Game {
         return this.sendUserAction(Actions.ok);
       }
 
-      const COST = 1;
+      const COST = 0;
       if ((this?.player?.blood || 0) < COST) {
         return this.callMessageDialog(`Curse costs ${COST} blood`);
       }
-      this.player.blood -= 1;
+      this.player.blood -= COST;
 
       // charm fn
       const charmFn = (monster) => {
@@ -251,6 +252,8 @@ export default class Game {
   }
 
   setupPlayerFromConfig(weaponConfig) {
+    this.weaponConfig = { ...weaponConfig };
+
     // unwield now so that maxHp adjustments work as expected
     let wielder = this?.player?.wielder;
     if (wielder) {
@@ -292,26 +295,36 @@ export default class Game {
       spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
       maxHp: currentPlayer?.maxHp || 0,
       abilities: currentPlayer?.abilities || [],
-      charmConfig: currentPlayer?.charmConfig || []
+      charmConfig: currentPlayer?.charmConfig || this?.weaponConfig?.charmConfig || weaponTypes[0]?.charmConfig || []
     };
 
     // create player
     this.player = new Player(this, this.map, playerConfig);
     // create player body
     let BodyCreature = currentPlayer?.wielder?.constructor || Chump;
-    let body = new BodyCreature(this, this.map, tile, this.player, {
+    let body = new BodyCreature(this, this.map, tile, new Fist(), {
       beginAwake: true
     }); // will attach to playerBody
 
+    // copy over previous values
     if (currentPlayer && !currentPlayer?.wielder?.dead) {
-      // copy over previous values
       body.hp = currentPlayer.wielder.hp;
       // re-apply curses
       currentPlayer?.wielder?.curses?.forEach(c => {
         c.effect(body);
         body.curses.push(c);
       });
+    // or apply curses and charm new body
+    } else {
+      // do charm on new body
+      let charmed = false;
+      while (!charmed) {
+        charmed = this.player.charm(body);
+      }
+      this.charmMonster(body);
     }
+
+
     this.player.lastParryTurn = 0;
     body.canParry = true;
 
@@ -444,7 +457,7 @@ export default class Game {
     this.player.setWielder(monster);
     monster.wield(this.player);
 
-    monster.hp = Math.max(0, Math.min(monster.maxHp, oldPBody.hp));
+    monster.hp = Math.max(0, Math.min(monster.maxHp, oldPBody?.hp || 99));
     monster.control = 1;
 
     // add old body back to monsters
@@ -711,8 +724,15 @@ export default class Game {
     });
   }
 
+  /**
+   * Return string representation of an array of curse objects
+   * @param {Array<{name: string, effect: function}>} curses
+   * @returns string
+   */
   parseCurses(curses) {
-
+    return '\n' + ArrayUtil.unique(curses?.map((curse, index, array) => {
+      return curse.name + ': ' + array.filter(c => c.name == curse.name).length;
+    }))?.join('\n');
   }
 
   updateHud(clearAll) {
@@ -757,10 +777,7 @@ export default class Game {
     let par = (this?.player?.wielder?.agility || 0);
     this.hud.setStatusField('> Par', sign(par) + par, secondColor);
     // curses - map unique values only
-    let curseString = '\n' + ArrayUtil.unique(this?.player?.wielder?.curses?.map((curse, index, array) => {
-      return curse.name + ': ' + array.filter(c => c.name == curse.name).length;
-    }))?.join('\n');
-
+    let curseString = this.parseCurses(this.player?.wielder?.curses);
     this.hud.setStatusField('Curses', curseString, secondColor);
 
     this.hud.addEmptyStatus('creatureSpace');
@@ -772,7 +789,7 @@ export default class Game {
       this.hud.addControl('Defend', 0, this.waitFunction, '#71b238');
 
       // charm button
-      this.hud.addControl('Curse', 1, this.charmFunction, 'blue');
+      this.hud.addControl('Curse', 0, this.charmFunction, 'blue');
 
       // Blink special move
       if (this.player.abilities.includes('Blink')) {

@@ -7,7 +7,7 @@ let baseParryFreq = 1;
 
 let baseReach = 1;
 
-let baseHp = 4;
+let baseHp = 8;
 
 let baseCharm = {
   power: 0.667,
