@@ -18,6 +18,7 @@ import { allAbilities, getStartingAbilities } from '../abilities/all/index.js';
 import { blinkSpecial } from '../creatures/specials/all/blink.js';
 import { ArrayUtil } from '../tools/arrayutil.js';
 import Fist from '../weapons/fist.js';
+import Creature from '../creatures/creature.js';
 
 const TILE_SIZE = 64;
 
@@ -44,7 +45,7 @@ export default class Game {
     this.charmFunction = e => {
       e.preventDefault();
 
-      if (!this.player || this.player?.wielder?.dead || this.gameState !== GameState.Play) {
+      if (!this.player || this.player?.wielder?.dead || !this.gameState.hasMap) {
         return this.sendUserAction(Actions.ok);
       }
 
@@ -302,12 +303,15 @@ export default class Game {
     this.player = new Player(this, this.map, playerConfig);
     // create player body
     let BodyCreature = currentPlayer?.wielder?.constructor || Chump;
+    /**
+     * @type {Creature}
+     */
     let body = new BodyCreature(this, this.map, tile, new Fist(), {
       beginAwake: true
     }); // will attach to playerBody
 
     // copy over previous values
-    if (currentPlayer && !currentPlayer?.wielder?.dead) {
+    if (currentPlayer && currentPlayer?.wielder?.hp) {
       body.hp = currentPlayer.wielder.hp;
       // re-apply curses
       currentPlayer?.wielder?.curses?.forEach(c => {
@@ -321,8 +325,8 @@ export default class Game {
       while (!charmed) {
         charmed = this.player.charm(body);
       }
-      this.charmMonster(body);
     }
+    this.charmMonster(body);
 
 
     this.player.lastParryTurn = 0;
@@ -736,6 +740,10 @@ export default class Game {
   }
 
   updateHud(clearAll) {
+    if (!this.gameState.hasMap) {
+      return;
+    }
+
     if (clearAll) {
       this.hud.clearAllStatus();
     }
@@ -777,7 +785,7 @@ export default class Game {
     let par = (this?.player?.wielder?.agility || 0);
     this.hud.setStatusField('> Par', sign(par) + par, secondColor);
     // curses - map unique values only
-    let curseString = this.parseCurses(this.player?.wielder?.curses);
+    let curseString = this.parseCurses(this.player?.wielder?.curses || []);
     this.hud.setStatusField('Curses', curseString, secondColor);
 
     this.hud.addEmptyStatus('creatureSpace');

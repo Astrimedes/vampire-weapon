@@ -219,12 +219,12 @@ export default class Renderer {
         this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
           fullWidth * (1-margin), height,
           creature.control, 1, 'black', 'blue');
-      } else {
-        // hp meter
-        this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
-          fullWidth * (1-margin), height,
-          creature.hp || 0, creature.maxHp || 1);
+        pos.y += height * 1.2;
       }
+      // hp meter
+      this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
+        fullWidth * (1-margin), height,
+        creature.hp || 0, creature.maxHp || 1);
 
       // draw status effects
       let xAmt = 0.3;

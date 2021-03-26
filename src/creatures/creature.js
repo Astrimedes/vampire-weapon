@@ -213,9 +213,6 @@ export default class Creature {
 
     this.playerKilled = attacker?.isPlayer || false;
 
-    // hit will reset control
-    this.control = 0;
-
     return parry;
   }
 
@@ -351,6 +348,10 @@ export default class Creature {
   }
 
   unWield() {
+    if (this.isPlayer) {
+      this.control = 0;
+    }
+
     this.isPlayer = false;
     if (!this.weapon) return;
 
@@ -360,9 +361,6 @@ export default class Creature {
 
     // wield last (original?) weapon
     this.wield(new Fist(this.game, this.game.map));
-
-    this.control = 0;
-    // this.hp && this.lastWeapon && this.wield(this.lastWeapon);
   }
 
   /**
