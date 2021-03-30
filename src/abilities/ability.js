@@ -23,11 +23,6 @@ class Ability {
    */
   applyAbility(game, player) {
     this.effectFn(player);
-
-    // remove this ability once chosen
-    if (!this.oneTime) {
-      this.cost *= 2;
-    }
   }
 }
 

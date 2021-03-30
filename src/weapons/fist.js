@@ -3,8 +3,8 @@ import Weapon from './weapon';
 import weaponTypes from '../config/weaponTypes';
 
 const factor = 0.75;
-const baseDamage = Math.floor(weaponTypes[0].damage * factor );
-const baseParry = Math.floor(weaponTypes[0].parry * factor);
+const baseDamage = Math.max(1, Math.floor(weaponTypes[0].damage * factor ) - 1);
+const baseParry = Math.max(1, Math.floor(weaponTypes[0].parry * factor) - 1);
 const baseParryFreq = weaponTypes[0].parryFrequency;
 
 export default class Fist extends Weapon {

@@ -16,11 +16,12 @@ export default class BloodItem extends Item {
         c.weapon.blood += i.blood;
 
         // heal - 25% of creature health
-        const heal = Math.min(c.maxHp - c.hp, Math.max(2, Math.floor((c.maxHp - c.weapon.maxHp) * 0.25)));
+        // const heal = Math.min(c.maxHp - c.hp, Math.max(2, Math.floor((c.maxHp - c.weapon.maxHp) * 0.25)));
+        const heal = i.blood;
         c.hp = Math.min(c.hp + heal, c.maxHp);
 
         // write
-        let msgText = `You collect ${i.blood} blood` + (heal ? `, and your wielder heals ${heal} damage.` : '.');
+        let msgText = `Your wielder heals ${heal} damage.`;
         c.game.hud.writeMessage(msgText);
         return true;
       }

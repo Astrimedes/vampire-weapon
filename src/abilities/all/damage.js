@@ -1,6 +1,6 @@
 import { Ability } from '../ability';
 
-const AMT = 1;
+const AMT = 2;
 
 /**
  *
@@ -15,7 +15,7 @@ export default class DamageAbility extends Ability {
     super({
       name: 'Damage',
       description: `Deal +${AMT} damage`,
-      cost: 16,
+      cost: 5,
       effectFn
     });
   }

@@ -11,9 +11,12 @@ export default class Spider extends Creature {
    * @param {Tile} tile
    */
   constructor(game, map, tile, weapon = new Fist(game, map), options = {}) {
-    super(game, map, tile, Sprite.Creature.spider, 14, weapon, {
+    super(game, map, tile, Sprite.Creature.spider, 12, weapon, {
       ignoreWalls: true,
       noticeRange: 8,
+      controlResist: 0.75,
+      strength: 1,
+      agility: 2,
       ...options
     });
   }

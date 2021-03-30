@@ -27,8 +27,9 @@ export default class SlowGuy extends Creature {
    */
   constructor(game, map, tile, weapon = new SlowWeapon(game, map), options = {}) {
     super(game, map, tile, Sprite.Creature.slowguy, 18, weapon, {
-      strength: 2,
-      agility: -1,
+      strength: 3,
+      agility: 0,
+      controlResist: 0.5,
       ...options
     });
   }

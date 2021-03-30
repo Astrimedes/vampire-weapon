@@ -1,10 +1,12 @@
 import Special from '../special';
-import {TargetType} from '../targetType';
+import { TargetType } from '../targetType';
+
+const COST = 4;
 
 const blinkSpecial = new Special({
   name: 'Blink',
   targetType: TargetType.Tile,
-  useCost: 13,
+  useCost: COST,
   usesAction: true,
   range: 2,
   /**
@@ -13,6 +15,7 @@ const blinkSpecial = new Special({
    * @param {import('../../../map/tile').Tile} tile
    */
   effectFn: (self, tile) => {
+    console.log(`Blink fn called: self: ${self}, tile: ${tile}`);
     if (tile.passable && !tile.creature) {
       // check distance
       if (self.game.map.diagDist(self.tile, tile) > blinkSpecial.range) return false;
@@ -21,6 +24,11 @@ const blinkSpecial = new Special({
       let name = self.isPlayer ? 'You' : 'The ' + self.name;
       let verb = self.isPlayer ? 'teleport' : 'teleports';
       self.game.hud.writeMessage(`${name} ${verb}!`);
+
+      // deduct blood cost
+      if (self.isPlayer) {
+        self.hp -= COST;
+      }
       return true;
     }
     return false;

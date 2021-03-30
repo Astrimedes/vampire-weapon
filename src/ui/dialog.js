@@ -136,9 +136,11 @@ class Dialog {
     let form = document.getElementById(ID_FORM);
     form.reset();
 
+    const health = (player?.wielder?.hp || 0);
+
     // create radio items
     let content = available.map((a, i) => {
-      let disabled = a.cost > player.blood ? 'disabled' : '';
+      let disabled = (a.cost > (health - 1)) ? 'disabled' : '';
       let style = disabled ? 'color: darkgray;' : '';
       return `
       <label style="${style}" for="field-${i}">

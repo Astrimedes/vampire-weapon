@@ -1,6 +1,6 @@
 import { Ability } from '../ability';
 
-const AMT = 2;
+const AMT = 4;
 
 /**
  *
@@ -15,7 +15,7 @@ export default class ParryAbility extends Ability {
     super({
       name: 'Parry',
       description: `Parry blocks +${AMT/2} damage`,
-      cost: 16,
+      cost: 4,
       effectFn
     });
   }

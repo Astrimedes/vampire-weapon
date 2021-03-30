@@ -18,7 +18,6 @@ import { allAbilities, getStartingAbilities } from '../abilities/all/index.js';
 import { blinkSpecial } from '../creatures/specials/all/blink.js';
 import { ArrayUtil } from '../tools/arrayutil.js';
 import Fist from '../weapons/fist.js';
-import Creature from '../creatures/creature.js';
 
 const TILE_SIZE = 64;
 
@@ -27,6 +26,9 @@ const assets = {};
 export default class Game {
   constructor() {
     this.unloadAssets();
+    /**
+     * @type {GameState} gameState
+     */
     this.gameState = null;
     this.inputState = InputStates.None;
     this.turnCount = 0;
@@ -50,10 +52,10 @@ export default class Game {
       }
 
       const COST = 0;
-      if ((this?.player?.blood || 0) < COST) {
-        return this.callMessageDialog(`Curse costs ${COST} blood`);
+      if ((this?.player?.wielder?.hp || 0) < COST + 1) {
+        return this.callMessageDialog(`Curse costs ${COST} health!`);
       }
-      this.player.blood -= COST;
+      this.player.wielder.hp -= COST;
 
       // charm fn
       const charmFn = (monster) => {
@@ -166,8 +168,12 @@ export default class Game {
   sendUserTileSelect(tile) {
     if (this.inputState !== InputStates.None) {
       // call input callback
-      this.inputState.tileAction(this, tile);
+      let result = !!this.inputState.tileAction(this, tile);
+      if (result) {
+        this.resetInputActions();
+      }
     }
+
   }
 
   loadAssets (force = false) {
@@ -288,13 +294,13 @@ export default class Game {
 
     let playerConfig = {
       damage: (currentPlayer?.dmg || currentPlayer?.damage) || 1,
-      blood: currentPlayer ? (currentPlayer?.blood || 0) : 5,
       speed: currentPlayer?.speed || 0,
       reach: currentPlayer?.reach || 1,
       parry: currentPlayer?.parry || 1,
       parryFrequency: currentPlayer?.parryFrequency || 4,
       spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
       maxHp: currentPlayer?.maxHp || 0,
+      currentHp: currentPlayer?.wielder?.hp || undefined,
       abilities: currentPlayer?.abilities || [],
       charmConfig: currentPlayer?.charmConfig || this?.weaponConfig?.charmConfig || weaponTypes[0]?.charmConfig || []
     };
@@ -307,12 +313,13 @@ export default class Game {
      * @type {Creature}
      */
     let body = new BodyCreature(this, this.map, tile, new Fist(), {
-      beginAwake: true
+      beginAwake: true,
+      currentHp: playerConfig.currentHp
     }); // will attach to playerBody
 
     // copy over previous values
-    if (currentPlayer && currentPlayer?.wielder?.hp) {
-      body.hp = currentPlayer.wielder.hp;
+    let previousHp = currentPlayer?.wielder?.hp;
+    if (currentPlayer && previousHp) {
       // re-apply curses
       currentPlayer?.wielder?.curses?.forEach(c => {
         c.effect(body);
@@ -327,7 +334,7 @@ export default class Game {
       }
     }
     this.charmMonster(body);
-
+    // body.hp = previousHp || body.hp;
 
     this.player.lastParryTurn = 0;
     body.canParry = true;
@@ -461,7 +468,6 @@ export default class Game {
     this.player.setWielder(monster);
     monster.wield(this.player);
 
-    monster.hp = Math.max(0, Math.min(monster.maxHp, oldPBody?.hp || 99));
     monster.control = 1;
 
     // add old body back to monsters
@@ -471,7 +477,7 @@ export default class Game {
 
       if (oldPBody.hp) {
         // make asleep after control
-        oldPBody.asleep = true;
+        // oldPBody.asleep = true;
         // add to ai processing
         this.addMonster(oldPBody);
       } else {
@@ -618,13 +624,17 @@ export default class Game {
       submit: (data) => {
         let ability = available.find(a => a.name == data);
         if (ability) {
-          this.player.blood -= ability.cost || 0;
 
           this.player.addAbility(ability);
           if (ability.oneTime) {
             let idx = allAbilities.findIndex(a => a == ability);
             idx !== -1 && allAbilities.splice(idx, 1);
           }
+
+          // hp cost
+          console.log('applying hp cost for ability');
+          console.log(ability);
+          this.player.wielder.hp -= ability.cost;
 
           // disable shop tile after purchase
           this?.player?.wielder?.tile?.deactivate();
@@ -750,7 +760,7 @@ export default class Game {
 
     let infoColor = 'gray';
     this.hud.setStatusField('Level', this.level, infoColor);
-    this.hud.setStatusField('Blood:', this?.player?.blood || 0, infoColor);
+    // this.hud.setStatusField('Blood:', this?.player?.blood || 0, infoColor);
     this.hud.addEmptyStatus('levelSpace');
 
     let dangerColor = 'yellow';
@@ -814,12 +824,11 @@ export default class Game {
             message: 'Select a tile to Blink to',
             submit: () => {
               this.setGameState(this.lastGameState);
+
               this.setInputState(InputStates.Target);
               this.inputState.targetRange = blinkSpecial.range;
-              this.setTileAction(blinkSpecial.tileInputAction);
 
-              // add stunning
-              this.player.blood = Math.max(0, this.player.blood - blinkSpecial.useCost);
+              this.setTileAction(blinkSpecial.tileInputAction);
             }
           });
         });
@@ -828,7 +837,7 @@ export default class Game {
       this.effectsUpdated = false;
     }
 
-    this.hud.updateControls(this?.player?.blood);
+    this.hud.updateControls(this?.player?.wielder?.hp || 0);
   }
 
   initDom() {

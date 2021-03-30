@@ -3,14 +3,14 @@ import { Sprite } from '../../assets/sprite-index';
 let baseDamage = 4;
 
 let baseParry = baseDamage;
-let baseParryFreq = 1;
+let baseParryFreq = 2;
 
 let baseReach = 1;
 
-let baseHp = 8;
+let baseHp = 0;
 
 let baseCharm = {
-  power: 0.667,
+  power: 1,
   curses: [
     { name: 'weak', effect: target => target.strength = (target.strength || 0) - 1 },
     { name: 'slow', effect: target => target.agility = (target.agility || 0) - 1 }

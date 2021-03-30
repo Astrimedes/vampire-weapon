@@ -12,19 +12,12 @@ import { InputType } from './inputstate';
  */
 
 const tileCallback = (game, tile) => {
-  let ability = game.selectedAbility;
-  if (!ability) return false;
-
-  // raw distance
-  const xDist = tile.x - game.player.x;
-  const yDist = tile.y - game.player.y;
-  if (xDist + yDist > (ability.range || 0)) return false;
+  let effectFn = game.inputTile;
+  if (!effectFn) return false;
 
   // TODO: apply effects based on game target ability
-  if (ability == 0) {
-    return true;
-  }
-  return false;
+  let result = effectFn(game, tile);
+  return !!result;
 };
 
 /**

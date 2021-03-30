@@ -22,6 +22,7 @@ export default class Creature {
      * @param {number} options.bloodAmt blood reward - default = hp/2
      * @param {boolean} options.beginAwake creatures normally begin sleeping (default = false)
      * @param {number} options.noticeRange tile range where sleeping creatures will wake (default = 3)
+     * @param {number} options.currentHp starting hp vs. max hp
      */
   constructor(game, map, tile, spriteNumber, hp, weapon, options = {}) {
     this.game = game;
@@ -32,7 +33,7 @@ export default class Creature {
     this.tile = null;
     this.move(tile);
     this.spriteNumber = spriteNumber;
-    this.hp = hp;
+    this.hp = options?.currentHp || hp;
     this.maxHp = hp;
 
     // start 'sleeping' by default
@@ -98,7 +99,7 @@ export default class Creature {
     /**
      * @type {number} 0-1 scale of resistance against charm
      */
-    this.controlResist = 0.2;
+    this.controlResist = options.controlResist || 0;
 
     this.wield(weapon);
 
@@ -106,6 +107,8 @@ export default class Creature {
     if (!weapon.isPlayer) {
       this.baseWeapon = weapon;
     }
+
+    console.log(`created ${this.name} creature hp: ${this.hp} / ${this.maxHp}`);
   }
 
   isStunned() {
@@ -184,7 +187,7 @@ export default class Creature {
    */
   charm(charmObject) {
     // apply charm
-    this.control += (charmObject.power) * (1.0 - this.controlResist);
+    this.control += Math.max(0.1, charmObject.power - this.controlResist);
 
     // apply curse to self
     charmObject.curse.effect(this);
@@ -324,11 +327,10 @@ export default class Creature {
 
     weapon.setWielder(this);
 
-    this.maxHp += weapon.maxHp;
-    this.hp += weapon.maxHp;
+    // this.maxHp += weapon.maxHp;
 
     this.isPlayer = !!weapon.isPlayer;
-    if (this.isPlayer) {
+    if (!this.dead && this.isPlayer) {
       this.stunned = 0; // reset stun
       this.asleep = false; // remove asleep
       this.allowedAttack = true; // player always allowed attack
@@ -356,11 +358,13 @@ export default class Creature {
     if (!this.weapon) return;
 
     // reset hp
-    this.maxHp = Math.max(1, this.maxHp - (this.weapon.maxHp || 0));
-    this.hp = Math.max(1, this.hp - (this.weapon.maxHp || 0));
+    // this.maxHp = Math.max(1, this.maxHp - (this.weapon.maxHp || 0));
+    if (this.hp && !this.dead) {
+      // this.hp = Math.max(1, this.hp - (this.weapon.maxHp || 0));
 
-    // wield last (original?) weapon
-    this.wield(new Fist(this.game, this.game.map));
+      // wield last (original?) weapon
+      this.wield(new Fist(this.game, this.game.map));
+    }
   }
 
   /**
