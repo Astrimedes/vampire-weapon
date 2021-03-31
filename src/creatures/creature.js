@@ -239,7 +239,7 @@ export default class Creature {
       this.spriteNumber++; // corpse tile should be next tile...
 
       // destroy weapon
-      if (this.isPlayer && this.weapon) {
+      if (this?.weapon?.isPlayer) {
         this.weapon.die();
       }
       this.unWield();

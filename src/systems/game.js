@@ -481,6 +481,8 @@ export default class Game {
         // add to ai processing
         this.addMonster(oldPBody);
       } else {
+        // avoid gameover for newly dead old body?
+        oldPBody.isPlayer = false;
         oldPBody.die();
         this.corpses.push(oldPBody);
       }
@@ -632,9 +634,10 @@ export default class Game {
           }
 
           // hp cost
-          console.log('applying hp cost for ability');
-          console.log(ability);
           this.player.wielder.hp -= ability.cost;
+
+          // ** now increase cost?
+          ability.cost += Math.round(ability.cost / 2);
 
           // disable shop tile after purchase
           this?.player?.wielder?.tile?.deactivate();

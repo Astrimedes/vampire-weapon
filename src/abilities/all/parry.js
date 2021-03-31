@@ -1,6 +1,6 @@
 import { Ability } from '../ability';
 
-const AMT = 4;
+const AMT = 1;
 
 /**
  *

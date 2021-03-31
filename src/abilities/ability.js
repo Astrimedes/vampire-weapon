@@ -15,6 +15,7 @@ class Ability {
     this.cost = cost || 0;
     this.effectFn = effectFn || (() => { });
     this.oneTime = !!settings.oneTime;
+    this.applied = 0;
   }
 
   /**
@@ -23,6 +24,7 @@ class Ability {
    */
   applyAbility(game, player) {
     this.effectFn(player);
+    this.applied++;
   }
 }
 
