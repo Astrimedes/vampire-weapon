@@ -1,13 +1,12 @@
 import { Sprite } from '../../assets/sprite-index';
 
-let baseDamage = 4;
+let baseDamage = 3;
 
 let baseParry = baseDamage;
-let baseParryFreq = 2;
+let baseParryFreq = 3;
 
 let baseReach = 1;
-
-let baseHp = 0;
+let baseHp = baseDamage;
 
 let baseCharm = {
   power: 1,

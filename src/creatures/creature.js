@@ -11,7 +11,7 @@ export default class Creature {
      * @param {Dungeon} map
      * @param {Tile} tile
      * @param {number} spriteNumber
-     * @param {number} hp
+     * @param {number} maxHp
      * @param {import('../weapons/weapon').default} weapon
      * @param {object} options
      * @param {string} options.name
@@ -24,17 +24,20 @@ export default class Creature {
      * @param {number} options.noticeRange tile range where sleeping creatures will wake (default = 3)
      * @param {number} options.currentHp starting hp vs. max hp
      */
-  constructor(game, map, tile, spriteNumber, hp, weapon, options = {}) {
+  constructor(game, map, tile, spriteNumber, maxHp, weapon, options = {}) {
     this.game = game;
     this.map = map;
+    this.firstWeapon = !weapon.isPlayer ? weapon : new Fist(game, map);
+
     /**
      * @type {import('../map/tile').Tile} tile
      */
     this.tile = null;
     this.move(tile);
     this.spriteNumber = spriteNumber;
-    this.hp = options?.currentHp || hp;
-    this.maxHp = hp;
+
+    this.maxHp = maxHp;
+    this.hp = Math.min(options?.currentHp || maxHp, maxHp);
 
     // start 'sleeping' by default
     this.asleep = !weapon?.isPlayer || !options.beginAwake;
@@ -44,7 +47,7 @@ export default class Creature {
     this.strength = options.strength || 0;
     this.agility = options.agility || 0;
     this.resistance = options.resistance || 0;
-    this.bloodAmt = options.bloodAmt || Math.floor(hp / 2);
+    this.bloodAmt = options.bloodAmt || Math.floor(maxHp / 2);
 
     this.curses = [];
 
@@ -230,7 +233,8 @@ export default class Creature {
         let msg = this.isPlayer ? 'You die!' : `${this.name} is destroyed!`;
         this.game.hud.writeMessage(msg);
 
-        this.makeBlood(this.game.map.getAdjacentPassableNeighbors(this.tile).find(t => !t.creature));
+        // this.makeBlood(this.game.map.getAdjacentPassableNeighbors(this.tile).find(t => !t.creature));
+        this.makeBlood(this.tile);
       }
 
       this.stunned = 0;
@@ -255,7 +259,7 @@ export default class Creature {
   makeBlood(tile) {
     // leave blood
     if (this.bloodAmt && tile) {
-      let blood = new BloodItem(this.bloodAmt);
+      let blood = new BloodItem(Math.max(1, Math.floor(this.bloodAmt / 2)));
       tile.addItem(blood);
     }
   }
@@ -317,12 +321,17 @@ export default class Creature {
    * @param {import('../weapons/weapon').default | import('../weapons/player').default} weapon
    */
   wield(weapon) {
-    this.controlTurns = 0;
-    // hold original weapons
-    // if (this.weapon && this.weapon !== weapon && !this.weapon.isPlayer) {
-    //   this.lastWeapon = this.weapon;
-    //   this.unWield();
+    // if (this.weapon == weapon) {
+    //   return;
     // }
+    if (this.weapon) {
+      this.unWield();
+    }
+    // hold original weapons
+    if (this.weapon && this.weapon !== weapon && !this.weapon.isPlayer) {
+      this.lastWeapon = this.weapon;
+      this.unWield();
+    }
     /**
      * @type {import('../weapons/weapon').default | import('../weapons/player').default} weapon
      */
@@ -330,7 +339,10 @@ export default class Creature {
 
     weapon.setWielder(this);
 
-    // this.maxHp += weapon.maxHp;
+    if (weapon?.maxHp) {
+      this.maxHp += weapon.maxHp;
+      this.hp += weapon.maxHp;
+    }
 
     this.isPlayer = !!weapon.isPlayer;
     if (!this.dead && this.isPlayer) {
@@ -356,18 +368,23 @@ export default class Creature {
     if (this.isPlayer) {
       this.control = 0;
       this.controlTurns = 0;
+      this.isPlayer = false;
     }
 
-    this.isPlayer = false;
-    if (!this.weapon) return;
-
     // reset hp
-    // this.maxHp = Math.max(1, this.maxHp - (this.weapon.maxHp || 0));
-    if (this.hp && !this.dead) {
-      // this.hp = Math.max(1, this.hp - (this.weapon.maxHp || 0));
+    if (this?.weapon?.maxHp && !this.dead) {
+      let oldMax = this.maxHp;
+      let oldHp = this.hp;
+      this.maxHp = Math.max(1, this.maxHp - this.weapon.maxHp);
+      this.hp = Math.min(this.hp, this.maxHp);
+      console.log(`reset creature hp: ${oldHp} -> ${this.hp}, maxHp: ${oldMax} -> ${this.maxHp}`);
+    }
 
-      // wield last (original?) weapon
-      this.wield(new Fist(this.game, this.game.map));
+    // wield first weapon
+    let lastWeapon = this.weapon;
+    this.weapon = null;
+    if (lastWeapon && lastWeapon !== this.firstWeapon) {
+      this.wield(this.firstWeapon);
     }
   }
 

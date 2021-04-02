@@ -1,6 +1,6 @@
 import { Ability } from '../ability';
 
-const AMT = 2;
+const AMT = 1;
 
 /**
  *
@@ -17,7 +17,7 @@ export default class HealthAbility extends Ability {
     super({
       name: 'Health',
       description: `Grant wielders +${AMT} health`,
-      cost: 7,
+      cost: 6,
       effectFn
     });
   }

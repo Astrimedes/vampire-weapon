@@ -84,8 +84,8 @@ export default class Weapon {
    */
   setWielder(wielder) {
 
-    this.x = wielder.getDisplayX();
-    this.y = wielder.getDisplayY();
+    this.x = wielder.x;
+    this.y = wielder.y;
 
     this.tile = wielder.tile;
     this.wielder = wielder;

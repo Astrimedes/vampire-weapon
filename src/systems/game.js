@@ -303,7 +303,7 @@ export default class Game {
       parryFrequency: currentPlayer?.parryFrequency || 4,
       spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
       maxHp: currentPlayer?.maxHp || 0,
-      currentHp: currentPlayer?.wielder?.hp || undefined,
+      currentHp: currentPlayer?.wielder?.hp ? (Math.max(currentPlayer.wielder.hp - (currentPlayer.maxHp || 0), 1)) : undefined,
       abilities: currentPlayer?.abilities || [],
       charmConfig: currentPlayer?.charmConfig || this?.weaponConfig?.charmConfig || weaponTypes[0]?.charmConfig || []
     };
@@ -315,7 +315,7 @@ export default class Game {
     /**
      * @type {Creature}
      */
-    let body = new BodyCreature(this, this.map, tile, new Fist(), {
+    let body = new BodyCreature(this, this.map, tile, new Fist(this, this.map), {
       beginAwake: true,
       currentHp: playerConfig.currentHp
     }); // will attach to playerBody
@@ -794,6 +794,8 @@ export default class Game {
     let maxHp = hp ? wielder?.maxHp || 0 : 0;
     let fraction = maxHp > 0 ? hp / maxHp : 0;
     this.hud.setStatusField('HP', ` ${hp}/${maxHp}`, fraction > 0.5 ? firstColor : dangerColor);
+    // max hp
+    this.hud.setStatusField('+MaxHP', this?.player?.maxHp, firstColor);
     this.hud.addEmptyStatus('basicSpace');
 
     // attack damage
@@ -817,8 +819,9 @@ export default class Game {
     let par = (this?.player?.wielder?.agility || 0);
     this.hud.setStatusField('> Par', sign(par) + par, secondColor);
     // curses - map unique values only
+    this.hud.addEmptyStatus('cursesSpace');
     let curseString = this.parseCurses(this.player?.wielder?.curses || []);
-    this.hud.setStatusField('Curses', curseString, secondColor);
+    this.hud.setStatusField('* Curses', curseString, secondColor);
 
     this.hud.addEmptyStatus('creatureSpace');
     // add wait button to hud
@@ -860,7 +863,7 @@ export default class Game {
 
     this.hud.updateControls(this?.player?.wielder?.hp || 0);
 
-    // TODO: disable curse conditionally
+    // disable curse conditionally
     let curseControl = this.hud.getControlElement('Curse');
     if (curseControl && this?.player?.dead === false) {
       const cooldown = 4;
