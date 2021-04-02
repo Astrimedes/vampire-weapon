@@ -71,6 +71,9 @@ export default class Player extends Weapon {
 
     this.game.hud.writeMessage(`You CURSE the ${creature.name}...`);
 
+    // reset control counter
+    creature.controlTurns = 0;
+
     return charmed;
   }
 

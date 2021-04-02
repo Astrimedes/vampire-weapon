@@ -71,6 +71,10 @@ export default class HeadsUpDisplay {
     });
   }
 
+  getControlElement(name) {
+    return document.getElementById(getControlName(name))?.querySelector('button');
+  }
+
   /**
    *
    * @param {string|{id: string, label: string}} name
@@ -110,23 +114,26 @@ export default class HeadsUpDisplay {
     const id = getControlName(name);
 
     let eleControl = document.getElementById(id);
-    let wrapper = eleControl?.parentElement;
-    if (!wrapper) {
-      wrapper = document.createElement('div');
-      let controlsParent = document.getElementById(this.controlsId);
-      controlsParent.appendChild(wrapper);
+
+    if (!eleControl) {
+      let wrapper = eleControl?.parentElement;
+      if (!wrapper) {
+        wrapper = document.createElement('div');
+        let controlsParent = document.getElementById(this.controlsId);
+        controlsParent.appendChild(wrapper);
+      }
+      wrapper.innerHTML = createControl(id, name, cost, color);
+      eleControl = wrapper.firstChild;
+
+      // set controls / costs
+      this.controls[id] = cost;
+
+      // set callback on button
+      let btn = eleControl.querySelector('button');
+      btn.onclick = callback;
+      // avoid control buttons being triggered with space
+      btn.onkeyup = e => e.preventDefault();
     }
-    wrapper.innerHTML = createControl(id, name, cost, color);
-    eleControl = wrapper.firstChild;
-
-    // set controls / costs
-    this.controls[id] = cost;
-
-    // set callback on button
-    let btn = eleControl.querySelector('button');
-    btn.onclick = callback;
-    // avoid control buttons being triggered with space
-    btn.onkeyup = e => e.preventDefault();
   }
 
   removeStatusField(name) {

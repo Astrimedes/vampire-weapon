@@ -82,6 +82,8 @@ export default class Creature {
 
     this.startTurn = this.game.turnCount;
 
+    this.controlTurns = 0;
+
     // parry normally controlled by weapon or defend action
     this.defending = false;
     this.canParry = true;
@@ -315,6 +317,7 @@ export default class Creature {
    * @param {import('../weapons/weapon').default | import('../weapons/player').default} weapon
    */
   wield(weapon) {
+    this.controlTurns = 0;
     // hold original weapons
     // if (this.weapon && this.weapon !== weapon && !this.weapon.isPlayer) {
     //   this.lastWeapon = this.weapon;
@@ -352,6 +355,7 @@ export default class Creature {
   unWield() {
     if (this.isPlayer) {
       this.control = 0;
+      this.controlTurns = 0;
     }
 
     this.isPlayer = false;
@@ -476,6 +480,11 @@ export default class Creature {
       return;
     }
     this.stunned = Math.max(this.stunned - 1, 0);
+
+    // indicate controlled turns count
+    if (this.isPlayer) {
+      this.controlTurns++;
+    }
 
     if (this.weapon) {
       this.weapon.tick();

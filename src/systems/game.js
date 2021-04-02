@@ -262,8 +262,10 @@ export default class Game {
     this.weaponConfig = { ...weaponConfig };
 
     // unwield now so that maxHp adjustments work as expected
+    let previousControlTurns = 0;
     let wielder = this?.player?.wielder;
     if (wielder) {
+      previousControlTurns = wielder.controlTurns;
       wielder.unWield();
     }
 
@@ -272,6 +274,7 @@ export default class Game {
     // re-wield to apply changes
     if (wielder) {
       wielder.wield(this.player);
+      wielder.controlTurns = previousControlTurns;
     }
   }
 
@@ -318,6 +321,7 @@ export default class Game {
     }); // will attach to playerBody
 
     // copy over previous values
+    let lastControlTurns = this.level == 1 ? 99 : 0; // start at 99 to allow cursing at level 1 start
     let previousHp = currentPlayer?.wielder?.hp;
     if (currentPlayer && previousHp) {
       // re-apply curses
@@ -325,6 +329,7 @@ export default class Game {
         c.effect(body);
         body.curses.push(c);
       });
+      lastControlTurns = currentPlayer?.wielder?.controlTurns || 1;
     // or apply curses and charm new body
     } else {
       // do charm on new body
@@ -334,7 +339,9 @@ export default class Game {
       }
     }
     this.charmMonster(body);
-    // body.hp = previousHp || body.hp;
+
+    // copy control turns
+    body.controlTurns = lastControlTurns;
 
     this.player.lastParryTurn = 0;
     body.canParry = true;
@@ -610,9 +617,18 @@ export default class Game {
   }
 
   callAbilityDialog() {
-    // determine which abilities to offer
-    let available = allAbilities;
-    let text = available.length ? 'Choose an ability:' : 'Not enough 🩸';
+    // determine which abilities to offer - once per floor
+    if (!this.abilities) {
+      this.abilities = [];
+    }
+    const COUNT = 3;
+    if (this.abilities.length < COUNT && allAbilities.length) {
+      this.abilities = Rng.shuffle(allAbilities).filter((val, idx) => {
+        return idx < COUNT;
+      });
+    }
+
+    let text = this.abilities.length ? 'Choose an ability:' : 'No abilities';
 
     // update hud for blood total
     this.updateHud();
@@ -622,9 +638,9 @@ export default class Game {
     let dlgSettings = {
       type: 'abilities',
       message,
-      fields: available,
+      fields: this.abilities,
       submit: (data) => {
-        let ability = available.find(a => a.name == data);
+        let ability = this.abilities.find(a => a.name == data);
         if (ability) {
 
           this.player.addAbility(ability);
@@ -710,6 +726,9 @@ export default class Game {
     let lastLevel = this.currentLevel;
     this.currentLevel = levels[level] || lastLevel;
     this.setGameState(GameState.Loading);
+
+    // reset available abilities
+    this.abilities = [];
 
     // find previous reference to player
     this.exitReached = false;
@@ -809,7 +828,7 @@ export default class Game {
       // add wait button to hud
       this.hud.addControl('Defend', 0, this.waitFunction, '#71b238');
 
-      // charm button
+      // charm button - disable if just charmed monster
       this.hud.addControl('Curse', 0, this.charmFunction, 'blue');
 
       // Blink special move
@@ -836,11 +855,18 @@ export default class Game {
           });
         });
       }
-
       this.effectsUpdated = false;
     }
 
     this.hud.updateControls(this?.player?.wielder?.hp || 0);
+
+    // TODO: disable curse conditionally
+    let curseControl = this.hud.getControlElement('Curse');
+    if (curseControl && this?.player?.dead === false) {
+      const cooldown = 4;
+      curseControl.disabled = (this?.player?.wielder?.controlTurns || 0) < cooldown;
+      console.log('player control turns', this?.player?.wielder?.controlTurns);
+    }
   }
 
   initDom() {

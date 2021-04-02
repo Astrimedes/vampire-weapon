@@ -43,7 +43,6 @@ class Dialog {
     let resize = window.onresize || (() => { });
     window.onresize = () => {
       resize();
-      this.setPosition();
     };
   }
 
