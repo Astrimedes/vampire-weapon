@@ -783,30 +783,34 @@ export default class Game {
     let infoColor = 'gray';
     this.hud.setStatusField('Level', this.level, infoColor);
     // this.hud.setStatusField('Blood:', this?.player?.blood || 0, infoColor);
-    this.hud.addEmptyStatus('levelSpace');
+    this.hud.addEmptyStatus('section1');
 
     let dangerColor = 'yellow';
 
-    // health
+    // Derived Stats
+    // - health
     let firstColor = 'darkgreen';
     let wielder = this?.player?.wielder;
     let hp = this.gameState == GameState.GameOver ? 0 : wielder?.hp || 0;
     let maxHp = hp ? wielder?.maxHp || 0 : 0;
     let fraction = maxHp > 0 ? hp / maxHp : 0;
     this.hud.setStatusField('HP', ` ${hp}/${maxHp}`, fraction > 0.5 ? firstColor : dangerColor);
-    // max hp
-    this.hud.setStatusField('+MaxHP', this?.player?.maxHp, firstColor);
-    this.hud.addEmptyStatus('basicSpace');
+    this.hud.addEmptyStatus('section2');
 
-    // attack damage
-    this.hud.setStatusField('Attack', (this?.player?.dmg || 0) + (this?.player?.wielder?.strength || 0), firstColor);
-
-    // parry
+    // - attack
+    let patk = this?.player?.dmg || 0;
+    let str = this?.player?.wielder?.strength || 0;
+    this.hud.setStatusField('Atk ', `${patk}${str >= 0 ? '+' : ''}${str}`, firstColor);
+    // - parry
     let parryCount = this?.player?.wielder?.canParry ? 0 : -Math.min(this.player.parryFrequency, this.player.parryFrequency - (this.turnCount - (this.player.lastParryTurn)));
     let parryText = (parryCount >= 0 ? ('['+((this?.player?.parry || 0) + (this?.player?.wielder.agility || 0)))+']' : parryCount).toString();
     let parryColor = parryCount >= 0 ? firstColor : dangerColor;
     this.hud.setStatusField('Parry ', parryText, parryColor);
-    this.hud.addEmptyStatus('parrySpace');
+    // Weapon Stats
+    // - maxHp
+    this.hud.setStatusField('+MaxHP', this?.player?.maxHp, firstColor);
+
+    this.hud.addEmptyStatus('section3');
 
     // wielder stats
     let secondColor = 'darkcyan';
@@ -869,6 +873,10 @@ export default class Game {
       const cooldown = 4;
       curseControl.disabled = (this?.player?.wielder?.controlTurns || 0) < cooldown;
       console.log('player control turns', this?.player?.wielder?.controlTurns);
+
+      // re-focus here - somehow keyboard focus is lost when the button gets disabled
+      curseControl.blur();
+      curseControl.parentElement.parentElement.focus();
     }
   }
 

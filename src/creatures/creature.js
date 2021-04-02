@@ -37,7 +37,7 @@ export default class Creature {
     this.spriteNumber = spriteNumber;
 
     this.maxHp = maxHp;
-    this.hp = Math.min(options?.currentHp || maxHp, maxHp);
+    this.hp = options?.currentHp || maxHp;
 
     // start 'sleeping' by default
     this.asleep = !weapon?.isPlayer || !options.beginAwake;
