@@ -264,22 +264,20 @@ export default class Game {
     // unwield now so that maxHp adjustments work as expected
     let previousControlTurns = 0;
     let wielder = this?.player?.wielder;
-    if (wielder) {
-      previousControlTurns = wielder.controlTurns;
-      wielder.unWield();
-    }
 
     this.player.setFromTemplate(weaponConfig);
 
     // re-wield to apply changes
     if (wielder) {
+      previousControlTurns = wielder.controlTurns;
       wielder.wield(this.player);
       wielder.controlTurns = previousControlTurns;
     }
   }
 
   setupPlayer(currentPlayer) {
-    // guarantee starting position neighbors have no monsters and >= 3 passable tiles
+
+    // *** Starting Tile *** guarantee starting position neighbors have no monsters and >= 3 passable tiles
     const maxtries = 100;
     let tries = 0;
     let tile;
@@ -295,59 +293,65 @@ export default class Game {
     }
     if (!success) throw `Couldn't find valid player start tile in ${maxtries} tries`;
 
-    let playerConfig = {
-      damage: (currentPlayer?.dmg || currentPlayer?.damage) || 1,
-      speed: currentPlayer?.speed || 0,
-      reach: currentPlayer?.reach || 1,
-      parry: currentPlayer?.parry || 1,
-      parryFrequency: currentPlayer?.parryFrequency || 4,
-      spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
-      maxHp: currentPlayer?.maxHp || 0,
-      currentHp: currentPlayer?.wielder?.hp ? (Math.max(currentPlayer.wielder.hp - (currentPlayer.maxHp || 0), 1)) : undefined,
-      abilities: currentPlayer?.abilities || [],
-      charmConfig: currentPlayer?.charmConfig || this?.weaponConfig?.charmConfig || weaponTypes[0]?.charmConfig || []
-    };
 
-    // create player
-    this.player = new Player(this, this.map, playerConfig);
-    // create player body
-    let BodyCreature = currentPlayer?.wielder?.constructor || Chump;
-    /**
+    // *** First time player create ***
+    if (this.level == 1) {
+      let playerConfig = {
+        damage: (currentPlayer?.dmg || currentPlayer?.damage) || 1,
+        speed: currentPlayer?.speed || 0,
+        reach: currentPlayer?.reach || 1,
+        parry: currentPlayer?.parry || 1,
+        parryFrequency: currentPlayer?.parryFrequency || 4,
+        spriteNumber: currentPlayer?.spriteNumber || Sprite.Weapon.sword,
+        maxHp: currentPlayer?.maxHp || 0,
+        currentHp: currentPlayer?.wielder?.hp ? (Math.max(currentPlayer.wielder.hp - (currentPlayer.maxHp || 0), 1)) : undefined,
+        abilities: currentPlayer?.abilities || [],
+        charmConfig: currentPlayer?.charmConfig || this?.weaponConfig?.charmConfig || weaponTypes[0]?.charmConfig || []
+      };
+
+      // create player
+      this.player = new Player(this, this.map, playerConfig);
+      // create player body
+      let BodyCreature = currentPlayer?.wielder?.constructor || Chump;
+      /**
      * @type {Creature}
      */
-    let body = new BodyCreature(this, this.map, tile, new Fist(this, this.map), {
-      beginAwake: true,
-      currentHp: playerConfig.currentHp
-    }); // will attach to playerBody
+      let body = new BodyCreature(this, this.map, tile, new Fist(this, this.map), {
+        beginAwake: true,
+        currentHp: playerConfig.currentHp
+      }); // will attach to playerBody
 
-    // copy over previous values
-    let lastControlTurns = this.level == 1 ? 99 : 0; // start at 99 to allow cursing at level 1 start
-    let previousHp = currentPlayer?.wielder?.hp;
-    if (currentPlayer && previousHp) {
-      // re-apply curses
-      currentPlayer?.wielder?.curses?.forEach(c => {
-        c.effect(body);
-        body.curses.push(c);
-      });
-      lastControlTurns = currentPlayer?.wielder?.controlTurns || 1;
-    // or apply curses and charm new body
-    } else {
       // do charm on new body
       let charmed = false;
       while (!charmed) {
         charmed = this.player.charm(body);
       }
+      this.charmMonster(body);
+
+      body.controlTurns = 99;
+
+      // *** EXIT EARLY ***
+      return;
     }
-    this.charmMonster(body);
 
-    // copy control turns
-    body.controlTurns = lastControlTurns;
+    // *** Existing Player - change map ref on player and monster ***
+    this.transferExistingPlayer(currentPlayer, tile);
+  }
 
-    this.player.lastParryTurn = 0;
-    body.canParry = true;
+  transferExistingPlayer(player, tile) {
+    this.player = player;
 
-    // log
-    console.log('player abilities on level load', this.player.abilities);
+    // set tile first to prevent any issues with movement from old map
+    player.map = this.map;
+    player.tile = tile;
+    player.x = tile.x;
+    player.y = tile.y;
+
+    let wielder = player.wielder;
+    wielder.spawnTurn = 0;
+    wielder.map = this.map;
+    wielder.tile = tile;
+    wielder.move(tile);
   }
 
   setupMonsters () {
@@ -480,7 +484,6 @@ export default class Game {
     // add old body back to monsters
     if (oldPBody) {
       oldPBody.unWield();
-      oldPBody.control = 0;
 
       if (oldPBody.hp) {
         // make asleep after control
@@ -495,7 +498,7 @@ export default class Game {
       }
     }
 
-    this.hud.writeMessage(`The cursed ${monster.name} wields you!`);
+    this.hud.writeMessage(`The CURSED ${monster.name} wields you!!!`);
   }
 
   beginGameLoop () {
@@ -642,8 +645,6 @@ export default class Game {
       submit: (data) => {
         let ability = this.abilities.find(a => a.name == data);
         if (ability) {
-
-          this.player.addAbility(ability);
           if (ability.oneTime) {
             let idx = allAbilities.findIndex(a => a == ability);
             idx !== -1 && allAbilities.splice(idx, 1);
@@ -651,6 +652,9 @@ export default class Game {
 
           // hp cost
           this.player.wielder.hp -= ability.cost;
+
+          // apply ability
+          this.player.addAbility(ability);
 
           // ** now increase cost?
           ability.cost += Math.round(ability.cost / 2);
@@ -735,6 +739,8 @@ export default class Game {
     this.exitSpawned = false;
     this.setupMap(level);
     this.setupMonsters();
+
+    // call this before calling level select
     this.setupPlayer(player);
 
     if (firstLevel) {
@@ -816,7 +822,7 @@ export default class Game {
     let secondColor = 'darkcyan';
     this.hud.setStatusField({ id: 'creature', label: '' }, this?.player?.wielder?.name || '', secondColor);
     let sign = num => num >= 0 ? '+' : '';
-    let health = (this?.player?.wielder?.maxHp || 0) - (this?.player?.maxHp || 0);
+    let health = this?.player?.wielder?.origMaxHp || 0;
     this.hud.setStatusField('> HP ', sign(health) + health, secondColor);
     let atk = (this?.player?.wielder?.strength || 0);
     this.hud.setStatusField('> Atk', sign(atk) + atk, secondColor);
@@ -874,7 +880,7 @@ export default class Game {
       curseControl.disabled = (this?.player?.wielder?.controlTurns || 0) < cooldown;
       console.log('player control turns', this?.player?.wielder?.controlTurns);
 
-      // re-focus here - somehow keyboard focus is lost when the button gets disabled
+      // re-focus here - keyboard focus seems to get stuck on disabled button
       curseControl.blur();
       curseControl.parentElement.parentElement.focus();
     }

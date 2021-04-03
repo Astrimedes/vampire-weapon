@@ -69,7 +69,7 @@ export default class Player extends Weapon {
     const charmHit = { curse, power: this.charmConfig.power };
     let charmed = creature.charm(charmHit);
 
-    this.game.hud.writeMessage(`You CURSE the ${creature.name}...`);
+    // this.game.hud.writeMessage(`You CURSE the ${creature.name}...`);
 
     // reset control counter
     creature.controlTurns = 0;
@@ -117,7 +117,7 @@ export default class Player extends Weapon {
 
     let min = 0.005;
 
-    if (Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) {
+    if (animTime > this.animDuration || Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) {
       this.stopAnimation();
     }
     return true;

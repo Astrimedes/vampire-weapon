@@ -36,6 +36,7 @@ export default class Creature {
     this.move(tile);
     this.spriteNumber = spriteNumber;
 
+    this.origMaxHp = maxHp;
     this.maxHp = maxHp;
     this.hp = options?.currentHp || maxHp;
 
@@ -196,7 +197,7 @@ export default class Creature {
 
     // apply curse to self
     charmObject.curse.effect(this);
-    this.game.hud.writeMessage(`${this.isPlayer ? 'You' : 'The ' + this.name} is cursed with ${charmObject.curse.name}!`);
+    this.game.hud.writeMessage(`${this.isPlayer ? 'You' : 'The ' + this.name} is CURSED with ${charmObject.curse.name}! (${Math.max(0, Math.round((1-this.control)*100))}% willpower)`);
     // add to list of curse applied
     this.curses = this.curses || [];
     this.curses.push({ ...charmObject.curse });
@@ -321,12 +322,6 @@ export default class Creature {
    * @param {import('../weapons/weapon').default | import('../weapons/player').default} weapon
    */
   wield(weapon) {
-    // if (this.weapon == weapon) {
-    //   return;
-    // }
-    if (this.weapon) {
-      this.unWield();
-    }
     // hold original weapons
     if (this.weapon && this.weapon !== weapon && !this.weapon.isPlayer) {
       this.lastWeapon = this.weapon;
@@ -336,11 +331,12 @@ export default class Creature {
      * @type {import('../weapons/weapon').default | import('../weapons/player').default} weapon
      */
     this.weapon = weapon;
+    this.controlTurns = 0;
 
     weapon.setWielder(this);
 
     if (weapon?.maxHp) {
-      this.maxHp += weapon.maxHp;
+      this.maxHp = this.origMaxHp + weapon.maxHp;
       this.hp += weapon.maxHp;
     }
 
@@ -371,20 +367,23 @@ export default class Creature {
       this.isPlayer = false;
     }
 
-    // reset hp
-    if (this?.weapon?.maxHp && !this.dead) {
-      let oldMax = this.maxHp;
-      let oldHp = this.hp;
-      this.maxHp = Math.max(1, this.maxHp - this.weapon.maxHp);
-      this.hp = Math.min(this.hp, this.maxHp);
-      console.log(`reset creature hp: ${oldHp} -> ${this.hp}, maxHp: ${oldMax} -> ${this.maxHp}`);
+    // correct maxHp & hp
+    this.maxHp = this.origMaxHp;
+    if (this.weapon.maxHp) {
+      this.hp -= this.weapon.maxHp;
     }
 
     // wield first weapon
     let lastWeapon = this.weapon;
     this.weapon = null;
+
     if (lastWeapon && lastWeapon !== this.firstWeapon) {
       this.wield(this.firstWeapon);
+    }
+
+    // allow 1 health if alive before unwield
+    if (!this.dead) {
+      this.hp = Math.max(1, this.hp);
     }
   }
 

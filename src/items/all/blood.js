@@ -10,7 +10,7 @@ export default class BloodItem extends Item {
       name: 'blood',
       spriteNumber: Sprite.Item.blood,
       effectFn: (i, c) => {
-        if (!c?.weapon?.isPlayer) return false;
+        if (c.hp >= c.maxHp || !c?.weapon?.isPlayer) return false;
 
         // pick up blood
         c.weapon.blood += i.blood;

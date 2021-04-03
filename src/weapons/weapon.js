@@ -183,7 +183,7 @@ export default class Weapon {
 
     let min = 0.005;
 
-    if ((Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) || fraction == 1) {
+    if ((Math.abs(this.offsetX) + Math.abs(this.offsetY) < min) || fraction >= 1) {
       this.stopAnimation();
     }
     return true;

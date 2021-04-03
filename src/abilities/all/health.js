@@ -4,7 +4,7 @@ const AMT = 1;
 
 /**
  *
- * @param {import('../../../weapons/player').default} player
+ * @param {import("../../weapons/player").default} player
  */
 const effectFn = player => {
   player.maxHp = (player.maxHp || 0) + AMT;
@@ -16,7 +16,7 @@ export default class HealthAbility extends Ability {
   constructor() {
     super({
       name: 'Health',
-      description: `Grant wielders +${AMT} health`,
+      description: `All wielders +${AMT} health`,
       cost: 6,
       effectFn
     });

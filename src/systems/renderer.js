@@ -211,18 +211,19 @@ export default class Renderer {
       let fullWidth = this.tileSize * this.scaleX;
       let margin = 0.25;
 
-
-      // charm meter
-      if (!creature.isPlayer && creature.control > 0) {
-        this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
-          fullWidth * (1-margin), height,
-          creature.control, 1, 'black', 'blue');
-        pos.y += height * 1.2;
-      }
       // hp meter
       this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y,
         fullWidth * (1-margin), height,
         creature.hp || 0, creature.maxHp || 1);
+
+      // curse/charm meter
+      if (!creature.isPlayer) {
+        let willpower = (1 - (creature.control || 0));
+        let danger = willpower < 1;
+        this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y + height * 1.2,
+          fullWidth * (1-margin), height,
+          willpower, 1, 'brown', danger ? 'darkgoldenrod' : 'darkgray', danger ? 'maroon' : 'black');
+      }
 
       // draw status effects
       let xAmt = 0.3;
@@ -247,7 +248,7 @@ export default class Renderer {
     }
   }
 
-  drawMeter(x, y, width, height, amount, max, bgColor = '#AE0D7A', foreColor = '#559E54') {
+  drawMeter(x, y, width, height, amount, max, bgColor = '#AE0D7A', foreColor = '#559E54', borderColor = 'black') {
     this.ctx.save();
 
     // meter
@@ -257,7 +258,7 @@ export default class Renderer {
     this.ctx.fillRect(x, y, width * (amount / max), height);
 
     // outline
-    this.ctx.strokeStyle = 'black';
+    this.ctx.strokeStyle = borderColor;
     let lineWidth = Math.max(2, Math.min(width, height) / 12);
     this.ctx.lineWidth = lineWidth;
     this.ctx.strokeRect(x, y, width, height);
