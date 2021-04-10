@@ -42,6 +42,11 @@ export default class Dungeon {
     return exitAdded;
   }
 
+  /**
+   * Generate the dungeon
+   * @param {number} numTiles total # of tiles to generate
+   * @returns {number} # of passable tiles
+   */
   generateTiles(numTiles) {
     const tiles = this.tiles = [];
 
@@ -173,21 +178,35 @@ export default class Dungeon {
   }
 
   /**
-   *
+   * Get a list of all connected passable tiles
    * @param {Tile} tile
    */
   getConnectedTiles(tile){
-    let connectedTiles = [tile];
-    let frontier = [tile];
+    return this.getConnectedWithFilter(tile, t => t.passable);
+  }
 
-    while(frontier.length){
+
+  /**
+   * Get a list of all connected tiles that meet filter criteria in  range
+   * @param {import('../map/tile').Tile} centerTile
+   * @param {function(import('../map/tile').Tile):boolean} filterFn function to qualify tile.
+   * @param {number} maxRange max range (or Infinity)
+   */
+  getConnectedWithFilter(centerTile, filterFn = () => true, maxRange = Infinity) {
+    let filteredTiles = [centerTile];
+    let frontier = [centerTile];
+    let distance = 0;
+
+    while(frontier.length && distance < maxRange){
       let neighbors = frontier.pop();
       neighbors = this.getAdjacentPassableNeighbors(neighbors)
-        .filter(t => !connectedTiles.includes(t));
+        .filter(t => t && !filteredTiles.includes(t) && filterFn(t));
 
-      connectedTiles = connectedTiles.concat(neighbors);
+      filteredTiles = filteredTiles.concat(neighbors);
       frontier = frontier.concat(neighbors);
+      distance++;
     }
-    return connectedTiles;
+    return filteredTiles;
+
   }
 }

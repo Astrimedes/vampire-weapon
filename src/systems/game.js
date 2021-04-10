@@ -58,49 +58,43 @@ export default class Game {
       this.player.wielder.hp -= COST;
 
       // charm fn
-      const charmFn = (monster) => {
+      const curseFn = (monster) => {
         // do charm
-        let charmed = this.player.charm(monster);
-        if (charmed) {
+        let controlled = this.player.charm(monster);
+        if (controlled) {
           this.charmMonster(monster);
         }
-
         // tick
         this.tick();
       };
+      let validateCreature = creature => creature && !creature.dead && !creature.isPlayer && creature.tile;
 
-      // find nearby creatures, auto-select if only 1
-      let creatures = this.map.getAdjacentNeighbors(this.player.tile).map((t) => {
-        return t.creature && !t.creature.dead && !t.creature.isPlayer && t.creature.tile == t ? t.creature : null;
-      }).filter(c => c !== null);
+      // AUTO SELECT SINGLE CREATURE
+      let creatures = this.map.getAdjacentNeighbors(this.player.tile).map(t => validateCreature(t.creature) ? t.creature : null).filter(c => c !== null);
       if (creatures.length == 1) {
-        charmFn(creatures[0]);
+        curseFn(creatures[0]);
         return;
       }
 
-      // complain about restrictions
-      this.callMessageDialog('You can only Curse adjacent, solitary enemies');
+      // EXIT IF NO CREATURES
+      if (!creatures.length) {
+        return this.callMessageDialog('There are no creatures nearby to curse.');
+      }
 
-      // show dialog
-      // this.callDialog({
-      //   message: 'Select a monster to charm',
-      //   submit: () => {
-      //     this.setGameState(this.lastGameState);
-
-      //     // allow selection of tiles if > 1
-      //     this.setInputState(InputStates.Target);
-      //     this.inputState.targetRange = 1;
-      //     this.setTileAction((game, tile) => {
-      //       if (!tile.creature || tile.creature.isPlayer) {
-      //         this.setInputState(InputStates.Move);
-      //         return false;
-      //       }
-      //       let monster = tile.creature;
-      //       if (monster) charmFn(monster);
-      //     });
-      //     return;
-      //   }
-      // });
+      // SELECT CREATURE
+      this.setInputState(InputStates.Target);
+      this.inputState.targetRange = 1;
+      this.setTileAction((game, tile) => {
+        // validate selection
+        if (!validateCreature(tile.creature)) {
+          return this.callMessageDialog('You must select a creature!');
+        }
+        // curse
+        curseFn(tile.creature);
+        // reset input state
+        game.setInputState(InputStates.Move);
+        game.resetInputActions();
+      });
     };
   }
 
@@ -505,17 +499,6 @@ export default class Game {
     let draw;
     this.time = 0;
     draw = (elapsedTimeMs) => {
-      // check for exit from level
-      // if (this.exitReached && this.state !== GameState.Dialog) {
-      //   // let animations finish
-      //   if (!this.player.animating) {
-      //     this.callAbilityDialog();
-      //   }
-
-      //   // call next rqaf before exiting
-      //   window.requestAnimationFrame(draw);
-      //   return;
-      // }
 
       if (this.exitReached && !this.renderer.animationsRunning) {
         this.loadLevel(this.level, this.player);
@@ -577,7 +560,8 @@ export default class Game {
       }
 
       if (this.inputState === InputStates.Target && this.inputState.targetRange) {
-        this.renderer.tintOverlay(null, this.renderer.getDrawRect(this.player.tile.x, this.player.tile.y, this.inputState.targetRange, this.inputState.targetRange));
+        let tiles = this.map.getConnectedWithFilter(this?.player?.wielder?.tile, undefined, this.inputState.targetRange);
+        this.renderer.drawTileRects(tiles);
       }
 
       // draw title

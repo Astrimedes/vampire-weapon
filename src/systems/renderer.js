@@ -91,7 +91,7 @@ export default class Renderer {
     return { x, y, w, h };
   }
 
-  drawTileRect(x, y, color = 'red', alpha = 0.5) {
+  drawTileRect(x, y, color = 'blue', alpha = 0.5) {
     this.ctx.save();
     let xDraw = x * this.tileSize * this.scaleX;
     let yDraw = y * this.tileSize * this.scaleY;
@@ -101,6 +101,18 @@ export default class Renderer {
     this.ctx.globalAlpha = alpha;
     this.ctx.fillRect(xDraw, yDraw, sideX, sideY);
     this.ctx.restore();
+  }
+
+  /**
+   *
+   * @param {Array<{x: number, y: number}>} tileArray
+   * @param {string|{r: number, g: number, b: number}} color
+   * @param {number} alpha
+   */
+  drawTileRects(tileArray, color = 'blue', alpha = 0.5) {
+    tileArray.forEach(t => {
+      this.drawTileRect(t.x, t.y, color, alpha);
+    });
   }
 
   drawTileOutline(x, y, color = 'darkgreen', alpha = 0.85, lineWidth = 4) {
@@ -219,10 +231,9 @@ export default class Renderer {
       // curse/charm meter
       if (!creature.isPlayer) {
         let willpower = (1 - (creature.control || 0));
-        let danger = willpower < 1;
         this.drawMeter(pos.x + ((fullWidth * margin) / 2), pos.y + height * 1.2,
           fullWidth * (1-margin), height,
-          willpower, 1, 'brown', danger ? 'darkgoldenrod' : 'darkgray', danger ? 'maroon' : 'black');
+          willpower, 1, undefined, 'darkcyan');
       }
 
       // draw status effects
