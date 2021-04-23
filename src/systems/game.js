@@ -18,6 +18,7 @@ import { allAbilities, getStartingAbilities } from '../abilities/all/index.js';
 import { blinkSpecial } from '../creatures/specials/all/blink.js';
 import { ArrayUtil } from '../tools/arrayutil.js';
 import Fist from '../weapons/fist.js';
+import { Particle } from '../map/particle.js';
 
 const TILE_SIZE = 64;
 
@@ -498,6 +499,7 @@ export default class Game {
   beginGameLoop () {
     let draw;
     this.time = 0;
+
     draw = (elapsedTimeMs) => {
 
       if (this.exitReached && !this.renderer.animationsRunning) {
@@ -548,6 +550,9 @@ export default class Game {
         if (this.selectedTile && this.gameState == GameState.Play) {
           this.renderer.drawTileRect(this.selectedTile.x, this.selectedTile.y, this.inputState.selectColor || 'green', 0.11);
         }
+
+        // draw particles
+        this.renderer.drawAllParticles(msDiff);
 
         // draw pause icon while input is blocked
         if (this.renderer.animationsRunning) {
@@ -748,6 +753,28 @@ export default class Game {
     this.monsters.forEach(m => {
       m.tryWake();
     });
+  }
+
+  addTestParticles(count) {
+    // add particles here
+    this.renderer.clearParticles();
+
+    // *** add particles here for fun
+    for (let idx = 0; idx < count; idx++) {
+      let maxSpeed = this.renderer.tileSize / 100;
+      let xSpeed = Rng.inRange(-maxSpeed, maxSpeed);
+      let ySpeed = Rng.inRange(-maxSpeed, maxSpeed);
+      let life = Rng.inRange(450, 900);
+      let size = Rng.inRange(1, 4);
+      let config = {
+        tilePos: { x: this.player.wielder.tile.x, y: this.player.wielder.tile.y },
+        offset: { x: 0, y: 0 },
+        speed: { x: xSpeed, y: ySpeed },
+        life,
+        size
+      };
+      this.renderer.addParticle(new Particle(config));
+    }
   }
 
   /**

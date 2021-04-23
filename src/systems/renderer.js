@@ -1,6 +1,8 @@
 import { Sprite } from '../../assets/sprite-index';
 import { calcTrapTurns, getTrapByName } from '../config/traps';
 
+const PI2 = Math.PI * 2;
+
 export default class Renderer {
   constructor (assets, tileSize, numTiles) {
     this.setAssets(assets);
@@ -13,6 +15,9 @@ export default class Renderer {
 
     this.tileSize = tileSize;
     this.numTiles = numTiles;
+
+    /** @type {Array<import('../map/particle').Particle>} */
+    this.particles = [];
 
     this.autoScale();
   }
@@ -128,6 +133,54 @@ export default class Renderer {
     this.ctx.restore();
   }
 
+  /**
+   * @param {import('../map/particle').Particle} particle
+   */
+  addParticle(particle) {
+    this.particles.push(particle);
+  }
+
+  removeParticle(particle) {
+    let idx = this.particles.indexOf(particle);
+    if (idx > -1) this.particles.splice(idx, 1);
+  }
+
+  drawAllParticles(renderTime) {
+    console.log(renderTime);
+    this.ctx.save();
+
+    // update, draw and filter particle list by active
+    this.particles = this.particles.filter(p => this.drawParticle(p, renderTime));
+
+    this.ctx.restore();
+  }
+
+  clearParticles() {
+    this.particles = [];
+  }
+
+  /**
+   * @param {number} renderTime
+   * @param {import('../map/particle').Particle} particle
+   */
+  drawParticle(particle, renderTime) {
+    // translate the point
+    let point = this.getPixelForTile(particle.tilePos.x, particle.tilePos.y, false);
+    point.x += particle.offset.x * this.scaleX;
+    point.y += particle.offset.y * this.scaleY;
+
+    // draw
+    this.ctx.fillStyle = particle.fillStyle;
+    // this.ctx.fillStyle = 'white';
+    this.ctx.beginPath();
+    this.ctx.arc(point.x, point.y, particle.size * this.scaleX, 0, PI2);
+    this.ctx.closePath();
+    this.ctx.fill();
+
+    // lifetime and position update
+    return particle.update(renderTime);
+  }
+
   drawText(text, color = 'yellow', size = 24, x = null, y = null) {
     this.ctx.save();
 
@@ -173,8 +226,16 @@ export default class Renderer {
     return map.getTile(x, y);
   }
 
-  getPixelForTile(x, y) {
-    return { x: (x * this.tileSize * this.scaleX), y: (y * this.tileSize * this.scaleY)};
+  getPixelForTile(x, y, origin = true) {
+    // origin (upper left)
+    let point = { x: (x * this.tileSize * this.scaleX), y: (y * this.tileSize * this.scaleY) };
+    if (origin) return point;
+
+    // get center
+    let hw = (this.tileSize * this.scaleX) / 2;
+    point.x += hw;
+    point.y += hw;
+    return point;
   }
 
   /**

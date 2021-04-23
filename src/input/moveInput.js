@@ -49,6 +49,7 @@ const moveTileCallback = (game, tile) => {
   if (x == 0 && y == 0) return;
 
   // finally move
+  game.addTestParticles(64);
   if (game.player.tryMove(x, y)) {
     return game.tick();
   }
@@ -62,7 +63,7 @@ const moveTileCallback = (game, tile) => {
  */
 
 const moveCommandCallback = (game, command) => {
-  const tile = game?.player?.tile;
+  const tile = game?.player?.wielder?.tile;
   if (!tile) return false;
 
   // wait input command
