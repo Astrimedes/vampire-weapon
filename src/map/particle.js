@@ -1,4 +1,4 @@
-
+import { lerp } from '../tools/mathutil';
 /**
  * @param {{r: number, g: number, b: number, a: number}} color
  * @returns {string} rgba fill style string
@@ -28,9 +28,8 @@ class Particle {
     this.size = config.size || 1;
     this.life = config.life || 0;
 
-    this.rgba = { r: undefined, g: undefined, b: undefined, a: undefined };
-    let rgba = config.rgba || { r: 139, g: 0, b: 139, a: 1 };
-    this.setColor(rgba);
+    this.rgba = { r: null, g: null, b: null, a: null };
+    this.setColor(config.rgba || { r: 139, g: 0, b: 139, a: 1 });
 
     this.active = true;
   }
@@ -53,15 +52,15 @@ class Particle {
     // position
     let gainX = updateTime * this.speed.x;
     let gainY = updateTime * this.speed.y;
-    this.offset.x += gainX;
-    this.offset.y += gainY;
+    this.offset.x = lerp( this.offset.x, this.offset.x + gainX, 0.9);
+    this.offset.y = lerp( this.offset.y, this.offset.y + gainY, 0.9);
 
     // lifetime
     this.life -= Math.max(1, updateTime);
     this.active = this.active && this.life > 0;
 
     // adjust alpha
-    this.setColor({ ...this.rgba, a: this.life / this.maxLife });
+    this.setColor({ ...this.rgba, a: lerp(this.rgba.a, 1, this.life / this.maxLife) });
 
     return this.active;
   }

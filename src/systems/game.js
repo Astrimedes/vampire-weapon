@@ -62,8 +62,11 @@ export default class Game {
       const curseFn = (monster) => {
         // do charm
         let controlled = this.player.charm(monster);
+        const count = 16;
+        this.addSimpleParticles(count, monster.tile.x, monster.tile.y);
         if (controlled) {
           this.charmMonster(monster);
+          this.addSimpleParticles(count * 2, monster.tile.x, monster.tile.y);
         }
         // tick
         this.tick();
@@ -195,12 +198,15 @@ export default class Game {
       this.autoScale();
       this.setupInput();
     };
+
   }
 
 
   autoScale() {
     this.renderer.setSizes(TILE_SIZE, this?.currentLevel?.size || levels[1].size);
     this.renderer.autoScale();
+    // just in case
+    this.renderer.clearParticles();
   }
 
   setupMap (level = 1) {
@@ -753,22 +759,23 @@ export default class Game {
     this.monsters.forEach(m => {
       m.tryWake();
     });
+
+    // small particle burst to show player where they are
+    setTimeout(() => this.addSimpleParticles(24, this.player.tile.x, this.player.tile.y), 300);
+
   }
 
-  addTestParticles(count) {
+  addSimpleParticles(count, tileX, tileY, offsetX = 0, offsetY = 0) {
+    const baseSpeed = this.renderer.tileSize / 4000;
     // add particles here
-    this.renderer.clearParticles();
-
-    // *** add particles here for fun
     for (let idx = 0; idx < count; idx++) {
-      let maxSpeed = this.renderer.tileSize / 100;
-      let xSpeed = Rng.inRange(-maxSpeed, maxSpeed);
-      let ySpeed = Rng.inRange(-maxSpeed, maxSpeed);
-      let life = Rng.inRange(450, 900);
-      let size = Rng.inRange(1, 4);
+      let xSpeed = Rng.anyIn(-1, 1) * Rng.inFloatRange(baseSpeed * 0.75, baseSpeed * 1.25);
+      let ySpeed = Rng.anyIn(-1, 1) * Rng.inFloatRange(baseSpeed * 0.75, baseSpeed * 1.25);
+      let life = Rng.inRange(333, 650);
+      let size = Rng.inFloatRange(2, 5);
       let config = {
-        tilePos: { x: this.player.wielder.tile.x, y: this.player.wielder.tile.y },
-        offset: { x: 0, y: 0 },
+        tilePos: { x: tileX, y: tileY },
+        offset: { x: offsetX, y: offsetY },
         speed: { x: xSpeed, y: ySpeed },
         life,
         size
@@ -889,7 +896,6 @@ export default class Game {
     if (curseControl && this?.player?.dead === false) {
       const cooldown = 4;
       curseControl.disabled = (this?.player?.wielder?.controlTurns || 0) < cooldown;
-      console.log('player control turns', this?.player?.wielder?.controlTurns);
 
       // re-focus here - keyboard focus seems to get stuck on disabled button
       curseControl.blur();

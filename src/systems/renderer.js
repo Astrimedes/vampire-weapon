@@ -146,7 +146,6 @@ export default class Renderer {
   }
 
   drawAllParticles(renderTime) {
-    console.log(renderTime);
     this.ctx.save();
 
     // update, draw and filter particle list by active

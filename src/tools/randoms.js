@@ -3,6 +3,10 @@ const inRange = (min, max) => {
   return Math.floor(Math.random()*(max-min+1))+min;
 };
 
+const inFloatRange = (min, max) => {
+  return (Math.random() * (max - min + 1)) + min;
+};
+
 /**
  * Shuffle items in place in array
  * @param {[]} arr
@@ -22,12 +26,21 @@ const shuffle = arr => {
  * Choose a member of array randomly
  * @param {[]} arr
  */
-const any = arr => arr[inRange(0, arr.length-1)];
+const any = arr => arr[inRange(0, arr.length - 1)];
+
+/**
+ *
+ * @param  {...any} arrayIn
+ * @returns
+ */
+const anyIn = (...arrayIn) => any(arrayIn);
 
 const Rng = {
   inRange,
+  inFloatRange,
   shuffle,
-  any
+  any,
+  anyIn
 };
 
 export { Rng };
