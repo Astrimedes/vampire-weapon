@@ -13,7 +13,7 @@ class Particle {
    * @param {{x: number, y: number}} config.tilePos tile's x and y indices object (not a Tile object)
    * @param {{x: number, y: number}} config.offset offset from center of tile in tile pixels (can cross into other tiles visually)
    * @param {{x: number, y: number}} config.speed speed in tile pixels per second
-   * @param {{r: number, g: number, b: number, a: number}} config.rgba color object
+   * @param {{r: number, g: number, b: number, a: number}} config.color color object
    * @param {number} config.size radius of circle in unscaled tile pixels
    * @param {number} config.life lifetime in milliseconds
    *
@@ -29,7 +29,7 @@ class Particle {
     this.life = config.life || 0;
 
     this.rgba = { r: null, g: null, b: null, a: null };
-    this.setColor(config.rgba || { r: 139, g: 0, b: 139, a: 1 });
+    this.setColor(config.color);
 
     this.active = true;
   }

@@ -19,6 +19,7 @@ import { blinkSpecial } from '../creatures/specials/all/blink.js';
 import { ArrayUtil } from '../tools/arrayutil.js';
 import Fist from '../weapons/fist.js';
 import { Particle } from '../map/particle.js';
+import { gold, purple } from '../../assets/colors.js';
 
 const TILE_SIZE = 64;
 
@@ -63,10 +64,10 @@ export default class Game {
         // do charm
         let controlled = this.player.charm(monster);
         const count = 16;
-        this.addSimpleParticles(count, monster.tile.x, monster.tile.y);
+        this.addSimpleParticles(count, monster.tile.x, monster.tile.y, purple);
         if (controlled) {
           this.charmMonster(monster);
-          this.addSimpleParticles(count * 2, monster.tile.x, monster.tile.y);
+          this.addSimpleParticles(count * 2, monster.tile.x, monster.tile.y, gold);
         }
         // tick
         this.tick();
@@ -761,20 +762,41 @@ export default class Game {
     });
 
     // small particle burst to show player where they are
-    setTimeout(() => this.addSimpleParticles(24, this.player.tile.x, this.player.tile.y), 300);
+    setTimeout(() => this.addSimpleParticles(24, this.player.tile.x, this.player.tile.y, gold), 150);
 
   }
 
-  addSimpleParticles(count, tileX, tileY, offsetX = 0, offsetY = 0) {
+  /**
+   *
+   * @param {*} count
+   * @param {*} tileX
+   * @param {*} tileY
+   * @param {{r: number, g: number, b: number, a: number}} color
+   * @param {boolean} isColorVaried
+   * @param {*} offsetX
+   * @param {*} offsetY
+   */
+  addSimpleParticles(count, tileX, tileY, color, isColorVaried = true, offsetX = 0, offsetY = 0) {
     const baseSpeed = this.renderer.tileSize / 4000;
     // add particles here
     for (let idx = 0; idx < count; idx++) {
       let xSpeed = Rng.anyIn(-1, 1) * Rng.inFloatRange(baseSpeed * 0.75, baseSpeed * 1.25);
       let ySpeed = Rng.anyIn(-1, 1) * Rng.inFloatRange(baseSpeed * 0.75, baseSpeed * 1.25);
-      let life = Rng.inRange(333, 650);
+      let life = Rng.inRange(250, 500);
       let size = Rng.inFloatRange(2, 5);
+
+      // slight color variation per particle?
+      color = { ...color };
+      if (isColorVaried) {
+        const variance = 15;
+        ['r', 'g', 'b'].forEach(prop => {
+          color[prop] = Math.min(255, Math.max(0, color[prop] + Rng.inRange(-variance, variance)));
+        });
+      }
+
       let config = {
         tilePos: { x: tileX, y: tileY },
+        color: color,
         offset: { x: offsetX, y: offsetY },
         speed: { x: xSpeed, y: ySpeed },
         life,

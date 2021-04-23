@@ -1,3 +1,4 @@
+import { blood } from '../../assets/colors.js';
 import BloodItem from '../items/all/blood.js';
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 import Fist from '../weapons/fist.js';
@@ -217,10 +218,15 @@ export default class Creature {
     this.weapon.lastParryTurn = this.game.turnCount + (this.isPlayer ? 0 : 1);
     this.canParry = false;
 
-    this.hp -= dmg - parry;
+    let finalDmg = dmg - parry;
+    this.hp -= finalDmg;
     this.dead = this.hp <= 0;
 
     this.playerKilled = attacker?.isPlayer || false;
+
+    if (finalDmg > 0) {
+      this.game.addSimpleParticles(Math.min(16, finalDmg * 2), this.tile.x, this.tile.y, blood);
+    }
 
     return parry;
   }
