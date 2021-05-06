@@ -29,7 +29,7 @@ export default class Renderer {
 
   autoScale() {
     let fullSize = ((this.tileSize * this.numTiles) / window.devicePixelRatio);
-    let maxSize = 0.75 * (Math.min(window.innerWidth, window.innerHeight) / window.devicePixelRatio);
+    let maxSize = 0.95 * (Math.min(window.innerWidth, window.innerHeight) / window.devicePixelRatio);
     let scale = maxSize / fullSize;
 
     this.setScale(scale, scale);
