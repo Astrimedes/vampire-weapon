@@ -26,6 +26,7 @@ export default class Creature {
      * @param {number} options.currentHp starting hp vs. max hp
      */
   constructor(game, map, tile, spriteNumber, maxHp, weapon, options = {}) {
+    this.visible = true;
     this.game = game;
     this.map = map;
     this.firstWeapon = !weapon.isPlayer ? weapon : new Fist(game, map);

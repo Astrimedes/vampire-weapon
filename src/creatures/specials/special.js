@@ -38,7 +38,9 @@ export default class Special {
         if (success) {
           game.setInputState(InputStates.Move);
           game.resetInputActions();
-          this.usesAction && game.tick();
+          if (this.usesAction) game.tick();
+        } else {
+          game.callMessageDialog('That didn\'t work.');
         }
       };
     }

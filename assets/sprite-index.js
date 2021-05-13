@@ -7,11 +7,13 @@ const Sprite = {
     chump: 14,
     chumpDead: 15,
     spider: 16,
-    spiderDead: 17
+    spiderDead: 17,
+    witch: 21,
+    witchDead: 22
   },
   Weapon: {
     sword: 0,
-    fist: 12,
+    bolt: 12,
     fistDead: 13,
     axe: 24,
     spear: 25

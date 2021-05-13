@@ -20,6 +20,7 @@ import { ArrayUtil } from '../tools/arrayutil.js';
 import Fist from '../weapons/fist.js';
 import { Particle } from '../map/particle.js';
 import { gold, purple } from '../../assets/colors.js';
+import Witch from '../creatures/witch.js';
 
 const TILE_SIZE = 64;
 
@@ -365,13 +366,14 @@ export default class Game {
     this.monsters = [];
     this.nextMonsters = [];
 
-    let level, chumps, slimes, spiders, slowguys;
+    let level, chumps, slimes, spiders, slowguys, witches;
     level = levels[this.level];
     if (level) {
       chumps = level.chumps || 0;
       slimes = level.slimes || 0;
       spiders = level.spiders || 0;
       slowguys = level.slowguys || 0;
+      witches = level.witches || 0;
     } else {
       chumps = Rng.inRange(1, 3);
       slimes = Rng.inRange(1, 3);
@@ -389,6 +391,10 @@ export default class Game {
 
     for(let i = 0; i < slowguys; i++) {
       this.monsters.push(new SlowGuy(this, this.map, this.map.randomPassableTile()));
+    }
+
+    for(let i = 0; i < witches; i++) {
+      this.monsters.push(new Witch(this, this.map, this.map.randomPassableTile()));
     }
 
     // spiders - choose corners to begin
@@ -536,8 +542,10 @@ export default class Game {
 
         // draw corpses
         this.corpses.forEach(corpse => {
-          // this.renderer.drawSprite(Sprite.Feature.blood, corpse.x, corpse.y);
-          this.renderer.drawCreature(corpse);
+          if (corpse.visible) {
+            // this.renderer.drawSprite(Sprite.Feature.blood, corpse.x, corpse.y);
+            this.renderer.drawCreature(corpse);
+          }
         });
 
         // draw player
@@ -549,13 +557,18 @@ export default class Game {
 
         // monsters
         this.monsters.forEach(mon => {
-          this.renderer.drawCreature(mon, !this.player.animating && !stopAnimation); // monsters animate after player?
-          stopAnimation && mon.stopAnimation();
+          if (mon.visible) {
+            this.renderer.drawCreature(mon, !this.player.animating && !stopAnimation); // monsters animate after player?
+          }
+          stopAnimation || !mon.visible ? mon.stopAnimation() : null;
         });
 
         // draw highlighted tile
         if (this.selectedTile && this.gameState == GameState.Play) {
           this.renderer.drawTileRect(this.selectedTile.x, this.selectedTile.y, this.inputState.selectColor || 'green', 0.11);
+        }
+        if (this.selectedPath) {
+          this.renderer.drawTileRects(this.selectedPath, 'red', 0.25);
         }
 
         // draw particles

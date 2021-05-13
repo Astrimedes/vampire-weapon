@@ -2,6 +2,7 @@
 // eslint-disable-next-line no-unused-vars
 import { Tile, Floor, Wall, Exit, Shop } from './tile.js';
 import { Rng } from '../tools/randoms.js';
+import { MinHeap } from '../tools/minHeap.js';
 
 export default class Dungeon {
   generateLevel(numTiles, shop) {
@@ -27,16 +28,16 @@ export default class Dungeon {
     if (!exitAdded) throw 'Error in level generation - couldnt add exit tile';
 
     // add shop every 3rd floor?
-    if (shop) {
-      let shopAdded = false;
-      while (!shopAdded) {
-        let tile = this.getAdjacentNeighbors(this.randomPassableTile()).find(t => t.type == 'wall' && !t.creature);
-        if (tile) {
-          this.replaceTile(tile, Shop);
-          shopAdded = true;
-        }
-      }
-    }
+    // if (shop) {
+    //   let shopAdded = false;
+    //   while (!shopAdded) {
+    //     let tile = this.getAdjacentNeighbors(this.randomPassableTile()).find(t => t.type == 'wall' && !t.creature);
+    //     if (tile) {
+    //       this.replaceTile(tile, Shop);
+    //       shopAdded = true;
+    //     }
+    //   }
+    // }
 
 
     return exitAdded;
@@ -146,6 +147,10 @@ export default class Dungeon {
     return Math.abs(tileA.x-tileB.x)+Math.abs(tileA.y-tileB.y);
   }
 
+  distVector(tileA, tileB) {
+    return { x: tileA.x - tileB.x, y: tileA.y - tileB.y };
+  }
+
   /**
    * Counts diagonal tiles as 1 tile for range
    * @param {import('./tile').Tile} tileA
@@ -175,6 +180,84 @@ export default class Dungeon {
     }
 
     return newTile;
+  }
+
+  /**
+   *
+   * @param {import('./tile').Tile} startTile
+   * @param {import('./tile').Tile} endTile
+   * @param {function(import('./tile').Tile): number} tileCostFn function to determine move cost of tile (should be 0-100)
+   * @returns {Array<Tile>} pathArray
+   */
+  findPath(startTile, endTile, tileCostFn = t => { return !t.passable ? 100 : t.trapped ? 10 : 1; }) {
+  // frontier = PriorityQueue()
+  // frontier.put(start, 0)
+  // came_from = dict()
+  // cost_so_far = dict()
+  // came_from[start] = None
+  // cost_so_far[start] = 0
+    // while not frontier.empty():
+    //    current = frontier.get()
+
+    //    if current == goal:
+    //       break
+
+    //    for next in graph.neighbors(current):
+    //       new_cost = cost_so_far[current] + graph.cost(current, next)
+    //       if next not in cost_so_far or new_cost < cost_so_far[next]:
+    //          cost_so_far[next] = new_cost
+    //          priority = new_cost + heuristic(goal, next)
+    //          frontier.put(next, priority)
+    //          came_from[next] = current
+
+    // adapted from https://www.redblobgames.com/pathfinding/a-star/introduction.html
+
+    // frontier holds the list of new tiles found, in a queue sorted by least cost
+    let frontier = [];
+    MinHeap.push(frontier, [0, startTile]);
+    // destToSource: key = destination tile, value = source tile we came from
+    let destToSource = new Map();
+    destToSource.set(startTile.id, null);
+    // tileToCost: key = tile, value = cost to reach this tile so far
+    let tileToCost = new Map();
+    tileToCost.set(startTile.id, 0);
+
+    while (frontier.length) {
+      let current = MinHeap.pop(frontier)[1];
+
+      // break completely if we found our goal
+      if (current == endTile) break;
+
+      // iterate through neighbors
+      let neighbors = this.getAdjacentNeighbors(current);
+      neighbors.forEach(next => {
+        // get cost of this tile
+        let tileCost = tileCostFn(next);
+        if (tileCost < 100) {
+          let nextCost = (tileToCost.get(current.id)) + tileCost;
+          if (!tileToCost.has(next.id) || nextCost < tileToCost.get(next.id)) {
+            let priority = nextCost + (this.dist(current, endTile) * 10); // use estimate to help determine priority
+            MinHeap.push(frontier, [priority, next]);
+            destToSource.set(next.id, current);
+            tileToCost.set(next.id, nextCost);
+          }
+        }
+      });
+    }
+
+    // create best path from lowest value of frontier (start from end tile)
+    let path = [];
+    if (frontier.length) {
+      let tile = endTile;
+      while (tile.id != startTile.id) {
+        path.push(tile);
+        tile = destToSource.get(tile.id);
+      }
+    }
+    path.push(startTile);
+
+    // return reversed array
+    return path.reverse();
   }
 
   /**

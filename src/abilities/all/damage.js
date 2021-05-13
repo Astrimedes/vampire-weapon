@@ -15,7 +15,7 @@ export default class DamageAbility extends Ability {
     super({
       name: 'Damage',
       description: `Deal +${AMT} damage`,
-      cost: 5,
+      cost: 2,
       effectFn
     });
   }

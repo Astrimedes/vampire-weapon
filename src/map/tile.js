@@ -39,6 +39,8 @@ class Tile {
      * @type {Array<Item>} items
      */
     this.items = [];
+
+    this.id = `(${this.x},${this.y})`;
   }
 
   /**

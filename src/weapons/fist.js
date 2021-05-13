@@ -1,4 +1,3 @@
-import { Sprite } from '../../assets/sprite-index';
 import Weapon from './weapon';
 import weaponTypes from '../config/weaponTypes';
 
@@ -13,7 +12,7 @@ const baseParryFreq = weaponTypes[0].parryFrequency;
 export default class Fist extends Weapon {
   constructor(game, map, dmg = baseDamage, parry = baseParry, parryFreq = baseParryFreq, options = {}) {
     super(game, map, {
-      spriteNumber: Sprite.Weapon.fist,
+      spriteNumber: 0, // invisible
       reach: 1,
       parry: parry,
       parryFrequency: parryFreq,

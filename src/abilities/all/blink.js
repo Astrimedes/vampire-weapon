@@ -20,7 +20,7 @@ export default class BlinkAbility extends Ability {
     super({
       name: 'Blink',
       description: 'Spend blood to teleport',
-      cost: 10,
+      cost: 5,
       oneTime: true,
       effectFn
     });
