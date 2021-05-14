@@ -102,20 +102,7 @@ class InputReader {
       }
 
       const tile = game.renderer.getTileAt(e.clientX, e.clientY, game.map);
-      let last = game.selectedTile;
       game.selectedTile = tile && game.map.inBounds(tile.x, tile.y) ? tile : null;
-
-      // show the path
-      if (tile != last) {
-        let playerTile = game?.player?.wielder?.tile;
-        game.selectedPath = tile && playerTile ? game.map.findPath(playerTile, tile) : null;
-        if (game.selectedPath) {
-          console.log('start', game.player.wielder.tile.id);
-          console.log(game.selectedPath);
-          console.log('end', game.selectedTile.id);
-        }
-
-      }
     };
     canvas.onmousemove = mousemoveListen;
 

@@ -189,7 +189,7 @@ export default class Dungeon {
    * @param {function(import('./tile').Tile): number} tileCostFn function to determine move cost of tile (should be 0-100)
    * @returns {Array<Tile>} pathArray
    */
-  findPath(startTile, endTile, tileCostFn = t => { return !t.passable ? 100 : t.trapped ? 10 : 1; }) {
+  findPath(startTile, endTile, tileCostFn = t => { return !t.passable ? Infinity : t.trapped ? 10 : 1; }) {
   // frontier = PriorityQueue()
   // frontier.put(start, 0)
   // came_from = dict()
@@ -233,10 +233,10 @@ export default class Dungeon {
       neighbors.forEach(next => {
         // get cost of this tile
         let tileCost = tileCostFn(next);
-        if (tileCost < 100) {
+        if (tileCost < Infinity) {
           let nextCost = (tileToCost.get(current.id)) + tileCost;
           if (!tileToCost.has(next.id) || nextCost < tileToCost.get(next.id)) {
-            let priority = nextCost + (this.dist(current, endTile) * 10); // use estimate to help determine priority
+            let priority = nextCost + (this.dist(current, endTile)); // use estimate to help determine priority
             MinHeap.push(frontier, [priority, next]);
             destToSource.set(next.id, current);
             tileToCost.set(next.id, nextCost);

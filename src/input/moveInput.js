@@ -11,41 +11,6 @@ import { InputType } from './inputstate';
  */
 
 const moveTileCallback = (game, tile) => {
-  // advance by 1 when player tries to move when stunned
-  // if (game?.player?.wielder?.stunned || !game?.player?.wielder) return game.tick();
-
-  // // raw distance
-  // const xDist = tile.x - game.player.x;
-  // const yDist = tile.y - game.player.y;
-
-  // // raw direction
-  // let x = Math.sign(xDist);
-  // let y = Math.sign(yDist);
-
-  // if (x != 0 && y != 0) {
-  //   // if both directions indicated, check adjacent tiles, select a passable one
-  //   let neighbors = game.map.getAdjacentPassableNeighbors(game?.player?.wielder?.tile);
-  //   const xDest = game.player.x + x;
-  //   const yDest = game.player.y + y;
-  //   neighbors.filter(t => (t.x == xDest || t.y == yDest));
-  //   if (neighbors.length) {
-  //     let idx = 0;
-  //     // if we've chosen a 'diagonal' move...
-  //     if (neighbors[idx].x == xDest && neighbors[idx].y == yDest) {
-  //       idx = neighbors.length > 1 ? idx + 1 : -1;
-  //     }
-
-  //     x = neighbors[idx].x == xDest ? x : 0;
-  //     y = neighbors[idx].y == yDest ? y : 0;
-
-  //     if (idx == -1) {
-  //       // choose the longer distance
-  //       x = Math.abs(xDist) >= Math.abs(yDist) ? x : 0;
-  //       y = x == 0 ? y : 0;
-  //     }
-  //   }
-  // }
-
   let playerTile = game.player.wielder.tile;
   let path = game.map.findPath(playerTile, game.map.getTile(tile.x, tile.y));
   if (!path.length) return;
@@ -53,7 +18,7 @@ const moveTileCallback = (game, tile) => {
   // look at path's first tile after start tile
   let [x, y] = [path[1].x - playerTile.x, path[1].y - playerTile.y];
 
-  if (x == 0 && y == 0) return;
+  if (!x && !y) return;
 
   // finally move
   if (game.player.tryMove(x, y)) {

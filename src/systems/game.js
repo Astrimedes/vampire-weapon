@@ -567,9 +567,6 @@ export default class Game {
         if (this.selectedTile && this.gameState == GameState.Play) {
           this.renderer.drawTileRect(this.selectedTile.x, this.selectedTile.y, this.inputState.selectColor || 'green', 0.11);
         }
-        if (this.selectedPath) {
-          this.renderer.drawTileRects(this.selectedPath, 'red', 0.25);
-        }
 
         // draw particles
         this.renderer.drawAllParticles(msDiff);
