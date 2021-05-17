@@ -17,11 +17,13 @@ export default class Chump extends Creature {
       controlResist: 0,
       ...options
     });
-    this.allowedAttack = false;
+    // start very afraid
+    this.fear = 100;
   }
 
   tick() {
-    this.allowedAttack = this.allowedAttack || this.playerHit;
+    // always a little scared?
+    this.fear = Math.max(this.fear, 15);
     super.tick();
   }
 }

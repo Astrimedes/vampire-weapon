@@ -183,6 +183,28 @@ export default class Dungeon {
   }
 
   /**
+   * Find an in-bounds tile near x, y that meets function criteria
+   * @param {number} x
+   * @param {number} y
+   * @param {function(import('./tile').Tile): boolean?} selectFn  optional, with default: t => t.passable && !t.creature
+   * @returns {import('./tile').Tile?} tile that meets criteria, or null
+   */
+  findTileNear(x, y, selectFn = t => t.passable && !t.creature) {
+    let tile = this.getTile(Math.min(this.numTiles - 1, Math.max(0, x)), Math.min(this.numTiles - 1, Math.max(0, y)));
+    if (!tile) return null;
+
+    if (!selectFn(tile)) {
+      let neighbors = this.getAdjacentNeighbors(tile);
+      while (neighbors.length) {
+        tile = neighbors.pop();
+        if (selectFn(tile)) return tile;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    *
    * @param {import('./tile').Tile} startTile
    * @param {import('./tile').Tile} endTile
@@ -254,7 +276,6 @@ export default class Dungeon {
         tile = destToSource.get(tile.id);
       }
     }
-    path.push(startTile);
 
     // return reversed array
     return path.reverse();

@@ -6,7 +6,7 @@ let baseParry = baseDamage;
 let baseParryFreq = 3;
 
 let baseReach = 1;
-let baseHp = baseDamage;
+let baseHp = baseDamage * 3;
 
 let baseCharm = {
   power: 1,

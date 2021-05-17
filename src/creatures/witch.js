@@ -23,33 +23,59 @@ export default class Witch extends Creature {
   }
 
   act() {
-    if (this.isPlayer || this.hp <= 0) return false;
+    if (this.asleep || this.stunned || this.isPlayer) return;
 
-    // check distance to player
-    let map = this.game.map;
-    let dist = map.dist(this.tile, this.game.player.wielder.tile);
+    let path = this.findPathToPlayer(false);
+    let playerTile = path[path.length - 1];
 
-    // *** if player is too far, and this tile isnt' trapped, exit and 'wait' ***
-    if (!this.tile.trapped && dist > 6 && Rng.inFloatRange(0, 1) < 0.75) {
-      return true;
+    let tryAttack= this.fear < 100 && path.length > this.weapon.reach;
+    if (!tryAttack && playerTile) {
+      let alignedX = this.tile.x == playerTile.x;
+      let alignedY = this.tile.y == playerTile.y;
+      for (let i = 0; (alignedX || alignedY) && i < this.weapon.reach && i < path.length; i++) {
+        let t = path[i];
+        alignedX = alignedX && t.x == playerTile.x;
+        alignedY = alignedY && t.y == playerTile.y;
+      }
+      tryAttack = (alignedX || alignedY);
     }
 
-    // find path to player
-    const path = map.findPath(this.tile, this.game.player.wielder.tile);
-    let tile = path[1];
-    // if player is 1 square away, try choosing a tile not towards him...
-    return this.tryMove(tile.x - this.x, tile.y - this.y);
+    // set here to force behavior
+    this.allowedAttack = tryAttack;
+
+    // now run the usual logic
+    return super.act();
   }
 
+  // act() {
+  //   if (this.isPlayer || this.hp <= 0) return false;
+
+  //   let map = this.game.map;
+  //   // find path to player
+  //   const path = map.findPath(this.tile, this.game.player.wielder.tile);
+
+  //   // *** if player is too far, and this tile isnt' trapped, exit and 'wait' ***
+  //   if (!this.tile.trapped && path.length > 5 && Rng.inFloatRange(0, 1) < 0.75) {
+  //     return true;
+  //   }
+
+  //   let tile = path[0];
+  //   // if player is 1 square away, try choosing a tile not towards him...
+  //   return this.tryMove(tile.x - this.x, tile.y - this.y);
+  // }
+
   die(silent) {
-    let tile = this.tile;
-    let game = this.game;
+    if (!this.deathResolved) {
+      let tile = this.tile;
+      let game = this.game;
 
-    // turn off visible corpse
-    this.visible = false;
-    super.die(silent);
+      // turn off visible corpse
+      this.visible = false;
+      super.die(silent);
 
-    game.addSimpleParticles(24, tile.x, tile.y, { r: 50, g: 75, b: 150, a: 1 });
-    game.map.replaceTile(tile, Shop);
+      game.addSimpleParticles(24, tile.x, tile.y, { r: 50, g: 75, b: 150, a: 1 });
+      game.map.replaceTile(tile, Shop);
+    }
+
   }
 }

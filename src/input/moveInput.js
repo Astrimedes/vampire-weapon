@@ -12,16 +12,16 @@ import { InputType } from './inputstate';
 
 const moveTileCallback = (game, tile) => {
   let playerTile = game.player.wielder.tile;
+  if (!playerTile) return;
   let path = game.map.findPath(playerTile, game.map.getTile(tile.x, tile.y));
-  if (!path.length) return;
-
-  // look at path's first tile after start tile
-  let [x, y] = [path[1].x - playerTile.x, path[1].y - playerTile.y];
-
-  if (!x && !y) return;
-
+  let x = (path?.length ? path[0].x : tile.x) - playerTile.x;
+  let y = (path?.length ? path[0].y : tile.y) - playerTile.y;
+  if (x && y) {
+    x = Math.abs(x) > Math.abs(y) ? x : 0;
+    y = x ? 0 : y;
+  }
   // finally move
-  if (game.player.tryMove(x, y)) {
+  if (game.player.tryMove(Math.sign(x), Math.sign(y))) {
     return game.tick();
   }
 

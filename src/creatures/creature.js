@@ -1,6 +1,7 @@
 import { blood } from '../../assets/colors.js';
 import BloodItem from '../items/all/blood.js';
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
+import { Rng } from '../tools/randoms.js';
 import Fist from '../weapons/fist.js';
 
 let ID = 0;
@@ -9,8 +10,8 @@ export default class Creature {
   /**
      *
      * @param {import('../systems/game').default} game
-     * @param {Dungeon} map
-     * @param {Tile} tile
+     * @param {import('../map/map').default} map
+     * @param {import('../map/tile').Tile} tile
      * @param {number} spriteNumber
      * @param {number} maxHp
      * @param {import('../weapons/weapon').default} weapon
@@ -54,6 +55,10 @@ export default class Creature {
 
     this.curses = [];
 
+    // behavior
+    this.anger = 0;
+    this.fear = 0;
+    this.sleepy = 0;
     this.allowedAttack = true;
 
     // set these after move to prevent any initial animation
@@ -227,6 +232,12 @@ export default class Creature {
 
     if (finalDmg > 0) {
       this.game.addSimpleParticles(Math.min(16, finalDmg * 2), this.tile.x, this.tile.y, blood);
+    }
+    // fear
+    this.healthFrac = this.hp / this.maxHp;
+    if (this.healthFrac < 0.25) {
+      this.fear += finalDmg * 10;
+      console.log('fear added. fear: ' + this.fear);
     }
 
     return parry;
@@ -449,7 +460,7 @@ export default class Creature {
       // check for any non-sleeping, non-stunned monster in range - add player
       let wakers = Array.from(this.game.monsters);
       wakers.push(this.game?.player?.wielder);
-      let waker = wakers.find(m => m && !m.dead && !m.asleep && (m.isPlayer || m.stunned <= 0) && this.game.map.diagDist(this.tile, m.tile) <= this.noticeRange);
+      let waker = wakers.find(m => m && !m.dead && !m.asleep && (m.isPlayer || m.stunned <= 0) && this.game.map.findPath(this.tile, m.tile).length <= this.noticeRange);
       if (waker) {
         this.wake();
         return true;
@@ -509,38 +520,109 @@ export default class Creature {
       this.controlTurns++;
     }
 
+    let playerTile = this.game.player?.wielder?.tile;
+    if (!playerTile) return;
+
     if (this.weapon) {
       this.weapon.tick();
     }
 
-    this.playerHit = Math.max(this.playerHit - 1, 0);
+    // reduce fear by real distance to player
+    if (this.hp && this.hp > 0 && !this.isPlayer) {
+      let path = this.findPathToPlayer(false); // don't use cache
+      this.fear = Math.max(0, this.fear - (10 * path.length));
 
-    this.defending = false;
+      console.log('fear: ' + this.fear);
 
-    // resolve parry ability
-    if (!this.dead && !this.canParry) {
-      this.canParry = (this.game.turnCount - this.weapon.lastParryTurn) >= this.weapon.parryFrequency;
-      this.isPlayer && this.canParry && this.parry && this.game.hud.writeMessage('You are ready to parry attacks!');
+      this.playerHit = Math.max(this.playerHit - 1, 0);
+
+      this.defending = false;
+
+      // resolve parry ability
+      if (!this.dead && !this.canParry) {
+        this.canParry = (this.game.turnCount - this.weapon.lastParryTurn) >= this.weapon.parryFrequency;
+        this.isPlayer && this.canParry && this.parry && this.game.hud.writeMessage('You are ready to parry attacks!');
+      }
+
+      // do some planning & emotion-ing
+      this.healthFrac = Math.max(0, Math.min(1, this.hp / this.maxHp));
+
+      // determine fear
+      const minFear = 20;
+      this.allowedAttack = this.fear < minFear && this.healthFrac <= 0.2 || !(this.fear >= minFear && path.length <= 2);
     }
+  }
+
+  /**
+   * finds / uses cached path to player
+   * @param {boolean} useCache use cached lookup if available, defaults true
+   * @returns
+   */
+  findPathToPlayer(useCache = true) {
+    if (!useCache || !this?.lastPath?.length) {
+      let playerTile = this.game.player?.wielder?.tile;
+      if (!playerTile) return this.lastPath;
+
+      this.lastPath = this.map.findPath(this.tile, playerTile);
+    }
+    return this.lastPath;
+  }
+
+  /**
+   * Try to move to an adjacent square with custom sort fn for each tile neighbor
+   * @param {function(import("../map/tile").Tile, import("../map/tile").Tile):number} sortFn return -1 to sort A above, 1 to sort B above, 0 for equals.  Defaults to sort by player distance vs allowedAttack
+   * @returns
+   */
+  tryMoveAdjacent(sortFn) {
+    if (!sortFn) {
+      const player = this.game.player;
+      const creature = this;
+      sortFn = (a, b) => (creature.allowedAttack ? 1 : -1) * (creature.map.dist(a, player.tile) - creature.map.dist(b, player.tile));
+    }
+    let moved = false;
+    // move to a neighbor tile if we're still here, weighted by distance to player vs allowedAttack or not
+    let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => (t?.creature?.isPlayer != this.isPlayer) || t.passable || this.ignoreWalls);
+    if (seekTiles.length) {
+      seekTiles.sort(sortFn);
+      let idx = 0;
+      while (!moved && idx < seekTiles.length) {
+        moved = this.tryMove(seekTiles[idx].x - this.tile.x, seekTiles[idx].y - this.tile.y);
+        idx++;
+      }
+    }
+    return moved;
   }
 
   act() {
     let moved = false;
-    // seek player by default
-    if (!this.asleep && !this.stunned && !this.isPlayer) {
-      let seekTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => t?.creature?.isPlayer || t.passable || this.ignoreWalls);
-      if (seekTiles.length) {
-        let seekSign = this.allowedAttack ? 1 : -1;
-        seekTiles.sort((a,b) => {
-          return seekSign * (this.map.dist(a, this.game.player.tile) - this.map.dist(b, this.game.player.tile));
-        });
-        let idx = 0;
-        while (!moved && idx < seekTiles.length) {
-          moved = this.tryMove(seekTiles[idx].x - this.tile.x, seekTiles[idx].y - this.tile.y);
-          idx++;
-        }
-      }
+    if (this.asleep || this.stunned || this.isPlayer) return;
+
+    // move towards/attack if not afraid
+    let path = this.findPathToPlayer();
+    let moveTile = path ? path[0] : null;
+    if (!moveTile) return false;
+
+    if (this.allowedAttack) {
+      moved = this.tryMove(moveTile.x - this.tile.x, moveTile.y - this.tile.y);
+      if (moved) return moved;
     }
+
+    // try to move weighted according to allowedAttack & player dist by default
+    let adjTiles = this.map.getAdjacentNeighbors(this.tile);
+    let moveTiles = adjTiles.filter(t => (!t.creature && (t.passable || this.ignoreWalls)));
+    let atkTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => t?.creature?.isPlayer);
+
+    if (this.allowedAttack && atkTiles[0]) {
+      moveTile = atkTiles[0];
+      moved = this.tryMove(moveTile.x - this.tile.x, moveTile.y - this.tile.y);
+      if (moved) return moved;
+    }
+
+    for (let i = 0; i < moveTiles.length && !moved; i++) {
+      moveTile = moveTiles[i];
+      moved = moveTile && this.tryMove(moveTile.x - this.tile.x, moveTile.y - this.tile.y);
+    }
+
     return moved;
   }
 }
