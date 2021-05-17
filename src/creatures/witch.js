@@ -7,12 +7,12 @@ import { Rng } from '../tools/randoms.js';
 export default class Witch extends Creature {
   /**
    *
-   * @param {Game} game
+   * @param {import('../systems/game').default} game
    * @param {Dungeon} map
    * @param {Tile} tile
    */
   constructor(game, map, tile, weapon = new Bolt(game, map), options = {}) {
-    super(game, map, tile, Sprite.Creature.witch, 1, weapon, {
+    super(game, map, tile, Sprite.Creature.witch, (game.level || 1) * 2, weapon, {
       ignoreWalls: false,
       noticeRange: 4,
       controlResist: 0.75,

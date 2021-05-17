@@ -17,7 +17,7 @@ export default class HealthAbility extends Ability {
     super({
       name: 'Health',
       description: `All wielders +${AMT} health`,
-      cost: 5,
+      cost: 0,
       effectFn
     });
   }

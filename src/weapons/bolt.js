@@ -10,10 +10,10 @@ export default class Bolt extends Weapon {
   constructor(game, map, dmg = baseDamage, parry = 0, parryFreq = 0, options = {}) {
     super(game, map, {
       spriteNumber: Sprite.Weapon.bolt,
-      reach: 4,
+      reach: 1 + Math.floor(game.level/2),
       parry: parry,
       parryFrequency: parryFreq,
-      damage: dmg,
+      damage: dmg + Math.floor(game.level/2),
       drawSprite: true,
       ...options
     }, false);

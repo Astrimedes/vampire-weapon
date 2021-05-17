@@ -15,7 +15,7 @@ export default class Curse1Ability extends Ability {
     super({
       name: 'Curse Control',
       description: `Curse control power + ${AMT * 100}%`,
-      cost: 5,
+      cost: 0,
       effectFn
     });
   }

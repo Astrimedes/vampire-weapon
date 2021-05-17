@@ -1,7 +1,7 @@
 import Special from '../special';
 import { TargetType } from '../targetType';
 
-const COST = 4;
+const COST = 1;
 
 const blinkSpecial = new Special({
   name: 'Blink',

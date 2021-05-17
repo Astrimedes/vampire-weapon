@@ -15,7 +15,7 @@ export default class ParryAbility extends Ability {
     super({
       name: 'Parry',
       description: `Parry blocks +${AMT/2} damage`,
-      cost: 1,
+      cost: 0,
       effectFn
     });
   }
