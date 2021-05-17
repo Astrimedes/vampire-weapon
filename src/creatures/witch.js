@@ -2,7 +2,6 @@ import Creature from './creature.js';
 import { Sprite } from '../../assets/sprite-index.js';
 import Bolt from '../weapons/bolt.js';
 import { Shop } from '../map/tile.js';
-import { Rng } from '../tools/randoms.js';
 
 export default class Witch extends Creature {
   /**
@@ -28,7 +27,7 @@ export default class Witch extends Creature {
     let path = this.findPathToPlayer(false);
     let playerTile = path[path.length - 1];
 
-    let tryAttack= this.fear < 100 && path.length > this.weapon.reach;
+    let tryAttack= this.fear < 100 && path.length <= this.weapon.reach;
     if (!tryAttack && playerTile) {
       let alignedX = this.tile.x == playerTile.x;
       let alignedY = this.tile.y == playerTile.y;

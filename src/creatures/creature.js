@@ -574,10 +574,16 @@ export default class Creature {
    * @returns
    */
   tryMoveAdjacent(sortFn) {
+    let paths = {};
     if (!sortFn) {
       const player = this.game.player;
       const creature = this;
-      sortFn = (a, b) => (creature.allowedAttack ? 1 : -1) * (creature.map.dist(a, player.tile) - creature.map.dist(b, player.tile));
+      if (!player?.tile || !creature?.tile) return;
+      sortFn = (a, b) => {
+        paths[a.id] = creature.map.findPath(a, player.tile);
+        paths[b.id] = creature.map.findPath(b, player.tile);
+        return (creature.allowedAttack ? 1 : -1) * ((paths[a.id]?.length || 100) - (paths[b.id]?.length || 100));
+      };
     }
     let moved = false;
     // move to a neighbor tile if we're still here, weighted by distance to player vs allowedAttack or not
@@ -598,7 +604,7 @@ export default class Creature {
     if (this.asleep || this.stunned || this.isPlayer) return;
 
     // move towards/attack if not afraid
-    let path = this.findPathToPlayer();
+    let path = this.findPathToPlayer(false);
     let moveTile = path ? path[0] : null;
     if (!moveTile) return false;
 
@@ -607,22 +613,6 @@ export default class Creature {
       if (moved) return moved;
     }
 
-    // try to move weighted according to allowedAttack & player dist by default
-    let adjTiles = this.map.getAdjacentNeighbors(this.tile);
-    let moveTiles = adjTiles.filter(t => (!t.creature && (t.passable || this.ignoreWalls)));
-    let atkTiles = this.map.getAdjacentNeighbors(this.tile).filter(t => t?.creature?.isPlayer);
-
-    if (this.allowedAttack && atkTiles[0]) {
-      moveTile = atkTiles[0];
-      moved = this.tryMove(moveTile.x - this.tile.x, moveTile.y - this.tile.y);
-      if (moved) return moved;
-    }
-
-    for (let i = 0; i < moveTiles.length && !moved; i++) {
-      moveTile = moveTiles[i];
-      moved = moveTile && this.tryMove(moveTile.x - this.tile.x, moveTile.y - this.tile.y);
-    }
-
-    return moved;
+    return this.tryMoveAdjacent();
   }
 }
