@@ -254,7 +254,7 @@ export default class Dungeon {
       let neighbors = this.getAdjacentNeighbors(current);
       neighbors.forEach(next => {
         // get cost of this tile
-        let tileCost = tileCostFn(next);
+        let tileCost = next == endTile ? 0 : tileCostFn(next);
         if (tileCost < Infinity) {
           let nextCost = (tileToCost.get(current.id)) + tileCost;
           if (!tileToCost.has(next.id) || nextCost < tileToCost.get(next.id)) {

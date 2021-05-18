@@ -27,7 +27,7 @@ export default class Witch extends Creature {
     let path = this.findPathToPlayer(false);
     let playerTile = path[path.length - 1];
 
-    let tryAttack= this.fear < 100 && path.length <= this.weapon.reach || (this.map.getConnectedWithFilter(this.tile, t => (t.passable || this.ignoreWalls) || t?.creature?.isPlayer, 1)?.length == 1);
+    let tryAttack= this.fear < 100 && path.length <= this.weapon.reach || (this.map.getConnectedWithFilter(this.tile, t => (t.passable || this.ignoreWalls) || t?.creature?.isPlayer, 1)?.length < 2);
     if (!tryAttack && playerTile) {
       let alignedX = this.tile.x == playerTile.x;
       let alignedY = this.tile.y == playerTile.y;
