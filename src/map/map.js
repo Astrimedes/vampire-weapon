@@ -303,7 +303,7 @@ export default class Dungeon {
 
     while(frontier.length && distance < maxRange){
       let neighbors = frontier.pop();
-      neighbors = this.getAdjacentPassableNeighbors(neighbors)
+      neighbors = this.getAdjacentNeighbors(neighbors)
         .filter(t => t && !filteredTiles.includes(t) && filterFn(t));
 
       filteredTiles = filteredTiles.concat(neighbors);

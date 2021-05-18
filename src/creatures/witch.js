@@ -27,16 +27,18 @@ export default class Witch extends Creature {
     let path = this.findPathToPlayer(false);
     let playerTile = path[path.length - 1];
 
-    let tryAttack= this.fear < 100 && path.length <= this.weapon.reach;
+    let tryAttack= this.fear < 100 && path.length <= this.weapon.reach || (this.map.getConnectedWithFilter(this.tile, t => (t.passable || this.ignoreWalls) || t?.creature?.isPlayer, 1)?.length == 1);
     if (!tryAttack && playerTile) {
       let alignedX = this.tile.x == playerTile.x;
       let alignedY = this.tile.y == playerTile.y;
+      let alignCount = alignedX || alignedY ? 1 : 0;
       for (let i = 0; (alignedX || alignedY) && i < this.weapon.reach && i < path.length; i++) {
         let t = path[i];
         alignedX = alignedX && t.x == playerTile.x;
         alignedY = alignedY && t.y == playerTile.y;
+        if (alignedX || alignedY) alignCount++;
       }
-      tryAttack = (alignedX || alignedY);
+      tryAttack = alignCount > 2;
     }
 
     // set here to force behavior
