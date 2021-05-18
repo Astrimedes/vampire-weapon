@@ -97,7 +97,7 @@ export default class Creature {
 
     // parry normally controlled by weapon or defend action
     this.defending = false;
-    this.canParry = true;
+    // this.canParry = true;
 
     this.name = options.name || this.constructor.name;
 
@@ -203,11 +203,13 @@ export default class Creature {
     this.control += Math.max(0.1, charmObject.power - this.controlResist);
 
     // apply curse to self
-    charmObject.curse.effect(this);
-    this.game.hud.writeMessage(`${this.isPlayer ? 'You' : 'The ' + this.name} is CURSED with ${charmObject.curse.name}! (${Math.max(0, Math.round((1-this.control)*100))}% willpower)`);
-    // add to list of curse applied
-    this.curses = this.curses || [];
-    this.curses.push({ ...charmObject.curse });
+    // if (charmObject.curse) {
+    //   charmObject.curse.effect(this);
+    //   this.game.hud.writeMessage(`${this.isPlayer ? 'You' : 'The ' + this.name} is CURSED with ${charmObject.curse.name}! (${Math.max(0, Math.round((1-this.control)*100))}% willpower)`);
+    //   // add to list of curse applied
+    //   this.curses = this.curses || [];
+    //   this.curses.push({ ...charmObject.curse });
+    // }
 
     // return indicator of complete control
     return this.control >= 1;
@@ -215,14 +217,14 @@ export default class Creature {
 
   hit(dmg, attacker) {
     let parry = 0;
-    if ((this?.weapon?.parry && this.canParry) || this.defending) {
-      let weaponParry = Math.max(Math.floor((this.weapon.parry || 0) / 2), 1);
-      parry = Math.floor(Math.min(dmg, this.defending ? weaponParry + Math.max(1, weaponParry / 2) : weaponParry));
-    }
+    // if ((this?.weapon?.parry && this.canParry) || this.defending) {
+    //   let weaponParry = Math.max(Math.floor((this.weapon.parry || 0) / 2), 1);
+    //   parry = Math.floor(Math.min(dmg, this.defending ? weaponParry + Math.max(1, weaponParry / 2) : weaponParry));
+    // }
 
     // reset parry turn
-    this.weapon.lastParryTurn = this.game.turnCount + (this.isPlayer ? 0 : 1);
-    this.canParry = false;
+    // this.weapon.lastParryTurn = this.game.turnCount + (this.isPlayer ? 0 : 1);
+    // this.canParry = false;
 
     let finalDmg = dmg - parry;
     this.hp -= finalDmg;
@@ -539,10 +541,10 @@ export default class Creature {
       this.defending = false;
 
       // resolve parry ability
-      if (!this.dead && !this.canParry) {
-        this.canParry = (this.game.turnCount - this.weapon.lastParryTurn) >= this.weapon.parryFrequency;
-        this.isPlayer && this.canParry && this.parry && this.game.hud.writeMessage('You are ready to parry attacks!');
-      }
+      // if (!this.dead && !this.canParry) {
+      //   this.canParry = (this.game.turnCount - this.weapon.lastParryTurn) >= this.weapon.parryFrequency;
+      //   this.isPlayer && this.canParry && this.parry && this.game.hud.writeMessage('You are ready to parry attacks!');
+      // }
 
       // do some planning & emotion-ing
       this.healthFrac = Math.max(0, Math.min(1, this.hp / this.maxHp));

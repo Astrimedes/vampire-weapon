@@ -858,10 +858,10 @@ export default class Game {
     let str = this?.player?.wielder?.strength || 0;
     this.hud.setStatusField('Atk ', `${patk}${str >= 0 ? '+' : ''}${str}`, firstColor);
     // - parry
-    let parryCount = this?.player?.wielder?.canParry ? 0 : -Math.min(this.player.parryFrequency, this.player.parryFrequency - (this.turnCount - (this.player.lastParryTurn)));
-    let parryText = (parryCount >= 0 ? ('['+((this?.player?.parry || 0) + (this?.player?.wielder.agility || 0)))+']' : parryCount).toString();
-    let parryColor = parryCount >= 0 ? firstColor : dangerColor;
-    this.hud.setStatusField('Parry ', parryText, parryColor);
+    // let parryCount = this?.player?.wielder?.canParry ? 0 : -Math.min(this.player.parryFrequency, this.player.parryFrequency - (this.turnCount - (this.player.lastParryTurn)));
+    // let parryText = (parryCount >= 0 ? ('['+((this?.player?.parry || 0) + (this?.player?.wielder.agility || 0)))+']' : parryCount).toString();
+    // let parryColor = parryCount >= 0 ? firstColor : dangerColor;
+    // this.hud.setStatusField('Parry ', parryText, parryColor);
     // Weapon Stats
     // - maxHp
     this.hud.setStatusField('+MaxHP', this?.player?.maxHp, firstColor);
@@ -876,12 +876,12 @@ export default class Game {
     this.hud.setStatusField('> HP ', sign(health) + health, secondColor);
     let atk = (this?.player?.wielder?.strength || 0);
     this.hud.setStatusField('> Atk', sign(atk) + atk, secondColor);
-    let par = (this?.player?.wielder?.agility || 0);
-    this.hud.setStatusField('> Par', sign(par) + par, secondColor);
+    // let par = (this?.player?.wielder?.agility || 0);
+    // this.hud.setStatusField('> Par', sign(par) + par, secondColor);
     // curses - map unique values only
-    this.hud.addEmptyStatus('cursesSpace');
-    let curseString = this.parseCurses(this.player?.wielder?.curses || []);
-    this.hud.setStatusField('* Curses', curseString, secondColor);
+    // this.hud.addEmptyStatus('cursesSpace');
+    // let curseString = this.parseCurses(this.player?.wielder?.curses || []);
+    // this.hud.setStatusField('* Curses', curseString, secondColor);
 
     this.hud.addEmptyStatus('creatureSpace');
     // add wait button to hud
@@ -892,7 +892,7 @@ export default class Game {
       this.hud.addControl('Defend', 0, this.waitFunction, '#71b238');
 
       // charm button - disable if just charmed monster
-      this.hud.addControl('Curse', 0, this.charmFunction, 'blue');
+      this.hud.addControl('Charm', 0, this.charmFunction, 'blue');
 
       // Blink special move
       if (this.player.abilities.includes('Blink')) {

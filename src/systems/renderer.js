@@ -300,13 +300,13 @@ export default class Renderer {
       let xAmt = 0.3;
       let x = creature.getDisplayX() + 0.5;
       let y = creature.getDisplayY() + 0.2;
-      if (creature.canParry && creature?.weapon?.parry) {
-        this.drawSprite(Sprite.Icon.parry, x, y);
-        x -= xAmt;
-      } else {
-        this.drawSprite(Sprite.Icon.parryBroken, x, y);
-        x -= xAmt;
-      }
+      // if (creature.canParry && creature?.weapon?.parry) {
+      //   this.drawSprite(Sprite.Icon.parry, x, y);
+      //   x -= xAmt;
+      // } else {
+      //   this.drawSprite(Sprite.Icon.parryBroken, x, y);
+      //   x -= xAmt;
+      // }
       if (creature.isStunned()) {
         this.drawSprite(Sprite.Icon.stun, x, y);
         x -= xAmt;
