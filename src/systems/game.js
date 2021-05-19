@@ -149,6 +149,7 @@ export default class Game {
   resetInputActions() {
     this.inputState.reset();
     this.inputState.targetRange = 0;
+    this.targetRangeTiles = null;
   }
 
   /**
@@ -582,8 +583,12 @@ export default class Game {
       }
 
       if (this.inputState === InputStates.Target && this.inputState.targetRange) {
-        let tiles = this.map.getConnectedWithFilter(this?.player?.wielder?.tile, undefined, this.inputState.targetRange);
-        this.renderer.drawTileRects(tiles);
+        if (!this.targetRangeTiles) {
+          this.targetRangeTiles = this.map.getConnectedWithFilter(this?.player?.wielder?.tile, undefined, this.inputState.targetRange);
+          // remove center tile (should always be 0 element) where player is standing
+          this.targetRangeTiles.splice(0, 1);
+        }
+        this.renderer.drawTileRects(this.targetRangeTiles);
       }
 
       // draw title

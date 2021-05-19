@@ -8,7 +8,7 @@ let allAbilities = [];
 
 
 const getStartingAbilities = () => {
-  allAbilities = [new DamageAbility(), new ParryAbility(), new BlinkAbility(), new Curse1Ability(), new HealthAbility()];
+  allAbilities = [new DamageAbility(), new BlinkAbility(), new Curse1Ability(), new HealthAbility()];
   return allAbilities;
 };
 

@@ -296,21 +296,29 @@ export default class Dungeon {
    * @param {function(import('../map/tile').Tile):boolean} filterFn function to qualify tile.
    * @param {number} maxRange max range (or Infinity)
    */
-  getConnectedWithFilter(centerTile, filterFn = () => true, maxRange = Infinity) {
-    let filteredTiles = [centerTile];
+  getConnectedWithFilter(centerTile, filterFn = () => true, maxRange = 100) {
+    let matchedTiles = [centerTile];
     let frontier = [centerTile];
-    let distance = 0;
 
-    while(frontier.length && distance < maxRange){
-      let neighbors = frontier.pop();
-      neighbors = this.getAdjacentNeighbors(neighbors)
-        .filter(t => t && !filteredTiles.includes(t) && filterFn(t));
+    while (frontier.length) {
+      // tile of interest
+      let tile = frontier.pop();
 
-      filteredTiles = filteredTiles.concat(neighbors);
-      frontier = frontier.concat(neighbors);
-      distance++;
+      // connected tiles
+      let matchNeighbors = this.getAdjacentNeighbors(tile).filter(t => t && !matchedTiles.includes(t) && filterFn(t));
+      // add connected & matched tiles
+      matchedTiles = matchedTiles.concat(matchNeighbors);
+
+      // see if we should keep checking
+      let nextDist = this.dist(centerTile, tile) + 1;
+      if (nextDist < maxRange) {
+        frontier = frontier.concat(matchNeighbors);
+      }
     }
-    return filteredTiles;
+
+    // remove centerTile before returning results
+    // matchedTiles.splice(0, 1);
+    return matchedTiles;
 
   }
 }
