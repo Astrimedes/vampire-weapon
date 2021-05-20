@@ -21,6 +21,7 @@ import Fist from '../weapons/fist.js';
 import { Particle } from '../map/particle.js';
 import { gold, purple } from '../../assets/colors.js';
 import Witch from '../creatures/witch.js';
+import { InputType } from '../input/inputstate.js';
 
 const TILE_SIZE = 64;
 
@@ -314,6 +315,9 @@ export default class Game {
       };
 
       // create player
+      /**
+       * @type {import('../weapons/player').default} player
+       */
       this.player = new Player(this, this.map, playerConfig);
       // create player body
       let BodyCreature = currentPlayer?.wielder?.constructor || Chump;
@@ -565,8 +569,21 @@ export default class Game {
         });
 
         // draw highlighted tile
-        if (this.selectedTile && this.gameState == GameState.Play) {
-          this.renderer.drawTileRect(this.selectedTile.x, this.selectedTile.y, this.inputState.selectColor || 'green', 0.11);
+        if (this.selectedTile && this.gameState == GameState.Play && this.inputState == InputStates.Move) {
+          // if tile has a creature, show attack range
+          /**
+           * @type {import('../creatures/creature').default} creature
+           */
+          let creature = this.selectedTile.creature && this.selectedTile.creature.hp > 0 && this.selectedTile.creature?.weapon?.reach ? this.selectedTile.creature : null;
+          if (this.selectedTilePath) {
+            let color = 'blue';
+            let alpha = 0.22;
+            if (creature) {
+              color = 'red';
+              alpha = 0.22;
+            }
+            this.renderer.drawTileRects(this.selectedTilePath, color, alpha);
+          }
         }
 
         // draw particles

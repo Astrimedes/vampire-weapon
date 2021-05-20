@@ -204,6 +204,10 @@ export default class Dungeon {
     return null;
   }
 
+  getCreatureTileCostFn(creature) {
+    return t => (creature.ignoreWalls || t.passable) ? (t.trapped ? 10 : 1) : Infinity;
+  }
+
   /**
    *
    * @param {import('./tile').Tile} startTile
@@ -233,6 +237,7 @@ export default class Dungeon {
     //          came_from[next] = current
 
     // adapted from https://www.redblobgames.com/pathfinding/a-star/introduction.html
+    if (!startTile || !endTile) return null;
 
     // frontier holds the list of new tiles found, in a queue sorted by least cost
     let frontier = [];
@@ -287,6 +292,17 @@ export default class Dungeon {
    */
   getConnectedTiles(tile){
     return this.getConnectedWithFilter(tile, t => t.passable);
+  }
+
+  /**
+   * Get horiztonal or veritcal tiles from center tile in range range
+   * @param {Tile} tile
+   * @param {number} range
+   * @param {function(Tile):boolean} filterFn
+   * @returns
+   */
+  getConnectedFacingTiles(tile, range = 100, filterFn = () => true ) {
+    return this.getConnectedWithFilter(tile, t => t.x == tile.x || t.y == tile.y, range)?.filter(t => filterFn(t));
   }
 
 

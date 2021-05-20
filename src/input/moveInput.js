@@ -13,7 +13,7 @@ import { InputType } from './inputstate';
 const moveTileCallback = (game, tile) => {
   let playerTile = game.player.wielder.tile;
   if (!playerTile) return;
-  let path = game.map.findPath(playerTile, game.map.getTile(tile.x, tile.y));
+  let path = game.map.findPath(playerTile, game.map.getTile(tile.x, tile.y), game.map.getCreatureTileCostFn(game.player.wielder));
   let x = (path?.length ? path[0].x : tile.x) - playerTile.x;
   let y = (path?.length ? path[0].y : tile.y) - playerTile.y;
   if (x && y) {

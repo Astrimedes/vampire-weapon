@@ -8,7 +8,7 @@ const blinkSpecial = new Special({
   targetType: TargetType.Tile,
   useCost: COST,
   usesAction: true,
-  range: 2,
+  range: 3,
   /**
    *
    * @param {import('../../creature').default} self

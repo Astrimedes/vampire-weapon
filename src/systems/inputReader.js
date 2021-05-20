@@ -92,6 +92,12 @@ class InputReader {
 
       const tile = game.map ? game.renderer.getTileAt(e.clientX, e.clientY, game.map) : null;
       game.sendUserTileSelect(tile);
+
+      // prompt path to redraw?
+      if (!('ontouchstart' in canvas)) {
+        canvas.onmousemove(e);
+      }
+
     };
     canvas.onmousedown = mousedownListen;
 
@@ -101,8 +107,31 @@ class InputReader {
         return;
       }
 
-      const tile = game.renderer.getTileAt(e.clientX, e.clientY, game.map);
-      game.selectedTile = tile && game.map.inBounds(tile.x, tile.y) ? tile : null;
+      // find tile
+      let newTile = game.renderer.getTileAt(e.clientX, e.clientY, game.map);
+      if (newTile && !game.map.inBounds(newTile.x, newTile.y)) newTile = null;
+      let oldTile = game.selectedTile;
+
+      // update changes based on selection
+      game.selectedTile = newTile || null;
+
+      // exit early - no new tile, clear
+      if (!newTile) {
+        game.selectedTilePath = null;
+        return;
+      }
+
+      // exit early - new and old tile id match, exit only
+      if (newTile.id == oldTile?.id && game.selectedTilePath) {
+        return;
+      }
+
+      // here we actually query
+      if (newTile.creature) {
+        game.selectedTilePath = game.map.getConnectedFacingTiles(newTile, newTile.creature.weapon.reach, t => t !== newTile);
+      } else {
+        game.selectedTilePath = game.map.findPath(game.player.tile, newTile, game.map.getCreatureTileCostFn(game.player.wielder));
+      }
     };
     canvas.onmousemove = mousemoveListen;
 
