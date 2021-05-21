@@ -3,6 +3,7 @@
 import { Tile, Floor, Wall, Exit, Shop } from './tile.js';
 import { Rng } from '../tools/randoms.js';
 import { MinHeap } from '../tools/minHeap.js';
+import Game from '../systems/game.js';
 
 export default class Dungeon {
   generateLevel(numTiles, shop) {
@@ -301,8 +302,52 @@ export default class Dungeon {
    * @param {function(Tile):boolean} filterFn
    * @returns
    */
-  getConnectedFacingTiles(tile, range = 100, filterFn = () => true ) {
-    return this.getConnectedWithFilter(tile, t => t.x == tile.x || t.y == tile.y, range)?.filter(t => filterFn(t));
+  getConnectedFacingTiles(tile, range = 100, filterFn) {
+    if (!filterFn) filterFn = () => true;
+    let path = [];
+    let t = null;
+    let steps;
+    // right
+    t = this.getTile(tile.x + 1, tile.y);
+    steps = 0;
+    while (t && steps < range && this.inBounds(t.x, t.y) && filterFn(t)) {
+      let last = t;
+      path.push(last);
+      t = this.getTile(last.x + 1, last.y);
+      steps++;
+    }
+
+    // left
+    t = this.getTile(tile.x - 1, tile.y);
+    steps = 0;
+    while (t && steps < range && this.inBounds(t.x, t.y) && filterFn(t)) {
+      let last = t;
+      path.push(last);
+      t = this.getTile(last.x - 1, last.y);
+      steps++;
+    }
+
+    // down
+    t = this.getTile(tile.x, tile.y + 1);
+    steps = 0;
+    while (t && steps < range && this.inBounds(t.x, t.y) && filterFn(t)) {
+      let last = t;
+      path.push(last);
+      t = this.getTile(last.x, last.y + 1);
+      steps++;
+    }
+
+    // up
+    t = this.getTile(tile.x, tile.y - 1);
+    steps = 0;
+    while (t && steps < range && this.inBounds(t.x, t.y) && filterFn(t)) {
+      let last = t;
+      path.push(last);
+      t = this.getTile(last.x, last.y - 1);
+      steps++;
+    }
+
+    return path;
   }
 
 

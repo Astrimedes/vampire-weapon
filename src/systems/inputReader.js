@@ -109,29 +109,7 @@ class InputReader {
 
       // find tile
       let newTile = game.renderer.getTileAt(e.clientX, e.clientY, game.map);
-      if (newTile && !game.map.inBounds(newTile.x, newTile.y)) newTile = null;
-      let oldTile = game.selectedTile;
-
-      // update changes based on selection
-      game.selectedTile = newTile || null;
-
-      // exit early - no new tile, clear
-      if (!newTile) {
-        game.selectedTilePath = null;
-        return;
-      }
-
-      // exit early - new and old tile id match, exit only
-      if (newTile.id == oldTile?.id && game.selectedTilePath) {
-        return;
-      }
-
-      // here we actually query
-      if (newTile.creature) {
-        game.selectedTilePath = game.map.getConnectedFacingTiles(newTile, newTile.creature.weapon.reach, t => t !== newTile);
-      } else {
-        game.selectedTilePath = game.map.findPath(game.player.tile, newTile, game.map.getCreatureTileCostFn(game.player.wielder));
-      }
+      game.setSelectedTile(newTile);
     };
     canvas.onmousemove = mousemoveListen;
 

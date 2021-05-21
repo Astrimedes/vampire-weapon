@@ -465,6 +465,33 @@ export default class Game {
     this.updateHud();
   }
 
+  setSelectedTile(newTile) {
+    if (newTile && !this.map.inBounds(newTile.x, newTile.y)) newTile = null;
+    let oldTile = this.selectedTile;
+
+    // update tile here
+    this.selectedTile = newTile || null;
+
+    // exit early - no new tile, clear
+    if (!newTile) {
+      this.selectedTilePath = null;
+      return;
+    }
+
+    // exit early - new and old tile id match, exit only
+    if (newTile.id == oldTile?.id && this.selectedTilePath) {
+      return;
+    }
+
+    // here we actually query
+    if (newTile.creature) {
+      this.selectedTilePath = this.map.getConnectedFacingTiles(newTile, newTile.creature.weapon.reach,
+        t => t !== newTile && (t.passable == newTile.passable || this.map.dist(newTile, t) == 1));
+    } else {
+      this.selectedTilePath = this.map.findPath(this.player.tile, newTile, this.map.getCreatureTileCostFn(this.player.wielder));
+    }
+  }
+
   spawnExit () {
     let tile = this.map.randomPassableTile();
     this.exitSpawned = true;
