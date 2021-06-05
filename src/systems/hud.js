@@ -3,13 +3,20 @@ const getControlName = name => `hud-ctrl-${name?.toString()}`;
 const getEmptyName = name => `hud-empty-${name?.toString()}`;
 
 const createField = (id, label, value, color) => {
-  return `<pre id="${id}" style="color:${color};margin:0px">${label}${(value || 0).toString().padStart(3)}</pre>`;
+  return `<pre id="${id}" style="color:${color};margin:0px;">${label}${(value || 0).toString().padStart(3)}</pre>`;
 };
 
 const createControl = (id, label, cost, color) => {
   return `<div id=${id} style="display: flex; justify-content: space-between;">
-  <span><button id="${id}-btn" data-cost=${cost} style="color:${color};" class="button">${label}</button></span>
-  <span style="font-size: 0.5em; align-text: right;"><p>Cost: ${cost}</p></span>
+  <span><button id="${id}-btn" data-cost=${cost} style="color:${color}; margin:-0.5em;" class="button">${label}</button></span>
+  <span style="font-size: 0.5em; align-text: right; margin: 0.5em;"><p>Cost: ${cost}</p></span>
+  </div>`;
+};
+
+const createEmptyControl = (id) => {
+  return `<div id=${id} style="display: flex; justify-content: space-between;">
+   <span style="font-size: 0.5em; align-text: left; margin: 0.5em;"><p> </p></span>
+    <span style="font-size: 0.5em; align-text: right; margin: 0.5em;"><p> </p></span>
   </div>`;
 };
 
@@ -147,6 +154,26 @@ export default class HeadsUpDisplay {
       btn.onclick = callback;
       // avoid control buttons being triggered with space
       btn.onkeyup = e => e.preventDefault();
+    }
+  }
+
+  addEmptyControl(name) {
+    const id = getControlName(name);
+
+    let eleControl = document.getElementById(id);
+
+    if (!eleControl) {
+      let wrapper = eleControl?.parentElement;
+      if (!wrapper) {
+        wrapper = document.createElement('div');
+        let controlsParent = document.getElementById(this.controlsId);
+        controlsParent.appendChild(wrapper);
+      }
+      wrapper.innerHTML = createEmptyControl(id);
+      eleControl = wrapper.firstChild;
+
+      // set controls / costs
+      this.controls[id] = null;
     }
   }
 

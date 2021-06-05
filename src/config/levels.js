@@ -3,13 +3,14 @@ const SIZE = 13;
 const levels = {
   1: {
     size: SIZE,
-    slimes: 1,
-    witches: 0
+    slimes: 0,
+    chumps: 1,
+    witches: 1
   },
   2: {
     size: SIZE,
-    chumps: 1,
-    slimes: 0,
+    chumps: 0,
+    slimes: 1,
     witches: 1
   },
   3: {
@@ -18,7 +19,7 @@ const levels = {
     slimes: 1,
     spiders: 1,
     slowguys: 0,
-    witches: 0
+    witches: 1
   },
   4: {
     size: SIZE,
@@ -32,9 +33,9 @@ const levels = {
     size: SIZE,
     chumps: 1,
     slimes: 1,
-    spiders: 1,
-    slowguys: 1,
-    witches: 1
+    spiders: 0,
+    slowguys: 0,
+    witches: 2
   },
   6: {
     size: SIZE,

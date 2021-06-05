@@ -23,7 +23,7 @@ const weaponTypes = [
     drawSprite: true,
     maxHp: baseHp,
     charmConfig: { ...baseCharm },
-    energy: 125
+    energy: 75
   },
   {
     name: 'axe',
@@ -35,7 +35,7 @@ const weaponTypes = [
     drawSprite: true,
     maxHp: baseHp,
     charmConfig: { ...baseCharm },
-    energy: 100
+    energy: 50
   },
   {
     name: 'spear',
@@ -47,7 +47,7 @@ const weaponTypes = [
     drawSprite: true,
     maxHp: baseHp,
     charmConfig: { ...baseCharm },
-    energy: 75
+    energy: 25
   }
 ];
 

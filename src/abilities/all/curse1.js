@@ -13,8 +13,8 @@ const effectFn = player => {
 export default class Curse1Ability extends Ability {
   constructor() {
     super({
-      name: 'Curse Control',
-      description: `Curse control power + ${AMT * 100}%`,
+      name: 'Charm Power',
+      description: `Charm ${AMT * 100}% more powerful`,
       cost: 0,
       effectFn
     });

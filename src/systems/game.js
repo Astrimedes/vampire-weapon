@@ -944,12 +944,16 @@ export default class Game {
     // this.hud.setStatusField('* Curses', curseString, secondColor);
 
     this.hud.addEmptyStatus('creatureSpace');
+
     // add wait button to hud
     if (clearAll || this.effectsUpdated) {
       this.hud.clearAllControl();
 
       // add wait button to hud
       this.hud.addControl('Wait', 0, this.waitFunction, '#71b238');
+
+      // add space
+      this.hud.addEmptyControl('afterWait');
 
       // charm button - disable if just charmed monster
       this.hud.addControl('Charm', CHARM_COST, this.charmFunction, 'blue');

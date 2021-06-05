@@ -7,8 +7,8 @@ export default class Special {
    *
    * @param {object} options
    * @param {string} options.name
-   * @param {number} options.targetType
-   * @param {selfEffect | creatureEffect | tileEffect} options.effectFn
+   * @param {number} options.targetType specify TargetType.Tile to use TargetType.tileEffect effectFn
+   * @param {function(import('../creature').default, import('../creature').default | import('../../map/tile').Tile, ):boolean} options.effectFn
    * @param {boolean} options.usesAction whether it uses a turn
    * @param {number} options.useCost energy cost to use
    * @param {number} options.range range in tiles if applicable
@@ -22,7 +22,13 @@ export default class Special {
     this.targetType = targetType;
     this.effectFn = effectFn;
     this.useCost = useCost || 0;
-    this.range = range || 0;
+
+    this.range = range;
+    // if range is fn...
+    if (typeof (range) == 'function') {
+      this.range = 0;
+      // wait until we calculate range the first time
+    }
 
     this.usesAction = usesAction !== undefined ? !!usesAction : true;
 
@@ -67,7 +73,7 @@ export default class Special {
 /**
  * Effect that targets a creature
  * @callback creatureEffect
- * @param {import('../creature').default} self
+ * @param {} self
  * @param {import('../creature').default} creature
  */
 
