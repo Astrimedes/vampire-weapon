@@ -3,10 +3,9 @@
 import { Tile, Floor, Wall, Exit, Shop } from './tile.js';
 import { Rng } from '../tools/randoms.js';
 import { MinHeap } from '../tools/minHeap.js';
-import Game from '../systems/game.js';
 
 export default class Dungeon {
-  generateLevel(numTiles, shop) {
+  generateLevel(numTiles) {
     this.numTiles = numTiles;
     let success = false;
     let tries = 0;
@@ -27,18 +26,6 @@ export default class Dungeon {
       }
     }
     if (!exitAdded) throw 'Error in level generation - couldnt add exit tile';
-
-    // add shop every 3rd floor?
-    // if (shop) {
-    //   let shopAdded = false;
-    //   while (!shopAdded) {
-    //     let tile = this.getAdjacentNeighbors(this.randomPassableTile()).find(t => t.type == 'wall' && !t.creature);
-    //     if (tile) {
-    //       this.replaceTile(tile, Shop);
-    //       shopAdded = true;
-    //     }
-    //   }
-    // }
 
 
     return exitAdded;

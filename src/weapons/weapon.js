@@ -57,6 +57,8 @@ export default class Weapon {
   }
 
   setFromTemplate(weaponType) {
+    this.template = { ...weaponType };
+
     // damage dealt
     this.dmg = getValue(weaponType.damage, 1);
 

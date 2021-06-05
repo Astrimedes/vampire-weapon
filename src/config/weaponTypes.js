@@ -9,11 +9,7 @@ let baseReach = 1;
 let baseHp = baseDamage * 3;
 
 let baseCharm = {
-  power: 1,
-  curses: [
-    { name: 'weak', effect: target => target.strength = (target.strength || 0) - 1 },
-    { name: 'slow', effect: target => target.agility = (target.agility || 0) - 1 }
-  ]
+  power: 1
 };
 
 const weaponTypes = [
@@ -22,36 +18,36 @@ const weaponTypes = [
     reach: baseReach,
     damage: baseDamage,
     parry: baseParry,
-
     parryFrequency: baseParryFreq,
     spriteNumber: Sprite.Weapon.sword,
     drawSprite: true,
     maxHp: baseHp,
-    charmConfig: { ...baseCharm }
+    charmConfig: { ...baseCharm },
+    energy: 125
   },
   {
     name: 'axe',
     reach: baseReach,
     damage: baseDamage * 1.5,
     parry: baseParry,
-
     parryFrequency: baseParryFreq,
     spriteNumber: Sprite.Weapon.axe,
     drawSprite: true,
     maxHp: baseHp,
-    charmConfig: { ...baseCharm }
+    charmConfig: { ...baseCharm },
+    energy: 100
   },
   {
     name: 'spear',
     reach: baseReach * 2,
     damage: baseDamage,
     parry: baseParry * 0.5,
-
     parryFrequency: baseParryFreq,
     spriteNumber: Sprite.Weapon.spear,
     drawSprite: true,
     maxHp: baseHp,
-    charmConfig: { ...baseCharm }
+    charmConfig: { ...baseCharm },
+    energy: 75
   }
 ];
 

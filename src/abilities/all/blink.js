@@ -19,7 +19,7 @@ export default class BlinkAbility extends Ability {
   constructor() {
     super({
       name: 'Blink',
-      description: 'Spend blood to teleport',
+      description: 'Spend energy to teleport',
       cost: 0,
       oneTime: true,
       effectFn

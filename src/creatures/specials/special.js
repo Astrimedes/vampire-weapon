@@ -10,7 +10,7 @@ export default class Special {
    * @param {number} options.targetType
    * @param {selfEffect | creatureEffect | tileEffect} options.effectFn
    * @param {boolean} options.usesAction whether it uses a turn
-   * @param {number} options.useCost blood cost to use
+   * @param {number} options.useCost energy cost to use
    * @param {number} options.range range in tiles if applicable
    */
   constructor(options) {

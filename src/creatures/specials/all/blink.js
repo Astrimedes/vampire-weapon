@@ -16,7 +16,7 @@ const blinkSpecial = new Special({
    */
   effectFn: (self, tile) => {
     console.log(`Blink fn called: self: ${self}, tile: ${tile}`);
-    if (tile.passable && !tile.creature) {
+    if ((tile.passable || self.ignoreWalls) && !tile.creature) {
       // check distance
       if (self.game.map.diagDist(self.tile, tile) > blinkSpecial.range) return false;
 
@@ -25,9 +25,9 @@ const blinkSpecial = new Special({
       let verb = self.isPlayer ? 'teleport' : 'teleports';
       self.game.hud.writeMessage(`${name} ${verb}!`);
 
-      // deduct blood cost
+      // deduct energy cost
       if (self.isPlayer) {
-        self.hp -= COST;
+        self.weapon.energy -= COST;
       }
       return true;
     }

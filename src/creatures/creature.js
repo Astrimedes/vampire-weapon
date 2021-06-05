@@ -1,7 +1,6 @@
 import { blood } from '../../assets/colors.js';
 import BloodItem from '../items/all/blood.js';
 import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
-import { Rng } from '../tools/randoms.js';
 import Fist from '../weapons/fist.js';
 
 let ID = 0;
@@ -201,15 +200,6 @@ export default class Creature {
   charm(charmObject) {
     // apply charm
     this.control += Math.max(0.1, charmObject.power - this.controlResist);
-
-    // apply curse to self
-    // if (charmObject.curse) {
-    //   charmObject.curse.effect(this);
-    //   this.game.hud.writeMessage(`${this.isPlayer ? 'You' : 'The ' + this.name} is CURSED with ${charmObject.curse.name}! (${Math.max(0, Math.round((1-this.control)*100))}% willpower)`);
-    //   // add to list of curse applied
-    //   this.curses = this.curses || [];
-    //   this.curses.push({ ...charmObject.curse });
-    // }
 
     // return indicator of complete control
     return this.control >= 1;

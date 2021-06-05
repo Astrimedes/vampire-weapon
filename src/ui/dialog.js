@@ -144,7 +144,7 @@ class Dialog {
       return `
       <label style="${style}" for="field-${i}">
         <input type="radio" id="field-${i}" name="${DATA_FIELD}" value="${a.name}" required ${disabled} class="${disabled ? CLASS_HIDDEN : ''}">
-        <label class="dlg-label" for="field-${i}">${a.name}: ${a.description} [-${a.cost} 💉]</label>
+        <label class="dlg-label" for="field-${i}">${a.name}: ${a.description}</label>
         <br></br>
       </label>
       `;

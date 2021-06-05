@@ -76,6 +76,20 @@ export default class HeadsUpDisplay {
   }
 
   /**
+   * Set status with color determined by fraction of max, using array of colors for range
+   * @param {string|{id: string, label: string}} name
+   * @param {number} value
+   * @param {number} maxValue
+   * @param {string[] | string} colorArray
+   */
+  setStatusWithConditionColor(name, value, maxValue, colorArray) {
+    let fraction = maxValue > 0 ? (value || 0) / maxValue : 0;
+    let step = 1.0 / (colorArray.length - 1);
+    let color = Array.isArray(colorArray) ? colorArray[Math.floor(fraction / step)] : colorArray;
+    return this.setStatusField(name, `${value}/${maxValue}`, color);
+  }
+
+  /**
    *
    * @param {string|{id: string, label: string}} name
    * @param {string} value

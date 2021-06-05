@@ -21,9 +21,10 @@ import Fist from '../weapons/fist.js';
 import { Particle } from '../map/particle.js';
 import { gold, purple } from '../../assets/colors.js';
 import Witch from '../creatures/witch.js';
-import { InputType } from '../input/inputstate.js';
 
 const TILE_SIZE = 64;
+
+const CHARM_COST = 25;
 
 const assets = {};
 
@@ -55,11 +56,10 @@ export default class Game {
         return this.sendUserAction(Actions.ok);
       }
 
-      const COST = 0;
-      if ((this?.player?.wielder?.hp || 0) < COST + 1) {
-        return this.callMessageDialog(`Curse costs ${COST} health!`);
+      const COST = CHARM_COST;
+      if ((this?.player?.energy || 0) < COST) {
+        return this.callMessageDialog(`Charm costs ${COST} ENERGY!`);
       }
-      this.player.wielder.hp -= COST;
 
       // charm fn
       const curseFn = (monster) => {
@@ -71,6 +71,8 @@ export default class Game {
           this.charmMonster(monster);
           this.addSimpleParticles(count * 2, monster.tile.x, monster.tile.y, gold);
         }
+        // subtract energy
+        this.player.energy = Math.max(0, this.player.energy - COST);
         // tick
         this.tick();
       };
@@ -311,7 +313,8 @@ export default class Game {
         maxHp: currentPlayer?.maxHp || 0,
         currentHp: currentPlayer?.wielder?.hp ? (Math.max(currentPlayer.wielder.hp - (currentPlayer.maxHp || 0), 1)) : undefined,
         abilities: currentPlayer?.abilities || [],
-        charmConfig: currentPlayer?.charmConfig || this?.weaponConfig?.charmConfig || weaponTypes[0]?.charmConfig || []
+        charmConfig: currentPlayer?.charmConfig || this?.weaponConfig?.charmConfig || weaponTypes[0]?.charmConfig || [],
+        energy: currentPlayer?.template?.energy || this?.weaponConfig?.energy || weaponTypes[0]?.energy
       };
 
       // create player
@@ -354,6 +357,9 @@ export default class Game {
     player.tile = tile;
     player.x = tile.x;
     player.y = tile.y;
+
+    // recharge energy
+    player.energy = player.template.energy;
 
     let wielder = player.wielder;
     wielder.spawnTurn = 0;
@@ -575,7 +581,6 @@ export default class Game {
         // draw corpses
         this.corpses.forEach(corpse => {
           if (corpse.visible) {
-            // this.renderer.drawSprite(Sprite.Feature.blood, corpse.x, corpse.y);
             this.renderer.drawCreature(corpse);
           }
         });
@@ -688,7 +693,7 @@ export default class Game {
 
     let text = this.abilities.length ? 'Choose an ability:' : 'No abilities';
 
-    // update hud for blood total
+    // update hud for energy total
     this.updateHud();
 
     // setup dialog
@@ -706,18 +711,18 @@ export default class Game {
           }
 
           // hp cost
-          this.player.wielder.hp -= ability.cost;
+          // this.player.wielder.hp -= ability.cost;
 
           // apply ability
           this.player.addAbility(ability);
 
           // ** now increase cost?
-          ability.cost += Math.round(ability.cost / 2);
+          // ability.cost += Math.round(ability.cost / 2);
 
           // disable shop tile after purchase
           this?.player?.wielder?.tile?.deactivate();
 
-          // update ui for new blood total etc
+          // update ui for new energy total etc
           this.updateHud(true);
           this.setGameState(this.lastGameState);
         }
@@ -742,9 +747,9 @@ export default class Game {
     let dlgSettings = {
       type: 'prompt',
       message,
-      fields: [{ label: 'Sword [Parry+]', value: 'sword' },
+      fields: [{ label: 'Sword [Energy+]', value: 'sword' },
         { label: 'Axe [Damage+]', value: 'axe' },
-        { label: 'Spear [Reach+]', value: 'spear' }],
+        { label: 'Spear [Reach+,Energy-]', value: 'spear' }],
       submit: (data) => {
         if (!data) return;
         this.setupPlayerFromConfig(weaponTypes.find(wt => wt.name == data));
@@ -885,27 +890,33 @@ export default class Game {
       this.hud.clearAllStatus();
     }
 
-    let infoColor = 'gray';
-    this.hud.setStatusField('Level', this.level, infoColor);
-    // this.hud.setStatusField('Blood:', this?.player?.blood || 0, infoColor);
-    this.hud.addEmptyStatus('section1');
-
+    let firstColor = 'green';
     let dangerColor = 'yellow';
+    let lastColor = 'red';
+
+    this.hud.addEmptyStatus('section1');
 
     // Derived Stats
     // - health
-    let firstColor = 'darkgreen';
+
     let wielder = this?.player?.wielder;
     let hp = this.gameState == GameState.GameOver ? 0 : wielder?.hp || 0;
     let maxHp = hp ? wielder?.maxHp || 0 : 0;
-    let fraction = maxHp > 0 ? hp / maxHp : 0;
-    this.hud.setStatusField('HP', ` ${hp}/${maxHp}`, fraction > 0.5 ? firstColor : dangerColor);
+    this.hud.setStatusWithConditionColor('HP ', hp, maxHp, [lastColor, dangerColor, firstColor]);
+
+    // energy
+    let energy = this?.player?.energy || 0;
+    let maxEnergy = this?.player?.template?.energy || 0;
+    this.hud.setStatusWithConditionColor('ENERGY ', energy, maxEnergy, [lastColor, dangerColor, firstColor]);
+
     this.hud.addEmptyStatus('section2');
+
+    let infoColor = 'gray';
 
     // - attack
     let patk = this?.player?.dmg || 0;
     let str = this?.player?.wielder?.strength || 0;
-    this.hud.setStatusField('Atk ', `${patk}${str >= 0 ? '+' : ''}${str}`, firstColor);
+    this.hud.setStatusField('Atk ', `${patk}${str >= 0 ? '+' : ''}${str}`, infoColor);
     // - parry
     // let parryCount = this?.player?.wielder?.canParry ? 0 : -Math.min(this.player.parryFrequency, this.player.parryFrequency - (this.turnCount - (this.player.lastParryTurn)));
     // let parryText = (parryCount >= 0 ? ('['+((this?.player?.parry || 0) + (this?.player?.wielder.agility || 0)))+']' : parryCount).toString();
@@ -913,18 +924,18 @@ export default class Game {
     // this.hud.setStatusField('Parry ', parryText, parryColor);
     // Weapon Stats
     // - maxHp
-    this.hud.setStatusField('+MaxHP', this?.player?.maxHp, firstColor);
+    this.hud.setStatusField('+MaxHP', this?.player?.maxHp, infoColor);
 
     this.hud.addEmptyStatus('section3');
 
     // wielder stats
-    let secondColor = 'darkcyan';
-    this.hud.setStatusField({ id: 'creature', label: '' }, this?.player?.wielder?.name || '', secondColor);
+    let statsColor = 'steelblue';
+    this.hud.setStatusField({ id: 'creature', label: '' }, this?.player?.wielder?.name || '', statsColor);
     let sign = num => num >= 0 ? '+' : '';
     let health = this?.player?.wielder?.origMaxHp || 0;
-    this.hud.setStatusField('> HP ', sign(health) + health, secondColor);
+    this.hud.setStatusField('> HP ', sign(health) + health, statsColor);
     let atk = (this?.player?.wielder?.strength || 0);
-    this.hud.setStatusField('> Atk', sign(atk) + atk, secondColor);
+    this.hud.setStatusField('> Atk', sign(atk) + atk, statsColor);
     // let par = (this?.player?.wielder?.agility || 0);
     // this.hud.setStatusField('> Par', sign(par) + par, secondColor);
     // curses - map unique values only
@@ -938,10 +949,10 @@ export default class Game {
       this.hud.clearAllControl();
 
       // add wait button to hud
-      this.hud.addControl('Defend', 0, this.waitFunction, '#71b238');
+      this.hud.addControl('Wait', 0, this.waitFunction, '#71b238');
 
       // charm button - disable if just charmed monster
-      this.hud.addControl('Charm', 0, this.charmFunction, 'blue');
+      this.hud.addControl('Charm', CHARM_COST, this.charmFunction, 'blue');
 
       // Blink special move
       if (this.player.abilities.includes('Blink')) {
@@ -970,7 +981,7 @@ export default class Game {
       this.effectsUpdated = false;
     }
 
-    this.hud.updateControls(this?.player?.wielder?.hp || 0);
+    this.hud.updateControls(this?.player?.energy || 0);
 
     // disable curse conditionally
     let curseControl = this.hud.getControlElement('Curse');

@@ -12,9 +12,6 @@ export default class BloodItem extends Item {
       effectFn: (i, c) => {
         if (c.hp >= c.maxHp || !c?.weapon?.isPlayer) return false;
 
-        // pick up blood
-        c.weapon.blood += i.blood;
-
         // heal - 25% of creature health
         // const heal = Math.min(c.maxHp - c.hp, Math.max(2, Math.floor((c.maxHp - c.weapon.maxHp) * 0.25)));
         const heal = i.blood;

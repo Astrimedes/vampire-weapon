@@ -4,6 +4,10 @@ import { lerp, easeOut, easeIn } from '../tools/mathutil.js';
 import { Rng } from '../tools/randoms.js';
 import Weapon from './weapon.js';
 
+const getValue = (value, defaultValue) => {
+  return value === undefined || value === null ? defaultValue : value;
+};
+
 export default class Player extends Weapon {
   /**
      *
@@ -19,8 +23,15 @@ export default class Player extends Weapon {
     super(game, map, wpnOptions, true);
     this.isPlayer = true;
 
-    this.blood = playerConfig.blood || 0;
+    /**
+     * @type {number} energy
+     */
+    this.energy = playerConfig.energy;
+    /**
+     * @type {number} speed
+     */
     this.speed = playerConfig.speed || 0;
+
     this.charmConfig = { ...wpnOptions.charmConfig };
 
     // array of names of abilities player has chosen
@@ -29,6 +40,11 @@ export default class Player extends Weapon {
 
   setFromTemplate(weaponType) {
     super.setFromTemplate(weaponType);
+
+    this.energy = getValue(weaponType.energy, 100);
+    if (!this.template.energy) {
+      this.template.energy = this.energy;
+    }
 
     this.charmConfig = { ...weaponType.charmConfig };
   }
@@ -64,9 +80,7 @@ export default class Player extends Weapon {
    * @param {import('../creatures/creature').default} creature
    */
   charm(creature) {
-    // pick a curse
-    let curse = Rng.any(this.charmConfig.curses);
-    const charmHit = { curse, power: this.charmConfig.power };
+    const charmHit = { power: this.charmConfig.power };
     let charmed = creature.charm(charmHit);
 
     // this.game.hud.writeMessage(`You CURSE the ${creature.name}...`);
