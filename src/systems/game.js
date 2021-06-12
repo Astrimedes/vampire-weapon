@@ -1002,8 +1002,6 @@ export default class Game {
   initDom() {
     // create & hide hud
     this.hud = new HeadsUpDisplay(this, 'hud', 'hud-status', 'hud-controls', 'msg-display');
-
-    this.hud.hide();
   }
 
   init() {
